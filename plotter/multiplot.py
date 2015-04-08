@@ -2,7 +2,7 @@ import ROOT
 
 # todo: replace with 'style.sethisttopmargin()'
 def increaseMinMax( minimum, maximum ):
-     if not ROOT.gPad and ROOT.gPad.GetLogy():
+    if not ROOT.gPad and ROOT.gPad.GetLogy():
         maximum = 2.5*maximum
         minimum = 0.3*minimum
     else:

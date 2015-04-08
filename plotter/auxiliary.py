@@ -12,7 +12,6 @@ def getFromFile( filename, objectname ):
 
     return obj
 
-
 def randomName():
     # Returns a random alphanumeric string
     return "%x"%(randint(0, maxint))
@@ -23,7 +22,30 @@ def TH1F_binning( name, title, binEdges ):
     binEdgesArray = array.array( "d", binEdges )
     return ROOT.TH1F( name, ";%s;Events"%xVar.title, len(binEdgesArray)-1, binEdgesArray )
 
-class Label():
+def createHistoFromTree( tree, variable, weight, nBins=20, xmin=0, xmax=0 ):
+    name = randomName()
+    if isinstance( nBins, list ):
+        result = TH1F_binning( name, variable, nBins )
+    else:
+        result = ROOT.TH1F( name, variable, nBins, xmin, xmax )
+    tree.Draw("%s>>%s"%(variable, name), weight, "goff")
+    return result
+
+def sumSq( *items )
+    return sqrt( sum( [i**2 for i in items ] ) )
+
+def mergeBins( h, dest, source ):
+    h.SetBinContent( dest, h.GetBinContent( dest ) + h.GetBinContent( source ) )
+    h.SetBinError( dest, sumSq( h.GetBinError( dest ), h.GetBinError( source ) ) )
+
+def appendFlowBin( h, under=True, over=True ):
+    if under:
+        mergeBins( h, 1, 0 )
+    if over:
+        mergeBins( h, h.GetNbinsX(), h.GetNbinsX()+1 )
+
+
+class Label:
     # Create labels
     # Usage:
     # * With Labels(), all default labels will be printed
@@ -32,10 +54,11 @@ class Label():
     cmsEnergy = 13 #TeV
     lumi = 19.7 # fb^{-1}
 
-    cms = ROOT.TLatex( ROOT.gPad.GetLeftMargin()+0.02, .895, "#font[61]{CMS}")
-    sim = ROOT.TLatex( ROOT.gPad.GetLeftMargin()+0.02, .89, "#scale[0.76]{#font[52]{Simulation}")
-    pub = ROOT.TLatex( ROOT.gPad.GetLeftMargin()+0.02, .885, "#scale[0.76]{#font[52]{Private Work}")
+    cms = ROOT.TLatex( 0.02, .895, "#font[61]{CMS}")
+    sim = ROOT.TLatex( 0.02, .89, "#scale[0.76]{#font[52]{Simulation}")
+    pub = ROOT.TLatex( 0.02, .885, "#scale[0.76]{#font[52]{Private Work}")
     lum = ROOT.TLatex( .68, .895, "%s fb^{-1} (%s TeV)"%(lumi, cmsEnergy) )
+    # todo: include margins, etc
 
     def draw( self ):
         varDict = vars( self )
