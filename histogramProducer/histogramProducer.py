@@ -24,6 +24,14 @@ class BaseHistograms:
         self.h_j3_pt = ROOT.TH1F( "", ";p_{T}^{3.jet} (GeV)", 100, 0, 1500 )
         self.h_j3_eta = ROOT.TH1F( "", ";#eta^{3.jet}", 100, -3, 3 )
 
+        self.h_bj1_pt = ROOT.TH1F( "", ";p_{T}^{1.b-jet} (GeV)", 100, 0, 1500 )
+        self.h_bj1_eta = ROOT.TH1F( "", ";#eta^{1.b-jet}", 100, -3, 3 )
+        self.h_bj2_pt = ROOT.TH1F( "", ";p_{T}^{2.b-jet} (GeV)", 100, 0, 1500 )
+        self.h_bj2_eta = ROOT.TH1F( "", ";#eta^{2.b-jet}", 100, -3, 3 )
+        self.h_bj3_pt = ROOT.TH1F( "", ";p_{T}^{3.b-jet} (GeV)", 100, 0, 1500 )
+        self.h_bj3_eta = ROOT.TH1F( "", ";#eta^{3.b-jet}", 100, -3, 3 )
+
+
         self.h_dphi_met_g = ROOT.TH1F( "", ";#Delta#phi(E_{T}^{miss},#gamma)", 100, -3.5, 3.5 )
         self.h_dphi_met_j1 = ROOT.TH1F( "", ";#Delta#phi(E_{T}^{miss},1.jet)", 100, -3.5, 3.5 )
         self.h_dphi_met_j2 = ROOT.TH1F( "", ";#Delta#phi(E_{T}^{miss},2.jet)", 100, -3.5, 3.5 )
@@ -32,7 +40,8 @@ class BaseHistograms:
         self.h_n_vertex = ROOT.TH1F( "", ";Vertices", 61, -0.5, 60.5 )
         self.h_n_photon = ROOT.TH1F( "", ";Photons", 4, -0.5, 3.5 )
         self.h_n_jet = ROOT.TH1F( "", ";Jets", 13, -0.5, 12.5 )
-        self.h_n_electron = ROOT.TH1F( "", ";Muons", 4, -0.5, 3.5 )
+        self.h_n_bjet = ROOT.TH1F( "", ";B Jets", 13, -0.5, 12.5 )
+        self.h_n_electron = ROOT.TH1F( "", ";Electrons", 4, -0.5, 3.5 )
         self.h_n_muon = ROOT.TH1F( "", ";Muons", 4, -0.5, 3.5 )
 
         # jet matching
@@ -40,7 +49,9 @@ class BaseHistograms:
         self.h2_match_jet_electron = ROOT.TH2F( "", ";#Delta R;p_{T}^{jet}/p_{T}^{e}", 100, 0, 0.5, 100, 0, 4 )
         self.h2_match_jet_muon = ROOT.TH2F( "", ";#Delta R;p_{T}^{jet}/p_{T}^{#mu}", 100, 0, 0.5, 100, 0, 4 )
 
-        self.profile_g_pt_met = ROOT.TProfile( "", ";E^{miss}_{T} (GeV);p_{T} (GeV)", 1000, 0, 1000 )
+        self.profile_g_pt_met = ROOT.TProfile( "", ";E^{miss}_{T} (GeV);#LTp_{T}#GT (GeV)", 100, 0, 1000 )
+        self.profile_ht_met = ROOT.TProfile( "", ";E^{miss}_{T} (GeV);#LTH_{T}#GT (GeV)", 100, 0, 1000 )
+        self.profile_jets_met = ROOT.TProfile( "", ";E^{miss}_{T} (GeV);#LTJets#GT", 100, 0, 1000 )
 
         for name, obj in self.__dict__.items():
             obj.SetName( name+nameSuffix )
@@ -50,6 +61,12 @@ class BaseHistograms:
         ht = 0
         ht_g = 0
         st = 0
+        bjets = []
+
+        for jet in event.jets:
+            if jet.bDiscriminator>0:
+                bjets.append( jet )
+
 
         for jet in event.jets:
             ht += jet.p.Pt()
@@ -88,9 +105,20 @@ class BaseHistograms:
             self.h_j3_pt.Fill( event.jets.at(2).p.Pt(), event.pu_weight )
             self.h_j3_eta.Fill( event.jets.at(2).p.Eta(), event.pu_weight )
 
+        if len(bjets) > 0:
+            self.h_bj1_pt.Fill( bjets[0].p.Pt(), event.pu_weight )
+            self.h_bj1_eta.Fill( bjets[0].p.Eta(), event.pu_weight )
+        if len(bjets) > 1:
+            self.h_bj2_pt.Fill( bjets[1].p.Pt(), event.pu_weight )
+            self.h_bj2_eta.Fill( bjets[1].p.Eta(), event.pu_weight )
+        if len(bjets)> 2:
+            self.h_bj3_pt.Fill( bjets[2].p.Pt(), event.pu_weight )
+            self.h_bj3_eta.Fill( bjets[2].p.Eta(), event.pu_weight )
+
         self.h_n_vertex.Fill( event.nGoodVertices, event.pu_weight )
         self.h_n_photon.Fill( event.photons.size(), event.pu_weight )
         self.h_n_jet.Fill( event.jets.size(), event.pu_weight )
+        self.h_n_bjet.Fill( len(bjets), event.pu_weight )
         self.h_n_electron.Fill( event.electrons.size(), event.pu_weight )
         self.h_n_muon.Fill( event.muons.size(), event.pu_weight )
 
@@ -105,7 +133,9 @@ class BaseHistograms:
 
 
         # profiles
-        self.profile_g_pt_met.Fill( event.photons.at(0).p.Pt(), event.met.p.Pt() )
+        self.profile_g_pt_met.Fill( event.met.p.Pt(), event.photons.at(0).p.Pt() )
+        self.profile_g_pt_met.Fill( event.met.p.Pt(), ht )
+        self.profile_jets_met.Fill( event.met.p.Pt(), event.jets.size() )
 
     def save( self, filename ):
         f = ROOT.TFile( filename, "update" )
