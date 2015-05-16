@@ -1,6 +1,11 @@
 
+// start with root -l -q run.C
+// Using ROOT6
 void run() {
 
+  // Shared libray should be produced with compiling
+  // https://github.com/cms-susy-photon-rwth-1b/TreeWriter
+  // The lib should be in the CMSSW lib path
   gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
 
   TChain ch( "TreeWriter/eventTree" );

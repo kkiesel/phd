@@ -3,7 +3,7 @@ INCS = -I$(shell root-config --incdir) -I.
 
 WARN = -Wall -Wshadow
 
-OBJ = main.o TreeFriendProducer.o TreeObjects.o
+OBJ = main.o #TreeFriendProducer.o TreeObjects.o
 EXE = TreeFriendProducer
 
 
