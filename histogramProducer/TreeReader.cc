@@ -14,7 +14,8 @@
 class BaseHistograms;
 
 class TreeReader : public TSelector {
-
+ private:
+  static map<string,int> bTaggingWorkingPoints8TeV;
  public:
 
   TreeReader();
@@ -49,6 +50,14 @@ class TreeReader : public TSelector {
   vector<tree::Muon*> selMuons;
 
   BaseHistograms* baseHistograms;
+  BaseHistograms* looseCuts;
+  BaseHistograms* tightPhoton;
+};
+
+map<string,int> TreeReader::bTaggingWorkingPoints8TeV = {
+  { "CSVL", 0.244 },
+  { "CSVM", 0.679 },
+  { "CSVT", 0.989 }
 };
 
 class BaseHistograms {
@@ -112,14 +121,10 @@ class BaseHistograms {
     float w = *(tr.w);
 
     auto metAndL = tr.met->p;
-//    printf("met = %f\n", tr.met->p.Pt() );
-//    printf("n ele = %i\n", (int)(tr.selElectrons.size()) );
-//    if( tr.selElectrons.size() > 0 )
-//      printf("lepton pt = = %f\n", tr.selElectrons.at(0)->p.Pt() );
-//    for( auto l : tr.selElectrons )
-//      metAndL = metAndL + l->p;
-//    for( auto& l : tr.selMuons )
-//      metAndL += l->p;
+    for( auto l : tr.selElectrons )
+      metAndL = metAndL + l->p;
+    for( auto& l : tr.selMuons )
+      metAndL += l->p;
 
     float ht = 0;
     for( auto& j : tr.selJets )
@@ -131,9 +136,6 @@ class BaseHistograms {
 
     float st = ht_g + tr.met->p.Pt();
 
-
-
-
     h["h_met"].Fill( tr.met->p.Pt(), w );
     h["h_metAndL"].Fill( metAndL.Pt(), w );
 
@@ -144,7 +146,7 @@ class BaseHistograms {
     if( tr.selPhotons.size() > 0 ) {
       h["h_mt_g_met"].Fill( (tr.selPhotons[0]->p + tr.met->p).Pt(), w );
       h["h_g_pt"].Fill( tr.met->p.Pt(), w );
-      h["h_g_eta"].Fill( tr.met->p.Pt(), w );
+      h["h_g_eta"].Fill( tr.met->p.Eta(), w );
     }
 
     if( tr.selJets.size() > 2 ) {
@@ -237,36 +239,92 @@ void TreeReader::Init(TTree *tree)
 void TreeReader::SlaveBegin(TTree *tree)
 {
   baseHistograms = new BaseHistograms();
+  looseCuts = new BaseHistograms();
+  tightPhoton = new BaseHistograms();
 }
 
 Bool_t TreeReader::Process(Long64_t entry)
 {
-  if( entry > 3 ) return true;
+//  if( entry > 3 ) return true;
   if( entry > 20000 ) return true;
   if(!( entry%1000 )) printf( "%lli / %lli\n", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
 
+  if( photons.GetSize() ) {
   for( auto& photon : photons ) {
     selPhotons.push_back( &photon );
   }
+  }
+  if( jets.GetSize() ) {
   for( auto& jet : jets ) {
     selJets.push_back( &jet );
   }
+  }
+  if( jets.GetSize() ) {
   for( auto& jet : jets ) {
     selBJets.push_back( &jet );
   }
+  }
+  if( muons.GetSize() ) {
   for( auto& mu : muons ) {
     selMuons.push_back( &mu );
   }
-  printf("original e size %hi\n", electrons.GetSize() );
+  }
+  if( electrons.GetSize() ) {
   for( auto& el : electrons ) {
-    printf("filling e\n" );
     selElectrons.push_back( &el );
   }
-  printf("sel  e size %hi\n", selElectrons.size() );
-
+  }
   baseHistograms->fill( *this );
+
+  // New selection ============================================================
   resetSelection();
+
+  if( photons.GetSize() ) {
+  for( auto& photon : photons ) {
+    if( !photon.isLoose ) continue;
+    selPhotons.push_back( &photon );
+  }
+  }
+  if( jets.GetSize() ) {
+  for( auto& jet : jets ) {
+    if( !jet.isLoose ) continue;
+    selJets.push_back( &jet );
+  }
+  }
+  if( jets.GetSize() ) {
+  for( auto& jet : jets ) {
+    if( !jet.isLoose || jet.bDiscriminator < bTaggingWorkingPoints8TeV["CSVL"] ) continue;
+    selBJets.push_back( &jet );
+  }
+  }
+  if( muons.GetSize() ) {
+  for( auto& mu : muons ) {
+    selMuons.push_back( &mu );
+  }
+  }
+  if( electrons.GetSize() ) {
+  for( auto& el : electrons ) {
+    if( !el.isLoose ) continue;
+    selElectrons.push_back( &el );
+  }
+  }
+  if( selPhotons.size() )
+    looseCuts->fill( *this );
+
+  // New photon id ============================================================
+  selPhotons.clear();
+
+  if( photons.GetSize() ) {
+  for( auto& photon : photons ) {
+    if( !photon.isTight ) continue;
+    selPhotons.push_back( &photon );
+  }
+  }
+  if( selPhotons.size() )
+    tightPhoton->fill( *this );
+
+
 
   return kTRUE;
 }
@@ -275,6 +333,8 @@ void TreeReader::Terminate()
 {
   TFile file("out.root", "update");
   baseHistograms->save();
+  looseCuts->save("loose");
+  tightPhoton->save("tightPhoton");
 }
 
 void TreeReader::resetSelection() {
