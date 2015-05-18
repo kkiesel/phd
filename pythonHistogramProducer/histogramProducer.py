@@ -173,6 +173,7 @@ if __name__ == "__main__":
     filenames = [ "photon_ntuple_mva_mini_38.root" ]
     filenames = [ "../TreeFriendProducer/photon_ntuple_mva_mini_38.root" ]
     filenames = [ "/user/kiesel/nTuples/photon_ntuple_mva_mini_tmp.root" ]
+    filenames = [ "/user/kiesel/nTuples/GJets_HT-400to600_nTuple.root" ]
 
     for filename in filenames:
         makeHistograms( filename )

@@ -7,6 +7,24 @@
 
 class TreeFriendProducer : public TSelector {
 
+ public:
+
+  TreeFriendProducer(TTree * = 0):
+    photons( fReader, "photons" ),
+    jets( fReader, "jets" ),
+    genPhotons( fReader, "genPhotons" ),
+    met( fReader, "met" ) {
+      std::cout << " constructed" << std::endl;
+      }
+  virtual ~TreeFriendProducer() { 
+      std::cout << " destructed" << std::endl;
+}
+  virtual void    Init(TTree *tree);
+  virtual void    SlaveBegin(TTree *tree);
+  virtual Bool_t  Process(Long64_t entry);
+  virtual void    Terminate();
+  virtual Int_t   Version() const { return 0; }
+
  private:
 
   TTreeReader fReader;
@@ -14,18 +32,6 @@ class TreeFriendProducer : public TSelector {
   TTreeReaderArray<tree::Jet> jets;
   TTreeReaderArray<tree::Particle> genPhotons;
   TTreeReaderValue<float> met;
-
-  TreeFriendProducer(TTree * = 0):
-    photons( fReader, "photons" ),
-    jets( fReader, "jets" ),
-    genPhotons( fReader, "genPhotons" ),
-    met( fReader, "met" ) {}
-  virtual ~TreeFriendProducer() { }
-  virtual void    Init(TTree *tree);
-  virtual void    SlaveBegin(TTree *tree);
-  virtual Bool_t  Process(Long64_t entry);
-  virtual void    Terminate();
-  virtual Int_t   Version() const { return 0; }
 
   TTree* outputTree;
   float htHLT;
@@ -35,6 +41,7 @@ class TreeFriendProducer : public TSelector {
 
 void TreeFriendProducer::SlaveBegin(TTree *tree)
 {
+      std::cout << " slave begin" << std::endl;
   outputTree = new TTree("treeFrined", tree->GetName() );
   outputTree->Branch( "htHLT", &htHLT );
 
@@ -43,6 +50,7 @@ void TreeFriendProducer::SlaveBegin(TTree *tree)
 
 Bool_t TreeFriendProducer::Process(Long64_t entry)
 {
+      std::cout << " process" << std::endl;
   fReader.SetEntry(entry);
 
   htHLT = 0;
@@ -65,17 +73,20 @@ Bool_t TreeFriendProducer::Process(Long64_t entry)
 */
 
   outputTree->Fill();
+  std::cout << htHLT << std::endl;
 
   return kTRUE;
 }
 
 void TreeFriendProducer::Init(TTree *tree)
 {
+      std::cout << " init" << std::endl;
   fReader.SetTree(tree);
 }
 
 void TreeFriendProducer::Terminate()
 {
+      std::cout << " terminated" << std::endl;
   auto outputfile = TFile::Open("output.root", "recreate" );
   outputTree->Write( 0, kOverwrite );
   outputfile->Close();
