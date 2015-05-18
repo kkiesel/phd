@@ -31,7 +31,7 @@ def createHistoFromTree( tree, variable, weight, nBins=20, xmin=0, xmax=0 ):
     tree.Draw("%s>>%s"%(variable, name), weight, "goff")
     return result
 
-def sumSq( *items )
+def sumSq( *items ):
     return sqrt( sum( [i**2 for i in items ] ) )
 
 def mergeBins( h, dest, source ):
@@ -44,6 +44,21 @@ def appendFlowBin( h, under=True, over=True ):
     if over:
         mergeBins( h, h.GetNbinsX(), h.GetNbinsX()+1 )
 
+def getYAxisTitle( histo ):
+    # returns e.g.: "Events / 10 GeV"
+    yTitle = "Events"
+
+    binW1 = histo.GetXaxis.GetBinWidth(1)
+    binW2 = histo.GetXaxis.GetBinWidth(histo.GetNbinsX()+1)
+    unit = "GeV" if "GeV" in histo.GetXaxis().GetTitle() else "1"
+
+    if binW1 == binW2: #assume constant bin size
+        if binW1 == 1:
+            return yTitle
+        return "Entries / " + binW1 + " " + unit
+    else: # assume variable bin size
+        if eV:
+            return yTitle + " / " + unit
 
 class Label:
     # Create labels

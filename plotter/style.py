@@ -3,10 +3,13 @@ import ROOT
 
 def defaultStyle():
     st = ROOT.TStyle("defaultStyle", "Knut's owns style" )
-
     st.SetCanvasColor( ROOT.kWhite )
+    st.SetCanvasBorderMode( 0 )
+    st.SetFrameBorderMode(0)
     st.SetCanvasDefH(600)
     st.SetCanvasDefW(600)
+
+    st.SetLineScalePS(0)
 
     st.SetPadTickX( 1 )
     st.SetPadTickY( 1 )
@@ -41,7 +44,6 @@ def defaultStyle():
     st.SetTextSize( st.GetLabelSize() )
 
     st.SetNdivisions( 505, "xyz" )
-
     st.cd()
     return st
 
