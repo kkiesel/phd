@@ -9,8 +9,11 @@ void run() {
   gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
 
   TChain ch( "TreeWriter/eventTree" );
-  //ch.AddFile( "/user/kiesel/nTuples/GJets_HT-400to600_nTuple.root" );
   ch.AddFile( "photon_ntuple_mva_mini_38.root" );
+  //ch.AddFile( "/user/kiesel/nTuples/GJets_HT-400to600_nTuple.root" );
+  //ch.AddFile( "/user/kiesel/nTuples/GJets_HT-600toInf_nTuple.root" );
+  //ch.AddFile( "/user/kiesel/nTuples/ZJetsToNuNu_HT-400to600_nTuple.root" );
+  //ch.AddFile( "/user/kiesel/nTuples/ZJetsToNuNu_HT-600toInf_nTuple.root" );
   ch.Process( "TreeReader.cc+" );
 
 }
