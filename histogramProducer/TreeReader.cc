@@ -72,9 +72,9 @@ class BaseHistograms {
     h["h_mt_g_met"] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 100, 0, 1000 );
     h["h_metAndL"] = TH1F( "", ";E^{miss}_{T} #vec{+} l (GeV)", 100, 0, 1000 );
 
-    h["h_ht"] = TH1F( "", ";H_{T}", 200, 0, 2000 );
-    h["h_ht_g"] = TH1F( "", ";#gammaH_{T}", 200, 0, 2000 );
-    h["h_st"] = TH1F( "", ";S_{T}", 200, 0, 2000 );
+    h["h_ht"] = TH1F( "", ";H_{T}", 200, 0, 2500 );
+    h["h_ht_g"] = TH1F( "", ";#gammaH_{T}", 200, 0, 2500 );
+    h["h_st"] = TH1F( "", ";S_{T}", 200, 0, 2500 );
 
     h["h_g_pt"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1500 );
     h["h_g_eta"] = TH1F( "", ";#eta", 100, -3, 3 );
@@ -101,8 +101,8 @@ class BaseHistograms {
     // multiplicities
     h["h_n_vertex"] = TH1F( "", ";Vertices", 61, -0.5, 60.5 );
     h["h_n_photon"] = TH1F( "", ";Photons", 6, -0.5, 5.5 );
-    h["h_n_jet"] = TH1F( "", ";Jets", 13, -0.5, 12.5 );
-    h["h_n_bjet"] = TH1F( "", ";B Jets", 13, -0.5, 12.5 );
+    h["h_n_jet"] = TH1F( "", ";Jets", 21, -0.5, 20.5 );
+    h["h_n_bjet"] = TH1F( "", ";B Jets", 21, -0.5, 20.5 );
     h["h_n_electron"] = TH1F( "", ";Electrons", 4, -0.5, 3.5 );
     h["h_n_muon"] = TH1F( "", ";Muons", 4, -0.5, 3.5 );
 
@@ -115,6 +115,22 @@ class BaseHistograms {
     prof["profile_g_pt_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTp_{T}#GT (GeV)", 100, 0, 1000 );
     prof["profile_ht_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTH_{T}#GT (GeV)", 100, 0, 1000 );
     prof["profile_jets_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTJets#GT", 100, 0, 1000 );
+
+    // isolation dependencies
+    prof["profile_cIso_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{#pi}#GT (GeV)", 100, 0, 1000 );
+    prof["profile_nIso_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{n}#GT (GeV)", 100, 0, 1000 );
+    prof["profile_pIso_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{#gamma}#GT (GeV)", 100, 0, 1000 );
+    prof["profile_sie_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LT#sigma_{i#etai#eta}#GT", 100, 0, 1000 );
+    prof["profile_hOverE_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTH/E#GT", 100, 0, 1000 );
+    prof["profile_mva_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTy_{MVA}#GT", 100, 0, 1000 );
+
+    prof["profile_cIso_met_gloose"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{#pi}#GT (GeV)", 100, 0, 1000 );
+    prof["profile_nIso_met_gloose"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{n}#GT (GeV)", 100, 0, 1000 );
+    prof["profile_pIso_met_gloose"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{#gamma}#GT (GeV)", 100, 0, 1000 );
+    prof["profile_sie_met_gloose"] = TProfile( "", ";E^{miss}_{T} (GeV);#LT#sigma_{i#etai#eta}#GT", 100, 0, 1000 );
+    prof["profile_hOverE_met_gloose"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTH/E#GT", 100, 0, 1000 );
+    prof["profile_mva_met_gloose"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTy_{MVA}#GT", 100, 0, 1000 );
+
   }
 
   void fill( TreeReader& tr ) {
@@ -145,8 +161,8 @@ class BaseHistograms {
 
     if( tr.selPhotons.size() > 0 ) {
       h["h_mt_g_met"].Fill( (tr.selPhotons[0]->p + tr.met->p).Pt(), w );
-      h["h_g_pt"].Fill( tr.met->p.Pt(), w );
-      h["h_g_eta"].Fill( tr.met->p.Eta(), w );
+      h["h_g_pt"].Fill( tr.selPhotons[0]->p.Pt(), w );
+      h["h_g_eta"].Fill( tr.selPhotons[0]->p.Eta(), w );
     }
 
     if( tr.selJets.size() > 2 ) {
@@ -192,11 +208,11 @@ class BaseHistograms {
     // matching
     for( auto& jet : tr.selJets ) {
       for( auto& p : tr.selPhotons )
-        h2["h2_match_jet_photon"].Fill( jet->p.DeltaR( p->p ), tr.met->p.Pt(), w );
+        h2["h2_match_jet_photon"].Fill( jet->p.DeltaR( p->p ), jet->p.Pt()/p->p.Pt(), w );
       for( auto& p : tr.selElectrons )
-        h2["h2_match_jet_electron"].Fill( tr.met->p.Pt(), w );
+        h2["h2_match_jet_electron"].Fill( jet->p.DeltaR( p->p ), jet->p.Pt()/p->p.Pt(), w );
       for( auto& p : tr.selMuons )
-        h2["h2_match_jet_muon"].Fill( tr.met->p.Pt(), w );
+        h2["h2_match_jet_muon"].Fill( jet->p.DeltaR( p->p ), jet->p.Pt()/p->p.Pt(), w );
     }
 
     // profile
@@ -204,6 +220,63 @@ class BaseHistograms {
       prof["profile_g_pt_met"].Fill( tr.met->p.Pt(), tr.selPhotons[0]->p.Pt(), w );
     prof["profile_ht_met"].Fill( tr.met->p.Pt(), ht, w );
     prof["profile_jets_met"].Fill( tr.met->p.Pt(), tr.selJets.size(), w );
+
+    // isolations
+    for( auto& p : tr.selPhotons ) {
+      prof["profile_cIso_met"].Fill( tr.met->p.Pt(), p->isoChargedHadronsWithEA, w );
+      prof["profile_nIso_met"].Fill( tr.met->p.Pt(), p->isoNeutralHadronsWithEA, w );
+      prof["profile_pIso_met"].Fill( tr.met->p.Pt(), p->isoPhotonsWithEA, w );
+      prof["profile_sie_met"].Fill( tr.met->p.Pt(), p->full5x5_sigmaIetaIeta, w );
+      prof["profile_hOverE_met"].Fill( tr.met->p.Pt(), p->hOverE, w );
+      prof["profile_mva_met"].Fill( tr.met->p.Pt(), p->mvaValue, w );
+    }
+    for( auto& p : tr.selPhotons ) {
+      if( p->p.Pt() < 50 || abs(p->p.Eta()) > 1.4442 ) continue;
+      if(
+        p->hOverE < 0.028
+        && p->full5x5_sigmaIetaIeta < 0.0107
+        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+      )
+      prof["profile_cIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoChargedHadronsWithEA, w );
+      if(
+        p->hOverE < 0.028
+        && p->full5x5_sigmaIetaIeta < 0.0107
+        && p->isoChargedHadronsWithEA < 2.67
+        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+      )
+      prof["profile_nIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoNeutralHadronsWithEA, w );
+      if(
+        p->hOverE < 0.028
+        && p->full5x5_sigmaIetaIeta < 0.0107
+        && p->isoChargedHadronsWithEA < 2.67
+        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+      )
+      prof["profile_pIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoPhotonsWithEA, w );
+      if(
+        p->hOverE < 0.028
+        && p->isoChargedHadronsWithEA < 2.67
+        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+      )
+      prof["profile_sie_met_gloose"].Fill( tr.met->p.Pt(), p->full5x5_sigmaIetaIeta, w );
+      if(
+        p->full5x5_sigmaIetaIeta < 0.0107
+        && p->isoChargedHadronsWithEA < 2.67
+        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+      )
+      prof["profile_hOverE_met_gloose"].Fill( tr.met->p.Pt(), p->hOverE, w );
+      if(
+        p->hOverE < 0.028
+        && p->full5x5_sigmaIetaIeta < 0.0107
+        && p->isoChargedHadronsWithEA < 2.67
+        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+      )
+      prof["profile_mva_met_gloose"].Fill( tr.met->p.Pt(), p->mvaValue, w );
+    }
+
 
   } // end fill
 
@@ -245,9 +318,10 @@ void TreeReader::SlaveBegin(TTree *tree)
 
 Bool_t TreeReader::Process(Long64_t entry)
 {
+  resetSelection();
 //  if( entry > 3 ) return true;
-  if( entry > 20000 ) return true;
-  if(!( entry%1000 )) printf( "%lli / %lli\n", entry, fReader.GetEntries(false) );
+//  if( entry > 20000 ) return true;
+  if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
 
   if( photons.GetSize() ) {
@@ -282,30 +356,31 @@ Bool_t TreeReader::Process(Long64_t entry)
 
   if( photons.GetSize() ) {
   for( auto& photon : photons ) {
-    if( !photon.isLoose ) continue;
+    if( !photon.isLoose || photon.p.Pt() < 50 ) continue;
     selPhotons.push_back( &photon );
   }
   }
   if( jets.GetSize() ) {
   for( auto& jet : jets ) {
-    if( !jet.isLoose ) continue;
+    if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
     selJets.push_back( &jet );
   }
   }
   if( jets.GetSize() ) {
   for( auto& jet : jets ) {
-    if( !jet.isLoose || jet.bDiscriminator < bTaggingWorkingPoints8TeV["CSVL"] ) continue;
+    if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 2.5 || jet.bDiscriminator < bTaggingWorkingPoints8TeV["CSVL"] ) continue;
     selBJets.push_back( &jet );
   }
   }
   if( muons.GetSize() ) {
   for( auto& mu : muons ) {
+    if( mu.p.Pt() < 15 ) continue;
     selMuons.push_back( &mu );
   }
   }
   if( electrons.GetSize() ) {
   for( auto& el : electrons ) {
-    if( !el.isLoose ) continue;
+    if( !el.isLoose || el.p.Pt() < 15 ) continue;
     selElectrons.push_back( &el );
   }
   }
@@ -317,7 +392,7 @@ Bool_t TreeReader::Process(Long64_t entry)
 
   if( photons.GetSize() ) {
   for( auto& photon : photons ) {
-    if( !photon.isTight ) continue;
+    if( !photon.isTight || photon.p.Pt() < 50 ) continue;
     selPhotons.push_back( &photon );
   }
   }
@@ -331,10 +406,19 @@ Bool_t TreeReader::Process(Long64_t entry)
 
 void TreeReader::Terminate()
 {
-  TFile file("out.root", "update");
+  cout << endl;
+  string originalName = fReader.GetTree()->GetCurrentFile()->GetName();
+  auto startPos = originalName.rfind("/");
+  auto endPos = originalName.find("nTuple.root");
+  string outputName = "out.root";
+  if( endPos != string::npos ) {
+    outputName = originalName.substr( startPos+1, endPos-startPos-1 ) + "hists.root";
+  }
+  cout << "Writing to output file " << outputName << endl;
+  TFile file( outputName.c_str(), "RECREATE");
   baseHistograms->save();
-  looseCuts->save("loose");
-  tightPhoton->save("tightPhoton");
+  looseCuts->save("_loose");
+  tightPhoton->save("_tightPhoton");
 }
 
 void TreeReader::resetSelection() {
