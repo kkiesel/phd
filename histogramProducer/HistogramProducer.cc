@@ -50,11 +50,6 @@ class HistogramProducer : public TSelector {
   vector<tree::Muon*> selMuons;
 
   map<string,BaseHistograms*> hMap;
-  BaseHistograms* baseHistograms;
-  BaseHistograms* looseCuts;
-  BaseHistograms* looseCuts_met200;
-  BaseHistograms* looseCuts_genPhoton;
-  BaseHistograms* tightPhoton;
 };
 
 map<string,int> HistogramProducer::bTaggingWorkingPoints8TeV = {
@@ -377,11 +372,11 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
 
   if( selPhotons.size() && ht > 600 ) {
-    hMap["_loose"]->fill( *this );
+    hMap["loose"]->fill( *this );
     if( met->p.Pt() > 200 )
-      hMap["_loose_met200"]->fill( *this );
+      hMap["loose_met200"]->fill( *this );
     if( selPhotons[0]->isTrue )
-      hMap["_loose_genPhoton"]->fill( *this );
+      hMap["loose_genPhoton"]->fill( *this );
   }
 
   // New photon id ============================================================
@@ -392,7 +387,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     selPhotons.push_back( &photon );
   }
   if( selPhotons.size() )
-    hMap["_tightPhoton"]->fill( *this );
+    hMap["tightPhoton"]->fill( *this );
 
 
 
