@@ -13,13 +13,13 @@
 
 class BaseHistograms;
 
-class TreeReader : public TSelector {
+class HistogramProducer : public TSelector {
  private:
   static map<string,int> bTaggingWorkingPoints8TeV;
  public:
 
-  TreeReader();
-  virtual ~TreeReader() { }
+  HistogramProducer();
+  virtual ~HistogramProducer() { }
 
   virtual void    Init(TTree *tree);
   virtual void    SlaveBegin(TTree *tree);
@@ -49,12 +49,15 @@ class TreeReader : public TSelector {
   vector<tree::Electron*> selElectrons;
   vector<tree::Muon*> selMuons;
 
+  map<string,BaseHistograms*> hMap;
   BaseHistograms* baseHistograms;
   BaseHistograms* looseCuts;
+  BaseHistograms* looseCuts_met200;
+  BaseHistograms* looseCuts_genPhoton;
   BaseHistograms* tightPhoton;
 };
 
-map<string,int> TreeReader::bTaggingWorkingPoints8TeV = {
+map<string,int> HistogramProducer::bTaggingWorkingPoints8TeV = {
   { "CSVL", 0.244 },
   { "CSVM", 0.679 },
   { "CSVT", 0.989 }
@@ -133,7 +136,7 @@ class BaseHistograms {
 
   }
 
-  void fill( TreeReader& tr ) {
+  void fill( HistogramProducer& tr ) {
     float w = *(tr.w);
 
     auto metAndL = tr.met->p;
@@ -292,7 +295,7 @@ class BaseHistograms {
 };
 
 
-TreeReader::TreeReader():
+HistogramProducer::HistogramProducer():
   photons( fReader, "photons" ),
   jets( fReader, "jets" ),
   electrons( fReader, "electrons" ),
@@ -304,19 +307,19 @@ TreeReader::TreeReader():
 {
 }
 
-void TreeReader::Init(TTree *tree)
+void HistogramProducer::Init(TTree *tree)
 {
   fReader.SetTree(tree);
 }
 
-void TreeReader::SlaveBegin(TTree *tree)
+void HistogramProducer::SlaveBegin(TTree *tree)
 {
-  baseHistograms = new BaseHistograms();
-  looseCuts = new BaseHistograms();
-  tightPhoton = new BaseHistograms();
+  std::vector<string> strs = { "base", "loose", "loose_met200", "loose_genPhoton", "tightPhoton" };
+  for( auto& v : strs )
+    hMap[v] = new BaseHistograms();
 }
 
-Bool_t TreeReader::Process(Long64_t entry)
+Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
 //  if( entry > 3 ) return true;
@@ -324,87 +327,79 @@ Bool_t TreeReader::Process(Long64_t entry)
   if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
 
-  if( photons.GetSize() ) {
   for( auto& photon : photons ) {
     selPhotons.push_back( &photon );
   }
-  }
-  if( jets.GetSize() ) {
   for( auto& jet : jets ) {
     selJets.push_back( &jet );
-  }
-  }
-  if( jets.GetSize() ) {
-  for( auto& jet : jets ) {
     selBJets.push_back( &jet );
   }
-  }
-  if( muons.GetSize() ) {
   for( auto& mu : muons ) {
     selMuons.push_back( &mu );
   }
-  }
-  if( electrons.GetSize() ) {
   for( auto& el : electrons ) {
     selElectrons.push_back( &el );
   }
-  }
-  baseHistograms->fill( *this );
+  hMap["base"]->fill( *this );
 
   // New selection ============================================================
   resetSelection();
 
-  if( photons.GetSize() ) {
   for( auto& photon : photons ) {
-    if( !photon.isLoose || photon.p.Pt() < 50 ) continue;
+    if( !photon.isLoose || photon.p.Pt() < 100 ) continue;
     selPhotons.push_back( &photon );
   }
-  }
-  if( jets.GetSize() ) {
-  for( auto& jet : jets ) {
-    if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
-    selJets.push_back( &jet );
-  }
-  }
-  if( jets.GetSize() ) {
-  for( auto& jet : jets ) {
-    if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 2.5 || jet.bDiscriminator < bTaggingWorkingPoints8TeV["CSVL"] ) continue;
-    selBJets.push_back( &jet );
-  }
-  }
-  if( muons.GetSize() ) {
   for( auto& mu : muons ) {
     if( mu.p.Pt() < 15 ) continue;
     selMuons.push_back( &mu );
   }
-  }
-  if( electrons.GetSize() ) {
   for( auto& el : electrons ) {
     if( !el.isLoose || el.p.Pt() < 15 ) continue;
     selElectrons.push_back( &el );
   }
+  for( auto& jet : jets ) {
+    if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
+
+    for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
+    for( auto& p: selElectrons ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
+    for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
+
+    selJets.push_back( &jet );
+    if( jet.bDiscriminator > bTaggingWorkingPoints8TeV["CSVL"] )
+      selBJets.push_back( &jet );
   }
-  if( selPhotons.size() )
-    looseCuts->fill( *this );
+
+  float ht = 0;
+  for( auto& jet : jets ){
+    if( jet.p.Pt() > 40 && abs(jet.p.Eta()) < 2.5 ) {
+      ht += jet.p.Pt();
+    }
+  }
+
+  if( selPhotons.size() && ht > 600 ) {
+    hMap["_loose"]->fill( *this );
+    if( met->p.Pt() > 200 )
+      hMap["_loose_met200"]->fill( *this );
+    if( selPhotons[0]->isTrue )
+      hMap["_loose_genPhoton"]->fill( *this );
+  }
 
   // New photon id ============================================================
   selPhotons.clear();
 
-  if( photons.GetSize() ) {
   for( auto& photon : photons ) {
-    if( !photon.isTight || photon.p.Pt() < 50 ) continue;
+    if( !photon.isTight || photon.p.Pt() < 100 ) continue;
     selPhotons.push_back( &photon );
   }
-  }
   if( selPhotons.size() )
-    tightPhoton->fill( *this );
+    hMap["_tightPhoton"]->fill( *this );
 
 
 
   return kTRUE;
 }
 
-void TreeReader::Terminate()
+void HistogramProducer::Terminate()
 {
   cout << endl;
   string originalName = fReader.GetTree()->GetCurrentFile()->GetName();
@@ -416,12 +411,11 @@ void TreeReader::Terminate()
   }
   cout << "Writing to output file " << outputName << endl;
   TFile file( outputName.c_str(), "RECREATE");
-  baseHistograms->save();
-  looseCuts->save("_loose");
-  tightPhoton->save("_tightPhoton");
+  for( auto& hMapIt : hMap )
+    hMapIt.second->save( string("_")+hMapIt.first );
 }
 
-void TreeReader::resetSelection() {
+void HistogramProducer::resetSelection() {
   selPhotons.clear();
   selJets.clear();
   selBJets.clear();
