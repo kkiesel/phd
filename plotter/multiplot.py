@@ -16,11 +16,12 @@ class Multiplot:
         h.SetName(label)
         self.hists.append( h )
 
-    def addStack( self, h ):
+    def addStack( self, h, label="" ):
+        h.SetName( label )
         self.histsToStack.append( h )
 
     def getMinimum( self ):
-        return min( [ h.GetMinimum(0) for h in self.hists ] )
+        return min( [ h.GetMinimum() for h in self.hists ] )
 
     def getMaximum( self ):
         return max( [ h.GetMaximum() for h in self.hists ] )
@@ -28,10 +29,11 @@ class Multiplot:
     def stackHists( self ):
         if not self.histsToStack:
             return
-        #stack = ROOT.THStack()
-        #stack.SetTitle( ";%s;%s"%(self.histosToStack[0][0].GetXaxis().GetTitle(),self.histosToStack[0][0].GetYaxis().GetTitle()) )
-        stack = ROOT.THStack( self.histsToStack[0] ) # get title, etc
-        for h in histsToStack:
+        stack = ROOT.THStack()
+        stack.SetTitle( ";%s;%s"%(self.histsToStack[0].GetXaxis().GetTitle(),self.histsToStack[0].GetYaxis().GetTitle()) )
+        stack.drawOption_ = ""
+        for h in self.histsToStack:
+            h.Sumw2( False )
             h.SetFillColor( h.GetLineColor() )
             h.SetLineColor( ROOT.kBlack )
             stack.Add( h )
@@ -40,6 +42,8 @@ class Multiplot:
 
 
     def Draw( self ):
+        if not self.hists and not self.histsToStack:
+            return
         self.stackHists()
 
         minimum = self.getMinimum()
@@ -59,9 +63,10 @@ class Multiplot:
 
         # fill legend (in correct order)
         for h in self.hists:
+            if isinstance( h, ROOT.THStack ): continue
             # todo: special cases?
             self.leg.AddEntry( h, h.GetName(), "lpe" )
-        for h in self.histsToStack:
+        for h in self.histsToStack[-1::-1]:
             self.leg.AddEntry( h, h.GetName(), "f" )
 
         # change the order for drawing
