@@ -394,20 +394,43 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   return kTRUE;
 }
 
+string getOutputFilename( string inputFileName ) {
+
+  // Converts "/path/to/ntuple/QCD_nTuple.root" to "QCD_hists.root"
+
+  auto startPos = inputFileName.rfind("/");
+  auto endPos = inputFileName.find("nTuple.root");
+  string outputName = "out.root";
+  if( endPos != string::npos ) {
+    outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "hists.root";
+  }
+  return outputName;
+
+}
+
+
 void HistogramProducer::Terminate()
 {
   cout << endl;
-  string originalName = fReader.GetTree()->GetCurrentFile()->GetName();
-  auto startPos = originalName.rfind("/");
-  auto endPos = originalName.find("nTuple.root");
-  string outputName = "out.root";
-  if( endPos != string::npos ) {
-    outputName = originalName.substr( startPos+1, endPos-startPos-1 ) + "hists.root";
-  }
+
+  auto outputName = getOutputFilename( fReader.GetTree()->GetCurrentFile()->GetName() );
   cout << "Writing to output file " << outputName << endl;
+
+  // save all defined histograms to file
   TFile file( outputName.c_str(), "RECREATE");
   for( auto& hMapIt : hMap )
     hMapIt.second->save( string("_")+hMapIt.first );
+
+  // Copy all histograms from input file
+  // TODO: What happens if the chain has different files?
+  for( auto& key : fReader.GetTree()->GetCurrentFile().GetListOfKeys() ) {
+    TObject *obj = key->ReadObj();
+    file->cd();
+    obj->Write();
+    delete obj;
+  }
+
+
 }
 
 void HistogramProducer::resetSelection() {
