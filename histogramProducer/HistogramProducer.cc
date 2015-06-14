@@ -365,7 +365,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
 //  if( entry > 3 ) return true;
-//  if( entry > 20000 ) return true;
   if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
 
@@ -402,9 +401,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for( auto& jet : jets ) {
     if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
 
-    for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
-    for( auto& p: selElectrons ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
-    for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
+    for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    for( auto& p: selElectrons ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    closeToOther:;
 
     selJets.push_back( &jet );
     if( jet.bDiscriminator > bTaggingWorkingPoints8TeV["CSVL"] )
@@ -442,20 +442,35 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   return kTRUE;
 }
 
+string getOutputFilename( string inputFileName ) {
+
+  // Converts "/path/to/ntuple/QCD_nTuple.root" to "QCD_hists.root"
+
+  auto startPos = inputFileName.rfind("/");
+  auto endPos = inputFileName.find("nTuple.root");
+  string outputName = "out.root";
+  if( endPos != string::npos ) {
+    outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "hists.root";
+  }
+  return outputName;
+
+}
+
+
 void HistogramProducer::Terminate()
 {
   cout << endl;
-  string originalName = fReader.GetTree()->GetCurrentFile()->GetName();
-  auto startPos = originalName.rfind("/");
-  auto endPos = originalName.find("nTuple.root");
-  string outputName = "out.root";
-  if( endPos != string::npos ) {
-    outputName = originalName.substr( startPos+1, endPos-startPos-1 ) + "hists.root";
-  }
+
+  auto outputName = getOutputFilename( fReader.GetTree()->GetCurrentFile()->GetName() );
   cout << "Writing to output file " << outputName << endl;
+
+  // save all defined histograms to file
   TFile file( outputName.c_str(), "RECREATE");
   for( auto& hMapIt : hMap )
     hMapIt.second->save( string("_")+hMapIt.first );
+
+  fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write();
+
 }
 
 void HistogramProducer::resetSelection() {

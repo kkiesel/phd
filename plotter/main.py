@@ -262,7 +262,7 @@ def compare( datasets, name, saveName ):
     m = multiplot.Multiplot()
 
     for d in datasets:
-        h =getHistoFromDataset( d, name )
+        h = getHistoFromDataset( d, name )
         if not h.Integral(): continue
         h.Scale( 1./h.Integral() )
         m.add( h, d.label )
@@ -287,17 +287,34 @@ def compareAll( saveName="test", *datasets ):
         #    for d in datasets:
         #        drawH2( d, name )
 
-def drawTotals( names, data=None, bkg=[], additional=[] ):
-    names = getObjectNames( datasets[0].files[0], "" )
+def drawSameHistogram( saveName, name, data, bkg, additional ):
+    m = multiplot.Multiplot()
+
+    for d in bkg:
+        h = getHistoFromDataset( d, name )
+        if not h.Integral(): continue
+        h.Scale( 1./h.Integral() )
+        m.addStack( h, d.label )
+
+    m.Draw()
+
+    save( "sameHistogram%s_%s"%(saveName,name) )
+
+
+def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
+    names = getObjectNames( bkg[0].files[0], "" )
 
     for name in names:
         if name.startswith("h_"):
-            drawTotal( name, data, bkg, additional, savename )
+            drawSameHistogram( saveName, name, data, bkg, additional )
 
 
 def main():
-    compareAll( "_all", gjets400, gjets600, znn400, znn600 )
-    compareAll( "_GjetsVsZnn", gjets, znn )
+    #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
+    #compareAll( "_GjetsVsZnn", gjets, znn )
+    #compareAll( "_allMC", gjets, znn, qcd, wjets )
+    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, znn] )
+
 
 if __name__ == "__main__":
     main()
