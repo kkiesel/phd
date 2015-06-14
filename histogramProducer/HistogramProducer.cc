@@ -40,9 +40,6 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Int_t> nGoodVertices;
   TTreeReaderValue<Float_t> w;
 
-  TH1F h_met;
-  TH1F h_ht;
-
   vector<tree::Photon*> selPhotons;
   vector<tree::Jet*> selJets;
   vector<tree::Jet*> selBJets;
@@ -57,6 +54,56 @@ map<string,int> HistogramProducer::bTaggingWorkingPoints8TeV = {
   { "CSVM", 0.679 },
   { "CSVT", 0.989 }
 };
+
+pair<TVector3,TVector3> megajets( const vector<TVector3>& jets ) {
+  // code from https://twiki.cern.ch/twiki/bin/view/CMSPublic/RazorLikelihoodHowTo
+
+  TVector3 j1, j2;
+  int N_comb = (int) pow( 2, jets.size() );
+
+  double M_min = numeric_limits<double>::max();
+  int j_count;
+  for(int i = 1; i < N_comb-1; i++){
+    TVector3 j_temp1, j_temp2;
+    int itemp = i;
+    j_count = N_comb/2;
+    int count = 0;
+    while(j_count > 0){
+      if(itemp/j_count == 1){
+        j_temp1 += jets[count];
+      } else {
+        j_temp2 += jets[count];
+      }
+      itemp -= j_count*(itemp/j_count);
+      j_count /= 2;
+      count++;
+    }
+    double M_temp = j_temp1.Mag2()+j_temp2.Mag2();
+    // smallest mass
+    if(M_temp < M_min){
+      M_min = M_temp;
+      j1 = j_temp1;
+      j2 = j_temp2;
+    }
+  }
+  if(j2.Pt() > j1.Pt()){
+    TVector3 temp = j1;
+    j1 = j2;
+    j2 = temp;
+  }
+
+  return pair<TVector3,TVector3>(j1,j2);
+}
+
+
+pair<float,float> razorVariables( const pair<TVector3,TVector3>& megajets, const TVector3& met ) {
+  float mr = sqrt( pow( megajets.first.Mag() + megajets.second.Mag(), 2 ) - pow( megajets.first.Z() + megajets.second.Z(), 2 ) );
+  float mrt = sqrt( 0.5 * ( met.Mag()*( megajets.first.Pt() + megajets.second.Pt() ) - met.XYvector() * ( megajets.first.XYvector() + megajets.second.XYvector() ) ) );
+  float r = mrt / mr;
+  return pair<float,float>(mr,r);
+}
+
+
 
 class BaseHistograms {
  public:
@@ -389,6 +436,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if( selPhotons.size() )
     hMap["tightPhoton"]->fill( *this );
 
+ //auto razorPair = razorVariables( megajets( js ), met->p );
 
 
   return kTRUE;
