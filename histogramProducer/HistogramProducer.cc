@@ -97,10 +97,10 @@ pair<TVector3,TVector3> megajets( const vector<TVector3>& jets ) {
 
 
 pair<float,float> razorVariables( const pair<TVector3,TVector3>& megajets, const TVector3& met ) {
-  float mr = sqrt( pow( megajets.first.Mag() + megajets.second.Mag(), 2 ) - pow( megajets.first.Z() + megajets.second.Z(), 2 ) );
-  float mrt = sqrt( 0.5 * ( met.Mag()*( megajets.first.Pt() + megajets.second.Pt() ) - met.XYvector() * ( megajets.first.XYvector() + megajets.second.XYvector() ) ) );
-  float r = mrt / mr;
-  return pair<float,float>(mr,r);
+  float mr2 = pow( megajets.first.Mag() + megajets.second.Mag(), 2 ) - pow( megajets.first.Z() + megajets.second.Z(), 2 );
+  float mrt2 = 0.5 * ( met.Mag()*( megajets.first.Pt() + megajets.second.Pt() ) - met.XYvector() * ( megajets.first.XYvector() + megajets.second.XYvector() ) );
+  float r2 = mrt2 / mr2;
+  return pair<float,float>(sqrt(mr2),r2);
 }
 
 
@@ -150,6 +150,8 @@ class BaseHistograms {
     h["h_n_bjet"] = TH1F( "", ";B Jets", 21, -0.5, 20.5 );
     h["h_n_electron"] = TH1F( "", ";Electrons", 4, -0.5, 3.5 );
     h["h_n_muon"] = TH1F( "", ";Muons", 4, -0.5, 3.5 );
+
+    h2["h2_razorPlane"] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
 
     // matching
     h2["h2_match_jet_photon"] = TH2F( "", ";#Delta R;p_{T}^{jet}/p_{T}^{#gamma}", 100, 0, 0.5, 100, 0, 4 );
@@ -249,6 +251,13 @@ class BaseHistograms {
     h["h_n_bjet"].Fill( tr.selBJets.size(), w );
     h["h_n_electron"].Fill( tr.selElectrons.size(), w );
     h["h_n_muon"].Fill( tr.selMuons.size(), w );
+
+    vector<TVector3> js;
+    for( auto& p : tr.selJets ) js.push_back( p->p );
+    for( auto& p : tr.selPhotons ) js.push_back( p->p );
+
+    auto razorPair = razorVariables( megajets( js ), tr.met->p );
+    h2["h2_razorPlane"].Fill( razorPair.first, razorPair.second, w );
 
     // matching
     for( auto& jet : tr.selJets ) {
@@ -435,9 +444,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
   if( selPhotons.size() )
     hMap["tightPhoton"]->fill( *this );
-
- //auto razorPair = razorVariables( megajets( js ), met->p );
-
 
   return kTRUE;
 }
