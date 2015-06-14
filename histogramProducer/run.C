@@ -2,6 +2,7 @@
 // start with root -l -q run.C
 // Using ROOT6
 void run( string infile="photon_ntuple_mva_mini_38.root") {
+//void run( string infile="/user/kiesel/nTuples/QCD_HT_1000ToInf_2_nTuple.root") {
 
   // Shared libray should be produced with compiling
   // https://github.com/cms-susy-photon-rwth-1b/TreeWriter
