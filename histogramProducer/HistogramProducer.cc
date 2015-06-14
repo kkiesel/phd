@@ -318,7 +318,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
 //  if( entry > 3 ) return true;
-//  if( entry > 20000 ) return true;
   if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
 
@@ -355,9 +354,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for( auto& jet : jets ) {
     if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
 
-    for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
-    for( auto& p: selElectrons ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
-    for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) continue; }
+    for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    for( auto& p: selElectrons ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    closeToOther:;
 
     selJets.push_back( &jet );
     if( jet.bDiscriminator > bTaggingWorkingPoints8TeV["CSVL"] )
@@ -421,15 +421,7 @@ void HistogramProducer::Terminate()
   for( auto& hMapIt : hMap )
     hMapIt.second->save( string("_")+hMapIt.first );
 
-  // Copy all histograms from input file
-  // TODO: What happens if the chain has different files?
-  for( auto& key : fReader.GetTree()->GetCurrentFile().GetListOfKeys() ) {
-    TObject *obj = key->ReadObj();
-    file->cd();
-    obj->Write();
-    delete obj;
-  }
-
+  fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write();
 
 }
 
