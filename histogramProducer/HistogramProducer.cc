@@ -47,6 +47,7 @@ class HistogramProducer : public TSelector {
   vector<tree::Muon*> selMuons;
 
   map<string,BaseHistograms*> hMap;
+  map<string,TH2F> h2;
 };
 
 map<string,int> HistogramProducer::bTaggingWorkingPoints8TeV = {
@@ -252,13 +253,6 @@ class BaseHistograms {
     h["h_n_electron"].Fill( tr.selElectrons.size(), w );
     h["h_n_muon"].Fill( tr.selMuons.size(), w );
 
-    vector<TVector3> js;
-    for( auto& p : tr.selJets ) js.push_back( p->p );
-    for( auto& p : tr.selPhotons ) js.push_back( p->p );
-
-    auto razorPair = razorVariables( megajets( js ), tr.met->p );
-    h2["h2_razorPlane"].Fill( razorPair.first, razorPair.second, w );
-
     // matching
     for( auto& jet : tr.selJets ) {
       for( auto& p : tr.selPhotons )
@@ -368,6 +362,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
   std::vector<string> strs = { "base", "loose", "loose_met200", "loose_genPhoton", "tightPhoton" };
   for( auto& v : strs )
     hMap[v] = new BaseHistograms();
+  h2["h2_razorPlane"] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
 }
 
 Bool_t HistogramProducer::Process(Long64_t entry)
@@ -435,6 +430,16 @@ Bool_t HistogramProducer::Process(Long64_t entry)
       hMap["loose_genPhoton"]->fill( *this );
   }
 
+  if( selPhotons.size() && ht > 600 ) {
+    vector<TVector3> js;
+    for( auto& p : selJets ) js.push_back( p->p );
+    for( auto& p : selPhotons ) js.push_back( p->p );
+
+    auto razorPair = razorVariables( megajets( js ), met->p );
+    h2["h2_razorPlane"].Fill( razorPair.first, razorPair.second, *w );
+  }
+
+
   // New photon id ============================================================
   selPhotons.clear();
 
@@ -474,6 +479,9 @@ void HistogramProducer::Terminate()
   TFile file( outputName.c_str(), "RECREATE");
   for( auto& hMapIt : hMap )
     hMapIt.second->save( string("_")+hMapIt.first );
+
+  for( auto& mapIt : h2 )
+    mapIt.second.Write( mapIt.first.c_str(), TObject::kWriteDelete );
 
   fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write();
 
