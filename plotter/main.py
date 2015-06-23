@@ -308,12 +308,57 @@ def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
         if name.startswith("h_"):
             drawSameHistogram( saveName, name, data, bkg, additional )
 
+def getProjections( h2, alongX=True ):
+    hs = []
+    label = h2.GetYaxis().GetTitle()
+
+    for ybin in range( h2.GetNbinsY()+2 ):
+
+        ylow = h2.GetYaxis().GetBinLowEdge(ybin)
+        yhigh = h2.GetYaxis().GetBinUpEdge(ybin)
+        name = "{} #leq {} < {}".format( ylow, label, yhigh )
+        if ybin == 0: name = "{} < {}".format( label, yhigh )
+        if ybin == h2.GetNbinsY()+1: name = "{} #leq {}".format( ylow, label )
+
+
+        h = h2.ProjectionX( name, ybin, ybin )
+        h.SetLineColor( ybin+2)
+        if h.GetEntries():
+            h.Scale( 1./h.GetEntries() )
+            hs.append( h )
+
+    return hs
+
+
+def drawRazor( dataset ):
+    h2 = getHistoFromDataset( dataset, "h2_razorPlane" )
+    h2.Rebin2D( 1, 20 )
+    razorFit = ROOT.TF2("razorFitFunc", "[0]*( [1]*(x[0]-[2])*(x[1]-[3]) - 1 ) * exp( -[1]*(x[0]-[2])*(x[1]-[3]) )", 0, 2000, 0, 0.5 )
+    fr = h2.Fit( "razorFitFunc" )
+    h2.Draw("colz")
+    save( "razorPlane" )
+
+    pX = getProjections( h2 )
+    pX[0].Draw()
+    for h in pX[1:]: h.Draw("same")
+
+    leg = ROOT.TLegend( .7, .7, .95, .95 )
+    for h in pX: leg.AddEntry( h, h.GetName(), "l" )
+    leg.Draw()
+
+    save( "razorAlongX" )
+
+
+
+
+
 
 def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, znn] )
+    #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, znn] )
+    drawRazor( ttjets )
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ class Dataset:
         out.files.extend( dset.files )
         out.xsecs.extend( dset.xsecs )
         out.ngens.extend( dset.ngens )
+        out.label += " + "+dset.label
 
         if not self.color:
             out.color = dset.color

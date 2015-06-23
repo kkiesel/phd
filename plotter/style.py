@@ -44,6 +44,11 @@ def defaultStyle():
     st.SetTextSize( st.GetLabelSize() )
 
     st.SetNdivisions( 505, "xyz" )
+
+
+    st.SetPalette(56)
+
+
     st.cd()
     return st
 
