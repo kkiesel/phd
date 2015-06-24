@@ -11,46 +11,12 @@
 
 #include "TreeParticles.hpp"
 
-class BaseHistograms;
 
-class HistogramProducer : public TSelector {
- private:
-  static map<string,int> bTaggingWorkingPoints8TeV;
- public:
+///////////////////////////////////////////////////////////////////////////////
+// User Functions
+///////////////////////////////////////////////////////////////////////////////
 
-  HistogramProducer();
-  virtual ~HistogramProducer() { }
-
-  virtual void    Init(TTree *tree);
-  virtual void    SlaveBegin(TTree *tree);
-  virtual Bool_t  Process(Long64_t entry);
-  virtual void    Terminate();
-  virtual Int_t   Version() const { return 2; }
-
-  void resetSelection();
-
-  TTreeReader fReader;
-  TTreeReaderArray<tree::Photon> photons;
-  TTreeReaderArray<tree::Jet> jets;
-  TTreeReaderArray<tree::Electron> electrons;
-  TTreeReaderArray<tree::Muon> muons;
-  TTreeReaderArray<tree::Particle> genJets;
-
-  TTreeReaderValue<tree::MET> met;
-  TTreeReaderValue<Int_t> nGoodVertices;
-  TTreeReaderValue<Float_t> w;
-
-  vector<tree::Photon*> selPhotons;
-  vector<tree::Jet*> selJets;
-  vector<tree::Jet*> selBJets;
-  vector<tree::Electron*> selElectrons;
-  vector<tree::Muon*> selMuons;
-
-  map<string,BaseHistograms*> hMap;
-  map<string,TH2F> h2;
-};
-
-map<string,int> HistogramProducer::bTaggingWorkingPoints8TeV = {
+map<string,int> bTaggingWorkingPoints8TeV = {
   { "CSVL", 0.244 },
   { "CSVM", 0.679 },
   { "CSVT", 0.989 }
@@ -104,6 +70,64 @@ pair<float,float> razorVariables( const pair<TVector3,TVector3>& megajets, const
   return pair<float,float>(sqrt(mr2),r2);
 }
 
+string getOutputFilename( string inputFileName ) {
+
+  // Converts "/path/to/ntuple/QCD_nTuple.root" to "QCD_hists.root"
+
+  auto startPos = inputFileName.rfind("/");
+  auto endPos = inputFileName.find("nTuple.root");
+  string outputName = "out.root";
+  if( endPos != string::npos ) {
+    outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "hists.root";
+  }
+  return outputName;
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// User Functions
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+class BaseHistograms;
+
+class HistogramProducer : public TSelector {
+ public:
+
+  HistogramProducer();
+  virtual ~HistogramProducer() { }
+
+  virtual void    Init(TTree *tree);
+  virtual void    SlaveBegin(TTree *tree);
+  virtual Bool_t  Process(Long64_t entry);
+  virtual void    Terminate();
+  virtual Int_t   Version() const { return 2; }
+
+  void resetSelection();
+
+  TTreeReader fReader;
+  TTreeReaderArray<tree::Photon> photons;
+  TTreeReaderArray<tree::Jet> jets;
+  TTreeReaderArray<tree::Electron> electrons;
+  TTreeReaderArray<tree::Muon> muons;
+  TTreeReaderArray<tree::Particle> genJets;
+
+  TTreeReaderValue<tree::MET> met;
+  TTreeReaderValue<Int_t> nGoodVertices;
+  TTreeReaderValue<Float_t> w;
+
+  vector<tree::Photon*> selPhotons;
+  vector<tree::Jet*> selJets;
+  vector<tree::Jet*> selBJets;
+  vector<tree::Electron*> selElectrons;
+  vector<tree::Muon*> selMuons;
+
+  map<string,BaseHistograms*> hMap;
+  map<string,TH2F> h2;
+};
 
 
 class BaseHistograms {
@@ -452,21 +476,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   return kTRUE;
 }
-
-string getOutputFilename( string inputFileName ) {
-
-  // Converts "/path/to/ntuple/QCD_nTuple.root" to "QCD_hists.root"
-
-  auto startPos = inputFileName.rfind("/");
-  auto endPos = inputFileName.find("nTuple.root");
-  string outputName = "out.root";
-  if( endPos != string::npos ) {
-    outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "hists.root";
-  }
-  return outputName;
-
-}
-
 
 void HistogramProducer::Terminate()
 {
