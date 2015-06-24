@@ -242,15 +242,20 @@ def draw( files, path, name, config ):
 
     ROOT.gPad.GetCanvas().SaveAs("plots/%s_%s.pdf"%(processName, name ))
 
+def getNprocessed( filename ):
+    f = readHist( filename, "hCutFlow" )
+    return int(f.GetBinContent(1))
+
 def getHistoFromDataset( dataset, name ):
-    h0 = readHist( dataset.files[0], name )
-    h0.Scale( dataset.xsecs[0]*1000/intLumi )
-    h0.SetLineColor( dataset.color )
-    h0.SetMarkerColor( dataset.color )
-    for i in range(1, len(dataset.files) ):
+    h0 = None
+    for i in range( len(dataset.files) ):
         h = readHist( dataset.files[i], name )
         h.Scale( dataset.xsecs[i]*dataset.ngens[i]/intLumi )
-        h0.Add( h )
+        h.SetLineColor( dataset.color )
+        h.SetMarkerColor( dataset.color )
+
+        if h0: h0.Add( h )
+        else: h0 = h
 
     return h0
 
@@ -288,21 +293,27 @@ def compareAll( saveName="test", *datasets ):
         #        drawH2( d, name )
 
 def drawSameHistogram( saveName, name, data, bkg, additional ):
+
+    can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
-    for d in bkg:
+    for d in bkg[-1::-1]:
         h = getHistoFromDataset( d, name )
-        if not h.Integral(): continue
-        h.Scale( 1./h.Integral() )
+        #if not h.Integral(): continue
+        #h.Scale( 1./h.Integral() )
         m.addStack( h, d.label )
 
     m.Draw()
 
     save( "sameHistogram%s_%s"%(saveName,name) )
+    can.SetLogy()
+    save( "sameHistogram%s_%s_log"%(saveName,name) )
 
 
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = getObjectNames( bkg[0].files[0], "" )
+
+    names = ["h_met_loose"]
 
     for name in names:
         if name.startswith("h_"):

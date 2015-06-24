@@ -53,13 +53,9 @@ pair<TVector3,TVector3> megajets( const vector<TVector3>& jets ) {
       j2 = j_temp2;
     }
   }
-  if(j2.Pt() > j1.Pt()){
-    TVector3 temp = j1;
-    j1 = j2;
-    j2 = temp;
-  }
 
-  return pair<TVector3,TVector3>(j1,j2);
+  if(j2.Pt() > j1.Pt()) return pair<TVector3,TVector3>(j2,j1);
+  else                  return pair<TVector3,TVector3>(j1,j2);
 }
 
 
