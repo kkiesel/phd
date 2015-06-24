@@ -334,8 +334,11 @@ def drawRazor( dataset ):
     h2 = getHistoFromDataset( dataset, "h2_razorPlane" )
     h2.Rebin2D( 1, 20 )
     razorFit = ROOT.TF2("razorFitFunc", "[0]*( [1]*(x[0]-[2])*(x[1]-[3]) - 1 ) * exp( -[1]*(x[0]-[2])*(x[1]-[3]) )", 0, 2000, 0, 0.5 )
+    razorFit.SetParameters( h2.GetEntries(), 0.0005, 170, 0.00001 )
+    razorFit.FixParameter( 2, 170 )
     fr = h2.Fit( "razorFitFunc" )
-    h2.Draw("colz")
+    h2.Draw("cont2")
+    razorFit.Draw("same")
     save( "razorPlane" )
 
     pX = getProjections( h2 )
