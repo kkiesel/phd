@@ -54,7 +54,7 @@ class Multiplot:
             minimum = 0.3*minimum
         else:
             maximum = maximum + (maximum-minimum)*.1
-            minimum = max(0,minimum - (maximum-minimum)*.1)
+            minimum = max(0.1,minimum - (maximum-minimum)*.1)
 
         if self.maximum != None:
             maximum = self.maximum
