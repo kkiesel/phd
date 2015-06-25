@@ -103,6 +103,7 @@ class HistogramProducer : public TSelector {
   virtual Int_t   Version() const { return 2; }
 
   void resetSelection();
+  void defaultSelection();
 
   TTreeReader fReader;
   TTreeReaderArray<tree::Photon> photons;
@@ -379,10 +380,34 @@ void HistogramProducer::Init(TTree *tree)
 
 void HistogramProducer::SlaveBegin(TTree *tree)
 {
-  std::vector<string> strs = { "base", "loose", "loose_met200", "loose_genPhoton", "tightPhoton" };
+  std::vector<string> strs = { "base", "loose", "loose_met200", "looseElectron", "loose_genPhoton", "tightPhoton" };
   for( auto& v : strs )
     hMap[v] = new BaseHistograms();
   h2["h2_razorPlane"] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
+}
+
+void HistogramProducer::defaultSelection()
+{
+  for( auto& mu : muons ) {
+    if( mu.p.Pt() < 15 ) continue;
+    selMuons.push_back( &mu );
+  }
+  for( auto& el : electrons ) {
+    if( !el.isLoose || el.p.Pt() < 15 ) continue;
+    selElectrons.push_back( &el );
+  }
+  for( auto& jet : jets ) {
+    if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
+
+    for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    for( auto& p: selElectrons ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+
+    selJets.push_back( &jet );
+    if( jet.bDiscriminator > bTaggingWorkingPoints8TeV["CSVL"] )
+      selBJets.push_back( &jet );
+    closeToOther:;
+  }
 }
 
 Bool_t HistogramProducer::Process(Long64_t entry)
@@ -407,49 +432,32 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
   hMap["base"]->fill( *this );
 
+
+  float ht = 0;
+  for( auto& jet : jets ){
+    if( jet.p.Pt() > 40 && abs(jet.p.Eta()) < 3 ) {
+      ht += jet.p.Pt();
+    }
+  }
+
   // New selection ============================================================
   resetSelection();
 
   for( auto& photon : photons ) {
-    if( !photon.isLoose || photon.p.Pt() < 100 ) continue;
+    if( !photon.isLoose || photon.p.Pt() < 100 || abs( photon.p.Eta() ) > 1.4442 || photon.hasPixelSeed ) continue;
     selPhotons.push_back( &photon );
   }
-  for( auto& mu : muons ) {
-    if( mu.p.Pt() < 15 ) continue;
-    selMuons.push_back( &mu );
-  }
-  for( auto& el : electrons ) {
-    if( !el.isLoose || el.p.Pt() < 15 ) continue;
-    selElectrons.push_back( &el );
-  }
-  for( auto& jet : jets ) {
-    if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
-
-    for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
-    for( auto& p: selElectrons ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
-    for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
-    closeToOther:;
-
-    selJets.push_back( &jet );
-    if( jet.bDiscriminator > bTaggingWorkingPoints8TeV["CSVL"] )
-      selBJets.push_back( &jet );
-  }
-
-  float ht = 0;
-  for( auto& jet : jets ){
-    if( jet.p.Pt() > 40 && abs(jet.p.Eta()) < 2.5 ) {
-      ht += jet.p.Pt();
-    }
-  }
+  defaultSelection();
 
   if( selPhotons.size() && ht > 600 ) {
     hMap["loose"]->fill( *this );
     if( met->p.Pt() > 200 )
       hMap["loose_met200"]->fill( *this );
-    if( selPhotons[0]->isTrue )
+    if( selPhotons[0]->isTrueAlternative )
       hMap["loose_genPhoton"]->fill( *this );
   }
 
+  // extra stuff for razor
   if( selPhotons.size() && ht > 600 ) {
     vector<TVector3> js;
     for( auto& p : selJets ) js.push_back( p->p );
@@ -460,15 +468,32 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
 
 
+  // electron sample
+  resetSelection();
+
+  for( auto& photon : photons ) {
+    if( !photon.isLoose || photon.p.Pt() < 100 || abs( photon.p.Eta() ) > 1.4442 || !photon.hasPixelSeed ) continue;
+    selPhotons.push_back( &photon );
+  }
+  defaultSelection();
+
+  if( selPhotons.size() && ht > 600 ) {
+     hMap["looseElectron"]->fill( *this );
+  }
+
+
   // New photon id ============================================================
   selPhotons.clear();
 
   for( auto& photon : photons ) {
-    if( !photon.isTight || photon.p.Pt() < 100 ) continue;
+    if( !photon.isTight || photon.p.Pt() < 100 || abs( photon.p.Eta() ) > 1.4442 || photon.hasPixelSeed ) continue;
     selPhotons.push_back( &photon );
   }
-  if( selPhotons.size() )
+  defaultSelection();
+
+  if( selPhotons.size() && ht > 600 ) {
     hMap["tightPhoton"]->fill( *this );
+  }
 
   return kTRUE;
 }
