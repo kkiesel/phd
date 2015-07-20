@@ -6,16 +6,11 @@
 
 // start with root -l -q run.C
 // Using ROOT6
-//void run( string infile="photon_ntuple_mva_mini_38.root") {
-void run( string infile="/user/kiesel/nTuples/QCD_HT_1000ToInf_2_nTuple.root") {
+void run( string infile="/user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-400To600.root") {
   gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
 
   TChain ch( "TreeWriter/eventTree" );
   ch.AddFile( infile.c_str() );
-  //ch.AddFile( "/user/kiesel/nTuples/GJets_HT-400to600_nTuple.root" );
-  //ch.AddFile( "/user/kiesel/nTuples/GJets_HT-600toInf_nTuple.root" );
-  //ch.AddFile( "/user/kiesel/nTuples/ZJetsToNuNu_HT-400to600_nTuple.root" );
-  //ch.AddFile( "/user/kiesel/nTuples/ZJetsToNuNu_HT-600toInf_nTuple.root" );
 
   double start_time = time(NULL);
   ch.Process( "HistogramProducer.cc+" );

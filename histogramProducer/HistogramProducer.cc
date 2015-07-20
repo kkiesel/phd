@@ -8,8 +8,10 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TProfile.h"
+#include "TEfficiency.h"
 
-#include "TreeParticles.hpp"
+//#include "TreeParticles.hpp"
+#include "../../CMSSW/treewriter/CMSSW_7_4_5/src/TreeWriter/TreeWriter/plugins/TreeParticles.hpp"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,10 +73,10 @@ string getOutputFilename( string inputFileName ) {
   // Converts "/path/to/ntuple/QCD_nTuple.root" to "QCD_hists.root"
 
   auto startPos = inputFileName.rfind("/");
-  auto endPos = inputFileName.find("nTuple.root");
+  auto endPos = inputFileName.find(".root");
   string outputName = "out.root";
   if( endPos != string::npos ) {
-    outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "hists.root";
+    outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "_hists.root";
   }
   return outputName;
 
@@ -111,10 +113,14 @@ class HistogramProducer : public TSelector {
   TTreeReaderArray<tree::Electron> electrons;
   TTreeReaderArray<tree::Muon> muons;
   TTreeReaderArray<tree::Particle> genJets;
+  TTreeReaderArray<tree::GenParticle> genParticles;
 
   TTreeReaderValue<tree::MET> met;
   TTreeReaderValue<Int_t> nGoodVertices;
   TTreeReaderValue<Float_t> w;
+  TTreeReaderValue<Bool_t> signalTriggerFired;
+  TTreeReaderValue<Bool_t> crossTriggerPhotonFired;
+  TTreeReaderValue<Bool_t> crossTriggerHtFired;
 
   vector<tree::Photon*> selPhotons;
   vector<tree::Jet*> selJets;
@@ -126,13 +132,13 @@ class HistogramProducer : public TSelector {
   map<string,TH2F> h2;
 };
 
-
 class BaseHistograms {
  public:
 
   map<string,TH1F> h;
   map<string,TH2F> h2;
   map<string,TProfile> prof;
+  map<string,TEfficiency> eff;
 
   BaseHistograms() {
     h["h_met"] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
@@ -180,6 +186,9 @@ class BaseHistograms {
     h2["h2_match_jet_electron"] = TH2F( "", ";#Delta R;p_{T}^{jet}/p_{T}^{e}", 100, 0, 0.5, 100, 0, 4 );
     h2["h2_match_jet_muon"] = TH2F( "", ";#Delta R;p_{T}^{jet}/p_{T}^{#mu}", 100, 0, 0.5, 100, 0, 4 );
 
+    h2["h2_match_photon_genElectron"] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen e}", 100, 0, 0.5, 100, 0, 4 );
+    h2["h2_match_photon_genPhoton"] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen #gamma}", 100, 0, 0.5, 100, 0, 4 );
+
     // profile
     prof["profile_g_pt_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTp_{T}#GT (GeV)", 100, 0, 1000 );
     prof["profile_ht_met"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTH_{T}#GT (GeV)", 100, 0, 1000 );
@@ -200,10 +209,21 @@ class BaseHistograms {
     prof["profile_hOverE_met_gloose"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTH/E#GT", 100, 0, 1000 );
     prof["profile_mva_met_gloose"] = TProfile( "", ";E^{miss}_{T} (GeV);#LTy_{MVA}#GT", 100, 0, 1000 );
 
+    eff["eff_id_mva_true"] = TEfficiency( "", ";y_{MVA};#epsilon(#gamma_{reco}|#gamma_{true})", 200, -1.1, 1.1 );
+    eff["eff_id_mva"] = TEfficiency( "", ";y_{MVA};#epsilon(#gamma_{reco})", 200, -1.1, 1.1 );
+
+    eff["eff_hlt_pt"] = TEfficiency( "", ";p_{T};#epsilon", 200, 0, 2000 );
+    eff["eff_hlt_ht"] = TEfficiency( "", ";H_{T};#epsilon", 200, 0, 2000 );
+
+    for( auto& it : eff ) {
+      it.second.SetUseWeightedEvents();
+    }
+
   }
 
   void fill( HistogramProducer& tr ) {
     float w = *(tr.w);
+    w = 1.;
 
     auto metAndL = tr.met->p;
     for( auto l : tr.selElectrons )
@@ -284,6 +304,16 @@ class BaseHistograms {
         h2["h2_match_jet_muon"].Fill( jet->p.DeltaR( p->p ), jet->p.Pt()/p->p.Pt(), w );
     }
 
+    for( auto& photon : tr.selPhotons ) {
+      for( auto& p : tr.genParticles ) {
+        if( abs(p.pdgId) == 22 )
+          h2["h2_match_photon_genPhoton"].Fill( photon->p.DeltaR( p.p ), photon->p.Pt()/p.p.Pt(), w );
+        if( abs(p.pdgId) == 11 )
+          h2["h2_match_photon_genElectron"].Fill( photon->p.DeltaR( p.p ), photon->p.Pt()/p.p.Pt(), w );
+      }
+    }
+
+
     // profile
     if( tr.selPhotons.size() > 0 )
       prof["profile_g_pt_met"].Fill( tr.met->p.Pt(), tr.selPhotons[0]->p.Pt(), w );
@@ -292,10 +322,10 @@ class BaseHistograms {
 
     // isolations
     for( auto& p : tr.selPhotons ) {
-      prof["profile_cIso_met"].Fill( tr.met->p.Pt(), p->isoChargedHadronsWithEA, w );
-      prof["profile_nIso_met"].Fill( tr.met->p.Pt(), p->isoNeutralHadronsWithEA, w );
-      prof["profile_pIso_met"].Fill( tr.met->p.Pt(), p->isoPhotonsWithEA, w );
-      prof["profile_sie_met"].Fill( tr.met->p.Pt(), p->full5x5_sigmaIetaIeta, w );
+      prof["profile_cIso_met"].Fill( tr.met->p.Pt(), p->isoChargedHadronsEA, w );
+      prof["profile_nIso_met"].Fill( tr.met->p.Pt(), p->isoNeutralHadronsEA, w );
+      prof["profile_pIso_met"].Fill( tr.met->p.Pt(), p->isoPhotonsEA, w );
+      prof["profile_sie_met"].Fill( tr.met->p.Pt(), p->sigmaIetaIeta, w );
       prof["profile_hOverE_met"].Fill( tr.met->p.Pt(), p->hOverE, w );
       prof["profile_mva_met"].Fill( tr.met->p.Pt(), p->mvaValue, w );
     }
@@ -303,48 +333,57 @@ class BaseHistograms {
       if( p->p.Pt() < 50 || abs(p->p.Eta()) > 1.4442 ) continue;
       if(
         p->hOverE < 0.028
-        && p->full5x5_sigmaIetaIeta < 0.0107
-        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+        && p->sigmaIetaIeta < 0.0107
+        && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
       )
-      prof["profile_cIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoChargedHadronsWithEA, w );
+      prof["profile_cIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoChargedHadronsEA, w );
       if(
         p->hOverE < 0.028
-        && p->full5x5_sigmaIetaIeta < 0.0107
-        && p->isoChargedHadronsWithEA < 2.67
-        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+        && p->sigmaIetaIeta < 0.0107
+        && p->isoChargedHadronsEA < 2.67
+        && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
       )
-      prof["profile_nIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoNeutralHadronsWithEA, w );
+      prof["profile_nIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoNeutralHadronsEA, w );
       if(
         p->hOverE < 0.028
-        && p->full5x5_sigmaIetaIeta < 0.0107
-        && p->isoChargedHadronsWithEA < 2.67
-        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->sigmaIetaIeta < 0.0107
+        && p->isoChargedHadronsEA < 2.67
+        && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
       )
-      prof["profile_pIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoPhotonsWithEA, w );
+      prof["profile_pIso_met_gloose"].Fill( tr.met->p.Pt(), p->isoPhotonsEA, w );
       if(
         p->hOverE < 0.028
-        && p->isoChargedHadronsWithEA < 2.67
-        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+        && p->isoChargedHadronsEA < 2.67
+        && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
       )
-      prof["profile_sie_met_gloose"].Fill( tr.met->p.Pt(), p->full5x5_sigmaIetaIeta, w );
+      prof["profile_sie_met_gloose"].Fill( tr.met->p.Pt(), p->sigmaIetaIeta, w );
       if(
-        p->full5x5_sigmaIetaIeta < 0.0107
-        && p->isoChargedHadronsWithEA < 2.67
-        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+        p->sigmaIetaIeta < 0.0107
+        && p->isoChargedHadronsEA < 2.67
+        && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
       )
       prof["profile_hOverE_met_gloose"].Fill( tr.met->p.Pt(), p->hOverE, w );
       if(
         p->hOverE < 0.028
-        && p->full5x5_sigmaIetaIeta < 0.0107
-        && p->isoChargedHadronsWithEA < 2.67
-        && p->isoNeutralHadronsWithEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-        && p->isoPhotonsWithEA < 2.11 + 0.0014*p->p.Pt()
+        && p->sigmaIetaIeta < 0.0107
+        && p->isoChargedHadronsEA < 2.67
+        && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
+        && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
       )
       prof["profile_mva_met_gloose"].Fill( tr.met->p.Pt(), p->mvaValue, w );
+
+      eff["eff_id_mva_true"].FillWeighted( p->isTrue, w, p->mvaValue );
+      eff["eff_id_mva"].FillWeighted( p->isTrue, w, p->mvaValue );
     }
+
+    // trigger efficiencies
+    if( *tr.crossTriggerHtFired && ht > 700 )
+      eff["eff_hlt_pt"].FillWeighted( *tr.signalTriggerFired, w, tr.selPhotons[0]->p.Pt() );
+    if( *tr.crossTriggerPhotonFired && tr.selPhotons[0]->p.Pt() > 100 )
+      eff["eff_hlt_ht"].FillWeighted( *tr.signalTriggerFired, w, ht );
 
 
   } // end fill
@@ -356,6 +395,9 @@ class BaseHistograms {
       mapIt.second.Write( (mapIt.first+namePrefix).c_str(), TObject::kWriteDelete );
     for( auto& mapIt : prof )
       mapIt.second.Write( (mapIt.first+namePrefix).c_str(), TObject::kWriteDelete );
+    for( auto& mapIt : eff )
+      mapIt.second.Write( (mapIt.first+namePrefix).c_str(), TObject::kWriteDelete );
+
   }
 
 };
@@ -367,9 +409,13 @@ HistogramProducer::HistogramProducer():
   electrons( fReader, "electrons" ),
   muons( fReader, "muons" ),
   genJets( fReader, "genJets" ),
+  genParticles( fReader, "genParticles" ),
   met( fReader, "met" ),
   nGoodVertices( fReader, "nGoodVertices" ),
-  w( fReader, "pu_weight" )
+  w( fReader, "pu_weight" ),
+  signalTriggerFired( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
+  crossTriggerPhotonFired( fReader, "HLT_Photon90_v" ),
+  crossTriggerHtFired( fReader, "HLT_PFHT600_v" )
 {
 }
 
@@ -380,7 +426,7 @@ void HistogramProducer::Init(TTree *tree)
 
 void HistogramProducer::SlaveBegin(TTree *tree)
 {
-  std::vector<string> strs = { "base", "loose", "loose_met200", "looseElectron", "loose_genPhoton", "tightPhoton" };
+  std::vector<string> strs = { "base", "loose", "loose_met200", "looseElectron", "loose_genElectron", "loose_genPhoton", "tightPhoton" };
   for( auto& v : strs )
     hMap[v] = new BaseHistograms();
   h2["h2_razorPlane"] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
@@ -413,7 +459,7 @@ void HistogramProducer::defaultSelection()
 Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
-//  if( entry > 3 ) return true;
+  //if( entry > 3 ) return true;
   if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
 
@@ -455,6 +501,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
       hMap["loose_met200"]->fill( *this );
     if( selPhotons[0]->isTrueAlternative )
       hMap["loose_genPhoton"]->fill( *this );
+
+    // find generated electron nearyby
+    for( auto& p : genParticles ) {
+      if( abs(p.pdgId) == 11 && p.p.DeltaR( selPhotons[0]->p ) < 0.1 ) {
+        hMap["loose_genElectron"]->fill( *this );
+        break;
+      }
+    }
   }
 
   // extra stuff for razor
