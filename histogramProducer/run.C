@@ -14,6 +14,6 @@ void run( string infile="/user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-400To600.
 
   double start_time = time(NULL);
   ch.Process( "HistogramProducer.cc+" );
-  cout << "Job needed " << 1.*( time(NULL) - start_time)/360 << " min real time." << endl;
+  cout << "Job needed " << 1.*( time(NULL) - start_time)/60 << " min real time." << endl;
 
 }
