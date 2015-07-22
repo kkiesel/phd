@@ -67,6 +67,7 @@ class Multiplot:
             # todo: special cases?
             self.leg.AddEntry( h, h.GetName(), "lpe" )
         for h in self.histsToStack[-1::-1]:
+            h.SetLineColor(0)
             self.leg.AddEntry( h, h.GetName(), "f" )
 
         # change the order for drawing
