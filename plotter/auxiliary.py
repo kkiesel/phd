@@ -44,21 +44,40 @@ def appendFlowBin( h, under=True, over=True ):
     if over:
         mergeBins( h, h.GetNbinsX(), h.GetNbinsX()+1 )
 
+def getValAndError( val, err, sig=2 ):
+    from math import floor, log10
+    digit = sig - int(floor(log10(err))) - 1
+    return ( round(val,digit), round(err,digit) )
+
+def getValAndErrorStr( val, err, sig=2 ):
+    return "{} #pm {}".format( getValAndError( val, err, sig ) )
+
+
 def getYAxisTitle( histo ):
     # returns e.g.: "Events / 10 GeV"
     yTitle = "Events"
 
-    binW1 = histo.GetXaxis.GetBinWidth(1)
-    binW2 = histo.GetXaxis.GetBinWidth(histo.GetNbinsX()+1)
-    unit = "GeV" if "GeV" in histo.GetXaxis().GetTitle() else "1"
+    binW1 = histo.GetXaxis().GetBinWidth(1)
+    binW2 = histo.GetXaxis().GetBinWidth(histo.GetNbinsX()+1)
+    unit = "GeV" if "GeV" in histo.GetXaxis().GetTitle() else None
 
     if binW1 == binW2: #assume constant bin size
         if binW1 == 1:
             return yTitle
-        return "Entries / " + binW1 + " " + unit
+
+        # get two significant digits
+        binW = getValAndError( 0, binW1 )[1]
+        if binW.is_integer():
+            binW = int(binW)
+        if unit:
+            return yTitle + " / " + str(binW) + " " + unit
+        else:
+            return yTitle + " / " + str(binW)
     else: # assume variable bin size
-        if eV:
+        if unit:
             return yTitle + " / " + unit
+        else:
+            return yTitle
 
 class Label:
     # Create labels
@@ -67,21 +86,23 @@ class Label:
     # * With Labels(False), the method is only initiated and labels can be modified before calling the 'draw' method
 
     cmsEnergy = 13 #TeV
-    lumi = 19.7 # fb^{-1}
-
-    cms = ROOT.TLatex( 0.02, .895, "#font[61]{CMS}")
-    sim = ROOT.TLatex( 0.02, .89, "#scale[0.76]{#font[52]{Simulation}")
-    pub = ROOT.TLatex( 0.02, .885, "#scale[0.76]{#font[52]{Private Work}")
-    lum = ROOT.TLatex( .68, .895, "%s fb^{-1} (%s TeV)"%(lumi, cmsEnergy) )
-    # todo: include margins, etc
+    from main import intLumi
 
     def draw( self ):
         varDict = vars( self )
-
         for varName, obj in varDict.iteritems():
-            if isInstance( obj, ROOT.TLatex ):
-                obj.DrawNDC()
+            if isinstance( obj, ROOT.TLatex ):
+                obj.SetNDC()
+                obj.Draw()
 
-    def __init__( self, drawAll=True ):
+    def __init__( self, drawAll=True, sim=True, status="Private Work" ):
+        # todo: include margins, etc
+        if sim:
+            self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}")
+        else:
+            self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}")
+        self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status)
+        self.lum = ROOT.TLatex( .63, .95, "%s fb^{-1} (%s TeV)"%(self.intLumi/1000., self.cmsEnergy) )
+
         if drawAll:
             self.draw()
