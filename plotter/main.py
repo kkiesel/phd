@@ -18,72 +18,18 @@ import auxiliary as aux
 from datasets import *
 intLumi = 5000 # /pb
 
-def readHist( filename, histoname ):
-    f = ROOT.TFile( filename )
-    h = f.Get( histoname )
-    if not h:
-        print "Histogram {} not found in file {}".format(histoname, filename)
-        return
-    h = ROOT.gROOT.CloneObject( h )
-    if not h.GetSumw2N():
-        h.Sumw2()
-    h.drawOption_ = ""
-    return h
-
-def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
-    f = ROOT.TFile( filename )
-    tmpDir = f.GetDirectory( path )
-
-    outList = []
-    for element in tmpDir.GetListOfKeys():
-        obj = element.ReadObj()
-
-        if any( [ isinstance( obj, o ) for o in objects ] ):
-            outList.append( element.GetName() )
-
-    return outList
-
-def absHistWeighted( origHist ):
-    origNbins = origHist.GetNbinsX()
-    origXmin = origHist.GetBinLowEdge(1)
-    origXmax = origHist.GetBinLowEdge(origHist.GetNbinsX()+1)
-    if origXmin + origXmax:
-        if origXmin:
-            print "cant handle assymetric histograms"
-        # else: print "already symetric?"
-        return origHist
-
-    h = ROOT.TH1F( "", origHist.GetTitle(), int(math.ceil(origNbins/2.)), 0, origXmax )
-
-    for origBin in range( origNbins+2 ):
-        newBin = int(abs(origBin - (origNbins+1.)/2)) + 1
-
-        c1 = origHist.GetBinContent( origBin )
-        e1 = origHist.GetBinError( origBin )
-        c2 = h.GetBinContent( newBin )
-        e2 = h.GetBinError( newBin )
-
-        if e1 and e2:
-            h.SetBinContent( newBin, ( c1*e1**-2 + c2*e2**-2 )/(e1**-2 + e2**-2) )
-            h.SetBinError( newBin, 1./math.sqrt( e1**-2 + e2**-2 ) )
-
-        else:
-            h.SetBinContent( newBin, origHist.GetBinContent(origBin) )
-            h.SetBinError( newBin, origHist.GetBinError(origBin) )
-
-    return h
-
 def getNprocessed( filename ):
-    f = readHist( filename, "hCutFlow" )
+    f = aux.getFromFile( filename, "hCutFlow" )
     return int(f.GetBinContent(1))
 
 def getHistoFromDataset( dataset, name ):
     h0 = None
     for i in range( len(dataset.files) ):
-        h = readHist( dataset.files[i], name )
-        h.Scale( intLumi * dataset.xsecs[i] / dataset.ngens[i] )
-        h.SetLineColor( dataset.color )
-        h.SetMarkerColor( dataset.color )
+        h = aux.getFromFile( dataset.files[i], name )
+        if isinstance( h, ROOT.TH1 ):
+            h.Scale( intLumi * dataset.xsecs[i] / dataset.ngens[i] )
+            h.SetLineColor( dataset.color )
+            h.SetMarkerColor( dataset.color )
 
         if h0: h0.Add( h )
         else: h0 = h
@@ -114,7 +60,7 @@ def drawH2( dataset, name ):
 
 
 def compareAll( saveName="test", *datasets ):
-    names = getObjectNames( datasets[0].files[0], "" )
+    names = aux.getObjectNames( datasets[0].files[0], "" )
 
     for name in names:
         if name.startswith("h_"):
@@ -144,7 +90,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional ):
 
 
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
-    names = getObjectNames( bkg[0].files[0], "" )
+    names = aux.getObjectNames( bkg[0].files[0], "" )
 
 #    names = ["h_met_loose"] # test plot
 
@@ -196,8 +142,8 @@ def drawRazor( dataset ):
     save( "razorAlongX" )
 
 
-def ewkClosure( dataset ):
-    names = getObjectNames( dataset.files[0] )
+def ewkClosure( dataset, samplename="" ):
+    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
 
     gSet = "loose_genElectron"
     eSet = "looseElectron"
@@ -209,16 +155,38 @@ def ewkClosure( dataset ):
         h = getHistoFromDataset( dataset, name )
         h.SetLineColor(1)
         h.SetMarkerColor(1)
-        h.SetMarkerSize(20)
         m.add( h, "#gamma (gen e)" )
 
         h = getHistoFromDataset( dataset, name.replace( gSet, eSet ) )
         h.Scale( 0.01 )
+        h.drawOption_ = "hist"
         m.add( h, "0.01 #times #gamma_{pixel}" )
 
         m.Draw()
 
-        save( "ewkClosure_"+name )
+        l = aux.Label()
+        save( "ewkClosure_"+name+samplename )
+
+def drawROCs():
+    a = aux.getROC( getHistoFromDataset( gjets, "h_g_mva_base" ), getHistoFromDataset( qcd, "h_g_mva_base" ) )
+    a.Draw()
+    a.GetXaxis().SetRangeUser(0.1,1)
+    a.GetYaxis().SetRangeUser(0.1,1)
+    ROOT.gPad.SetLogy()
+    ROOT.gPad.SetLogx()
+    save("test")
+
+def efficiencies( dataset ):
+    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TEfficiency] )
+
+    for name in names:
+        h = getHistoFromDataset( dataset, name )
+        if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
+        h.Draw()
+
+        l = aux.Label()
+        save( "efficiency_"+name )
+
 
 
 
@@ -230,7 +198,12 @@ def main():
     #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets] )
     #drawRazor( ttjets )
 
-    ewkClosure( ttjets )
+    #ewkClosure( ttjets, "_tt" )
+    #ewkClosure( wjets, "_w" )
+    #ewkClosure( wjets+ttjets, "_ewk" )
+
+    efficiencies( ttjets+qcd+gjets+wjets )
+
 
 
 if __name__ == "__main__":

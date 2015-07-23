@@ -1,16 +1,60 @@
 import ROOT
 
-def getFromFile( filename, objectname ):
-    # todo: check if file exists
+def getFromFile( filename, histoname ):
     f = ROOT.TFile( filename )
-
-    obj = f.Get( objectname )
-    if not obj:
-        print "ERROR, {} not in {}".format( objectname, filename )
+    h = f.Get( histoname )
+    if not h:
+        print "Object {} not found in file {}".format(histoname, filename)
         return
-    obj = ROOT.gROOT.CloneObject( obj )
+    h = ROOT.gROOT.CloneObject( h )
+    if isinstance( h, ROOT.TH1 ) and not h.GetSumw2N():
+        h.Sumw2()
+    h.drawOption_ = ""
+    return h
 
-    return obj
+def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
+    f = ROOT.TFile( filename )
+    tmpDir = f.GetDirectory( path )
+
+    outList = []
+    for element in tmpDir.GetListOfKeys():
+        obj = element.ReadObj()
+
+        if any( [ isinstance( obj, o ) for o in objects ] ):
+            outList.append( element.GetName() )
+
+    return outList
+
+def absHistWeighted( origHist ):
+    origNbins = origHist.GetNbinsX()
+    origXmin = origHist.GetBinLowEdge(1)
+    origXmax = origHist.GetBinLowEdge(origHist.GetNbinsX()+1)
+    if origXmin + origXmax:
+        if origXmin:
+            print "cant handle assymetric histograms"
+        # else: print "already symetric?"
+        return origHist
+
+    h = ROOT.TH1F( "", origHist.GetTitle(), int(math.ceil(origNbins/2.)), 0, origXmax )
+
+    for origBin in range( origNbins+2 ):
+        newBin = int(abs(origBin - (origNbins+1.)/2)) + 1
+
+        c1 = origHist.GetBinContent( origBin )
+        e1 = origHist.GetBinError( origBin )
+        c2 = h.GetBinContent( newBin )
+        e2 = h.GetBinError( newBin )
+
+        if e1 and e2:
+            h.SetBinContent( newBin, ( c1*e1**-2 + c2*e2**-2 )/(e1**-2 + e2**-2) )
+            h.SetBinError( newBin, 1./math.sqrt( e1**-2 + e2**-2 ) )
+
+        else:
+            h.SetBinContent( newBin, origHist.GetBinContent(origBin) )
+            h.SetBinError( newBin, origHist.GetBinError(origBin) )
+
+    return h
+
 
 def randomName():
     # Returns a random alphanumeric string
@@ -79,6 +123,30 @@ def getYAxisTitle( histo ):
         else:
             return yTitle
 
+def getROC( hSig, hBkg ):
+    nRocBins = hSig.GetNbinsX()
+
+    sigEff = []
+    bkgEff = []
+
+    sigDen = hSig.Integral()
+    bkgDen = hBkg.Integral()
+    if not sigDen or not bkgDen:
+        print "Warning, signal or background histogram has no integral"
+        return
+
+    for i in range(1, nRocBins+1 ):
+        sigNum = hSig.Integral(1, i)
+        bkgNum = hBkg.Integral(1, i)
+        sigEff.append( sigNum / sigDen )
+        bkgEff.append( bkgNum / bkgDen )
+
+    import numpy
+    rocGraph = ROOT.TGraph( nRocBins, numpy.array(bkgEff), numpy.array(sigEff) )
+    rocGraph.SetTitle(";#varepsilon_{bkg};#varepsilon_{sig}")
+    return rocGraph
+
+
 class Label:
     # Create labels
     # Usage:
@@ -98,10 +166,10 @@ class Label:
     def __init__( self, drawAll=True, sim=True, status="Private Work" ):
         # todo: include margins, etc
         if sim:
-            self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}")
+            self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}" )
         else:
-            self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}")
-        self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status)
+            self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}" )
+        self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status )
         self.lum = ROOT.TLatex( .63, .95, "%s fb^{-1} (%s TeV)"%(self.intLumi/1000., self.cmsEnergy) )
 
         if drawAll:

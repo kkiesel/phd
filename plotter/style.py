@@ -48,6 +48,8 @@ def defaultStyle():
 
     st.SetPalette(56)
 
+    st.SetErrorX(0)
+
 
     st.cd()
     return st
