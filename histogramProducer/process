@@ -1,0 +1,55 @@
+#!/bin/bash -e
+
+# start jobs and run them in parallel
+
+case "$1" in
+
+qcd)
+  infiles=(
+    /user/kiesel/nTuples/2015-07-20/QCD_HT300to500.root
+    /user/kiesel/nTuples/2015-07-20/QCD_HT500to700.root
+    /user/kiesel/nTuples/2015-07-20/QCD_HT700to1000.root
+    /user/kiesel/nTuples/2015-07-20/QCD_HT2000toInf.root
+  )
+;;
+
+gjets)
+  infiles=(
+    /user/kiesel/nTuples/2015-07-20/GJets_HT-400To600.root
+    /user/kiesel/nTuples/2015-07-20/GJets_HT-600ToInf.root
+  )
+;;
+
+ewk)
+  infiles=(
+    /user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-400To600.root
+    /user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-600ToInf.root
+    /user/kiesel/nTuples/2015-07-20/TTJets.root
+  )
+;;
+
+2)
+  infiles=(
+    /user/kiesel/nTuples/2015-07-20/GJets_HT-400To600.root
+    /user/kiesel/nTuples/2015-07-20/GJets_HT-600ToInf.root
+    /user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-400To600.root
+    /user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-600ToInf.root
+    /user/kiesel/nTuples/2015-07-20/TTJets.root
+  )
+;;
+
+*)
+  echo "Does not know what you want"
+  exit 1
+
+esac
+
+if [[ "${#infiles[@]}" -ge $(nproc) ]]; then
+  echo "You should not run more or equal jobs as you have cpu cores"
+  exit 1
+fi
+
+for infile in "${infiles[@]}"; do
+  echo root -b -l -q run.C\(\"$infile\"\) &
+done
+
