@@ -10,6 +10,7 @@ class Multiplot:
         self.maximum = None
 
         self.leg = ROOT.TLegend(.7,.7,.93,.92)
+        self.leg.SetFillColor( ROOT.kWhite )
 
     def add( self, h, label="" ):
         # important histograms first, they will be drawn on top
@@ -54,7 +55,6 @@ class Multiplot:
             minimum = 0.3*minimum
         else:
             maximum = maximum + (maximum-minimum)*.1
-            minimum = max(0.1,minimum - (maximum-minimum)*.1)
 
         if self.maximum != None:
             maximum = self.maximum
@@ -67,6 +67,7 @@ class Multiplot:
             # todo: special cases?
             self.leg.AddEntry( h, h.GetName(), "lpe" )
         for h in self.histsToStack[-1::-1]:
+            h.SetLineColor(0)
             self.leg.AddEntry( h, h.GetName(), "f" )
 
         # change the order for drawing

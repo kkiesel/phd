@@ -13,246 +13,23 @@ from sys import maxint
 import ratio
 import style
 import multiplot
+
+import auxiliary as aux
 from datasets import *
-
-intLumi = 10000 # /pb
-
-def randomName():
-    """
-    Generate a random string. This function is useful to give ROOT objects
-    different names to avoid overwriting.
-    """
-    return "%x"%(randint(0, maxint))
-
-def readHist( filename, histoname ):
-    f = ROOT.TFile( filename )
-    h = f.Get( histoname )
-    if not h:
-        print "Histogram {} not found in file {}".format(histoname, filename)
-        return
-    h = ROOT.gROOT.CloneObject( h )
-    if not h.GetSumw2N():
-        h.Sumw2()
-    h.drawOption_ = ""
-    return h
-
-def getObjectNames( filename, path ):
-    f = ROOT.TFile( filename )
-    tmpDir = f.GetDirectory( path )
-
-    outList = []
-    for element in tmpDir.GetListOfKeys():
-        obj = element.ReadObj()
-        if isinstance( obj, ROOT.TH1 ):
-            outList.append( element.GetName() )
-        elif isinstance( obj, ROOT.TObjString ) or isinstance( obj, ROOT.TTree ):
-            pass
-        else:
-            print "do not know what to do with", element.GetName()
-
-    return outList
-
-def getNgenDQM( filename ):
-    h = readHist( filename, "DQMData/Run 1/Generator/Run summary/GenParticles/nEvt" )
-    nGen = h.GetBinContent( 1 )
-    return nGen
-
-def getValAndError( val, err, sig=2 ):
-    from math import floor, log10
-    digit = sig - int(floor(log10(err))) - 1
-    return "{} #pm {}".format( round(val,digit), round(err,digit) )
-
-def getOwnStatBox( h, x1, y1 ):
-
-    text = ROOT.TLatex()
-    text.SetTextColor( h.GetLineColor() )
-
-    mean = h.GetMean()
-    mean_err = h.GetMeanError()
-
-    text.DrawLatexNDC( x1, y1, "#mu = "+getValAndError( mean, mean_err ) )
-
-def absHistWeighted( origHist ):
-    origNbins = origHist.GetNbinsX()
-    origXmin = origHist.GetBinLowEdge(1)
-    origXmax = origHist.GetBinLowEdge(origHist.GetNbinsX()+1)
-    if origXmin + origXmax:
-        if origXmin:
-            print "cant handle assymetric histograms"
-        # else: print "already symetric?"
-        return origHist
-
-    h = ROOT.TH1F( "", origHist.GetTitle(), int(math.ceil(origNbins/2.)), 0, origXmax )
-
-    for origBin in range( origNbins+2 ):
-        newBin = int(abs(origBin - (origNbins+1.)/2)) + 1
-
-        c1 = origHist.GetBinContent( origBin )
-        e1 = origHist.GetBinError( origBin )
-        c2 = h.GetBinContent( newBin )
-        e2 = h.GetBinError( newBin )
-
-        if e1 and e2:
-            h.SetBinContent( newBin, ( c1*e1**-2 + c2*e2**-2 )/(e1**-2 + e2**-2) )
-            h.SetBinError( newBin, 1./math.sqrt( e1**-2 + e2**-2 ) )
-
-        else:
-            h.SetBinContent( newBin, origHist.GetBinContent(origBin) )
-            h.SetBinError( newBin, origHist.GetBinError(origBin) )
-
-    return h
-
-def getMean( h, eb=True ):
-    (xmin, xmax) = (0, 1.5) if eb else (1.5, 5)
-
-    if not h.Integral( h.FindBin(xmin), h.FindBin(xmax) ): return None
-    h.Fit( "pol0", "0fcq", "", xmin, xmax )
-    f = h.GetFunction( "pol0" )
-    if not f: return 0
-    return f.GetParameter(0)
-
-def draw( files, path, name, config ):
-
-    c = ROOT.TCanvas()
-
-    processTex = ""
-    match = re.match( ".*__RelVal(.*)_13__.*", files[0] )
-    if match:
-        regex = match.group(1)
-        if regex == "H130GGgluonfusion":
-            processTex = "H#rightarrow#gamma#gamma"
-            processName = "Hgg"
-        elif regex == "ZEE":
-            processTex = "Z#rightarrowee"
-            processName = "Zee"
-        else: print "does not know what to do with", regex
-    else:
-        processTex = "Single e^{#minus}"
-        processName = "closure"
-    processTex += "  FullSim #color[2]{FastSim}"
-    if len(files) > 2:
-        processTex += " #color[4]{Mod}"
-
-    hists = []
-    for file in files:
-        h = readHist( file, "{}/{}".format( path, name ) )
-        if not h:
-            return
-        if not round( h.GetEntries()) or not round( h.Integral() ):
-            print "no entries in {}".format( name )
-            return
-
-        if isinstance( h, ROOT.TH2 ):
-            h = h.ProfileX( randomName() )
-        if "VsEta" in name:
-            h = absHistWeighted( h )
-
-        hists.append( h )
-
-    for h in hists:
-        if not h.GetXaxis().GetTitle():
-            h.SetXTitle( h.GetName() )
-
-    hists[0].SetName("FullSim")
-    if len(hists) > 1:
-        hists[1].SetName("FastSim")
-        hists[1].SetLineColor(2)
-    if len(hists) > 2:
-        hists[2].SetName("FastSim+Mod")
-        hists[2].SetLineColor( ROOT.kBlue )
-
-    for h in hists:
-        # constumize histograms
-        xmin = h.GetXaxis().GetXmin()
-        xmax = h.GetXaxis().GetXmax()
-        if config.has_option( name, "xmin" ): xmin = config.getfloat( name, "xmin")
-        if config.has_option( name, "xmax" ): xmax = config.getfloat( name, "xmax" )
-        h.GetXaxis().SetRangeUser( xmin, xmax )
-
-        if config.has_option( name, "title" ):
-            h.SetTitle( config.get( name, "title" )+ "  " )
-        elif h.GetTitle():
-            h.SetXTitle( h.GetTitle() +"    "+ h.GetXaxis().GetTitle() )
-            h.SetTitle( "" )
-        else:
-            pass
-
-        if config.has_option( name, "rebin" ): h.Rebin( config.getint( name, "rebin" ) )
-
-        h.drawOption_ = "hist e"
-        h.SetMarkerSize(0)
-
-
-    for h in hists:
-        if not isinstance( h, ROOT.TProfile ) and not "VsEta" in name:
-            h.Scale( 1./h.GetEntries() )
-
-    m = multiplot.Multiplot()
-    for h in hists:
-        m.add( h )
-    m.Draw()
-
-
-
-    label = ROOT.TLatex()
-    label.DrawLatexNDC( .01, .96, "#font[61]{CMS} #scale[0.8]{#it{Simulation}}  "+processTex )
-    label.DrawLatexNDC( .18, .88, "Private Work" )
-
-    if len(hists) == 2:
-        r = ratio.Ratio( "Full/Fast", hists[0], hists[1] )
-    else:
-        r = ratio.Ratio( "Full/Mod", hists[0], hists[2] )
-    r.draw()
-    if len(hists)>2:
-        processName = "modIncl_"+processName
-
-    if "VsEta" in name:
-        ebFullMean = getMean( hists[0] )
-        eeFullMean = getMean( hists[0], False )
-        eb2Mean = getMean( hists[-1] )
-        ee2Mean = getMean( hists[-1], False )
-
-        agreementEB, agreementEE = 0, 0
-        if ebFullMean and eb2Mean:
-            agreementEB =  100*( abs(eb2Mean/ebFullMean) - 1 )
-        if eeFullMean and ee2Mean:
-            agreementEE =  100*( abs(ee2Mean/eeFullMean) - 1 )
-
-
-        agreementLeg = ROOT.TLegend(.2, .3, .5, .5)
-        agreementLeg.SetFillColor(0)
-        agreementLeg.SetTextSize( hists[0].GetXaxis().GetLabelSize() )
-        agreementLeg.SetTextFont( hists[0].GetXaxis().GetLabelFont() )
-        agreementLeg.SetHeader("Agreement Mod,Full")
-        agreementLeg.AddEntry( 0, "EB %.1f%%"%agreementEB, "" )
-        agreementLeg.AddEntry( 0, "EE %.1f%%"%agreementEE, "" )
-        agreementLeg.Draw()
-
-
-
-    if name == "h_ele_PoPtrueVsEta":
-        for bin in range( 1, r.ratio.GetNbinsX()+1 ):
-            x = r.ratio.GetBinLowEdge( bin+1 )
-            y = r.ratio.GetBinContent( bin )
-            ey1 = r.ratio.GetBinError( bin )
-            ey2 = r.totalUncert.GetBinError(bin)
-            ey = ROOT.TMath.Sqrt( ey1**2 + ey2**2 )
-            #if abs(y-1) < ey: y = 1.
-            print "else if( genEta < %s ) { scale = %s; }"%(x,y)
-
-    ROOT.gPad.GetCanvas().SaveAs("plots/%s_%s.pdf"%(processName, name ))
+intLumi = 5000 # /pb
 
 def getNprocessed( filename ):
-    f = readHist( filename, "hCutFlow" )
+    f = aux.getFromFile( filename, "hCutFlow" )
     return int(f.GetBinContent(1))
 
 def getHistoFromDataset( dataset, name ):
     h0 = None
     for i in range( len(dataset.files) ):
-        h = readHist( dataset.files[i], name )
-        h.Scale( intLumi * dataset.xsecs[i] / dataset.ngens[i] )
-        h.SetLineColor( dataset.color )
-        h.SetMarkerColor( dataset.color )
+        h = aux.getFromFile( dataset.files[i], name )
+        if isinstance( h, ROOT.TH1 ):
+            h.Scale( intLumi * dataset.xsecs[i] / dataset.ngens[i] )
+            h.SetLineColor( dataset.color )
+            h.SetMarkerColor( dataset.color )
 
         if h0: h0.Add( h )
         else: h0 = h
@@ -283,7 +60,7 @@ def drawH2( dataset, name ):
 
 
 def compareAll( saveName="test", *datasets ):
-    names = getObjectNames( datasets[0].files[0], "" )
+    names = aux.getObjectNames( datasets[0].files[0], "" )
 
     for name in names:
         if name.startswith("h_"):
@@ -299,21 +76,23 @@ def drawSameHistogram( saveName, name, data, bkg, additional ):
 
     for d in bkg[-1::-1]:
         h = getHistoFromDataset( d, name )
+        h.SetYTitle( aux.getYAxisTitle( h ) )
         #if not h.Integral(): continue
         #h.Scale( 1./h.Integral() )
         m.addStack( h, d.label )
 
     m.Draw()
 
+    l = aux.Label()
     save( "sameHistogram%s_%s"%(saveName,name) )
     can.SetLogy()
     save( "sameHistogram%s_%s_log"%(saveName,name) )
 
 
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
-    names = getObjectNames( bkg[0].files[0], "" )
+    names = aux.getObjectNames( bkg[0].files[0], "" )
 
-    #names = ["h_met_loose"]
+#    names = ["h_met_loose"] # test plot
 
     for name in names:
         if name.startswith("h_"):
@@ -363,6 +142,51 @@ def drawRazor( dataset ):
     save( "razorAlongX" )
 
 
+def ewkClosure( dataset, samplename="" ):
+    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
+
+    gSet = "loose_genElectron"
+    eSet = "looseElectron"
+
+    for name in names:
+        if gSet not in name: continue
+        m = multiplot.Multiplot()
+
+        h = getHistoFromDataset( dataset, name )
+        h.SetLineColor(1)
+        h.SetMarkerColor(1)
+        m.add( h, "#gamma (gen e)" )
+
+        h = getHistoFromDataset( dataset, name.replace( gSet, eSet ) )
+        h.Scale( 0.01 )
+        h.drawOption_ = "hist"
+        m.add( h, "0.01 #times #gamma_{pixel}" )
+
+        m.Draw()
+
+        l = aux.Label()
+        save( "ewkClosure_"+name+samplename )
+
+def drawROCs():
+    a = aux.getROC( getHistoFromDataset( gjets, "h_g_mva_base" ), getHistoFromDataset( qcd, "h_g_mva_base" ) )
+    a.Draw()
+    a.GetXaxis().SetRangeUser(0.1,1)
+    a.GetYaxis().SetRangeUser(0.1,1)
+    ROOT.gPad.SetLogy()
+    ROOT.gPad.SetLogx()
+    save("test")
+
+def efficiencies( dataset ):
+    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TEfficiency] )
+
+    for name in names:
+        h = getHistoFromDataset( dataset, name )
+        if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
+        h.Draw()
+
+        l = aux.Label()
+        save( "efficiency_"+name )
+
 
 
 
@@ -371,8 +195,15 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, znn] )
-    drawRazor( ttjets )
+    #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets] )
+    #drawRazor( ttjets )
+
+    #ewkClosure( ttjets, "_tt" )
+    #ewkClosure( wjets, "_w" )
+    #ewkClosure( wjets+ttjets, "_ewk" )
+
+    efficiencies( ttjets+qcd+gjets+wjets )
+
 
 
 if __name__ == "__main__":
