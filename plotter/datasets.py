@@ -122,11 +122,11 @@ ttjets.label = "t#bar{t}"
 
 # /WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
-wjets400 = Dataset( "WJetsToLNu_HT-400To600", 47.9, 1901705, ROOT.kRed )
+wjets400 = Dataset( "WJetsToLNu_HT-400To600", 48.98, 1901705, ROOT.kRed )
 
 # /WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
-wjets600 = Dataset( "WJetsToLNu_HT-600ToInf", 19.9, 1036108, ROOT.kRed-4 )
+wjets600 = Dataset( "WJetsToLNu_HT-600ToInf", 18.77, 1036108, ROOT.kRed-4 )
 
 wjets = wjets600 + wjets400
 wjets.label = "W#rightarrowl#nu"
