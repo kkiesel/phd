@@ -44,7 +44,7 @@ class Multiplot:
 
     def Draw( self ):
         if not self.hists and not self.histsToStack:
-            return
+            return False
         self.stackHists()
 
         minimum = self.getMinimum()
@@ -60,6 +60,8 @@ class Multiplot:
             maximum = self.maximum
         if self.minimum != None:
             minimum = self.minimum
+
+        if minimum==0: minimum=0.1
 
         # fill legend (in correct order)
         for h in self.hists:
@@ -80,3 +82,5 @@ class Multiplot:
             h.Draw( "same %s"%h.drawOption_ )
 
         self.leg.Draw()
+
+        return True
