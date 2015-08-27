@@ -1,7 +1,7 @@
 import ROOT
 import copy
+import auxiliary as aux
 
-path = "/home/knut/"
 path = "../histogramProducer/"
 
 class Dataset:
@@ -28,10 +28,8 @@ class Dataset:
         return out
 
     def __init__( self, n, xsec=-1, ngen=-1, col=ROOT.kBlack ):
-        if xsec == -1:
-            pass # perhaps a signal sample?
-        if ngen == -1:
-            pass # get ngen from file
+        if xsec == -1: xsec = aux.getXsecFromName( n )
+        if ngen == -1: ngen = aux.getNgen( path + n + "_hists.root" )
         self.names = [ n ]
         self.files = [ path + n + "_hists.root" ]
         self.xsecs = [ xsec ]
@@ -114,8 +112,9 @@ ttg.label = "#gammat#bar{t}"
 
 # signal samples
 
-t5gg = Dataset( "T5gg_1500_1000_nTupleTest" )
+#t5gg = Dataset( "T5gg_1500_1000_nTupleTest" )
 
-
+t2ttgg = Dataset( "T2ttgg_850_200_nTuple", col=ROOT.kMagenta+2 )
+t2ttgg.label = "T2ttgg m(#tilde{t})=850 m(#tilde{#chi}^{0}_{1})=200"
 
 
