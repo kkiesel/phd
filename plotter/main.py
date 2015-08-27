@@ -77,23 +77,22 @@ def drawSameHistogram( saveName, name, data, bkg, additional ):
     for d in bkg[-1::-1]:
         h = getHistoFromDataset( d, name )
         h.SetYTitle( aux.getYAxisTitle( h ) )
-        #if not h.Integral(): continue
+        if not h.Integral(): continue
         #h.Scale( 1./h.Integral() )
         m.addStack( h, d.label )
 
-    m.Draw()
+    if m.Draw():
 
-    l = aux.Label()
-    save( "sameHistogram%s_%s"%(saveName,name) )
-    can.SetLogy()
-    save( "sameHistogram%s_%s_log"%(saveName,name) )
+        l = aux.Label()
+        save( "sameHistogram%s_%s"%(saveName,name) )
+        can.SetLogy()
+        save( "sameHistogram%s_%s_log"%(saveName,name) )
 
 
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0], "" )
 
 #    names = ["h_met_loose"] # test plot
-
     for name in names:
         if name.startswith("h_"):
             drawSameHistogram( saveName, name, data, bkg, additional )
@@ -141,6 +140,33 @@ def drawRazor( dataset ):
 
     save( "razorAlongX" )
 
+def qcdClosure( dataset, samplename="" ):
+    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
+
+    gSet = "loose"
+    eSet = "looseJet"
+
+    for name in names:
+        can = ROOT.TCanvas()
+        if eSet not in name: continue
+        m = multiplot.Multiplot()
+
+        h1 = getHistoFromDataset( dataset, name.replace( eSet, gSet ) )
+        h1.SetLineColor(1)
+        h1.SetMarkerColor(1)
+        m.add( h1, "#gamma" )
+
+        h = getHistoFromDataset( dataset, name )
+        if h.Integral(): h.Scale( h1.Integral()/h.Integral() )
+        h.drawOption_ = "hist"
+        m.add( h, "#gamma-like" )
+
+        m.Draw()
+
+        l = aux.Label()
+        save( "qcdClosure_"+name+samplename )
+        can.SetLogy()
+        save( "qcdClosure_"+name+samplename+"_log" )
 
 def ewkClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
@@ -195,14 +221,16 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets] )
+    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg] )
+    #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
 
     #ewkClosure( ttjets, "_tt" )
     #ewkClosure( wjets, "_w" )
     #ewkClosure( wjets+ttjets, "_ewk" )
+    #qcdClosure( qcd+gjets, "_qcd-gjets" )
 
-    efficiencies( ttjets+qcd+gjets+wjets )
+    #efficiencies( ttjets+qcd+gjets+wjets )
 
 
 
