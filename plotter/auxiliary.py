@@ -1,5 +1,21 @@
 import ROOT
 
+def getXsecInfoSMS( mother_mass, pklfilename ):
+    import pickle
+
+    with open( pklfilename, 'rb') as f:
+        data = pickle.load( f )
+        info = data[mother_mass]
+    return info
+
+def getXsecSMSglu( mother_mass ):
+    return getXsecInfoSMS( mother_mass, "data/xSec_SMS_Gluino_13TeV.pkl" )[0]
+def getXsecSMSsq( mother_mass ):
+    return getXsecInfoSMS( mother_mass, "data/xSec_SMS_Squark_13TeV.pkl" )[0]
+def getXsecSMSstop( mother_mass ):
+    return getXsecInfoSMS( mother_mass, "data/xSec_SMS_StopSbottom_13TeV.pkl" )[0]
+
+
 def getFromFile( filename, histoname ):
     f = ROOT.TFile( filename )
     h = f.Get( histoname )
