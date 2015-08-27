@@ -81,6 +81,11 @@ def drawSameHistogram( saveName, name, data, bkg, additional ):
         #h.Scale( 1./h.Integral() )
         m.addStack( h, d.label )
 
+    for d in additional:
+        h = getHistoFromDataset( d, name )
+        h.drawOption_ = "hist"
+        m.add( h, d.label )
+
     if m.Draw():
 
         l = aux.Label()
@@ -221,7 +226,7 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg] )
+    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
 
