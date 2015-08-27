@@ -1,11 +1,16 @@
 import ROOT
+import re
 
 def getXsecInfoSMS( mother_mass, pklfilename ):
     import pickle
 
+    info = 0
     with open( pklfilename, 'rb') as f:
         data = pickle.load( f )
-        info = data[mother_mass]
+        if mother_mass in data:
+            info = data[mother_mass]
+        else:
+            print "could not find %s in "%mother_mass
     return info
 
 def getXsecSMSglu( mother_mass ):
@@ -14,6 +19,19 @@ def getXsecSMSsq( mother_mass ):
     return getXsecInfoSMS( mother_mass, "data/xSec_SMS_Squark_13TeV.pkl" )[0]
 def getXsecSMSstop( mother_mass ):
     return getXsecInfoSMS( mother_mass, "data/xSec_SMS_StopSbottom_13TeV.pkl" )[0]
+
+def getXsecFromName( name ):
+    m = re.match( "[^_]*_(\d+)_[^\d]*.*", name )
+    firstNumber = int( m.groups()[0] ) if m else 0
+
+    if "T5" in name:
+        return getXsecSMSglu( firstNumber )
+
+    if "T2ttgg" in name:
+        return getXsecSMSstop( firstNumber )
+
+    print "cout not guess xsec from file name"
+    return 0
 
 
 def getFromFile( filename, histoname ):
@@ -27,6 +45,10 @@ def getFromFile( filename, histoname ):
         h.Sumw2()
     h.drawOption_ = ""
     return h
+
+def getNgen( filename ):
+    h = getFromFile( filename, "hCutFlow" )
+    return h.GetBinContent(1)
 
 def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
     f = ROOT.TFile( filename )
