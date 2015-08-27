@@ -11,6 +11,7 @@ import ROOT
 import style
 ROOT.gStyle.SetPadTopMargin(0.08)
 ROOT.gStyle.SetPadRightMargin(0.05)
+ROOT.gStyle.SetTitleOffset(1.2, "y")
 
 ROOT.gROOT.SetBatch()
 
@@ -101,7 +102,6 @@ ROOT.gPad.SaveAs("winoBranching.pdf")
 
 
 
-"""
 def higgsinos( x, p ):
     M1, M2, tanb, eta = p
     sb = math.sin( math.atan( tanb ) )
@@ -135,16 +135,31 @@ hToG = ROOT.TF1("hToG", func_hToG, xMin, xMax, 4 )
 hToZ = ROOT.TF1("hToZ", func_hToZ, xMin, xMax, 4 )
 hToH = ROOT.TF1("hToH", func_hToH, xMin, xMax, 4 )
 
+m1 = 500
+m2 = 1000
+tanb = 1.5
+n = -1
+
 for f in hToG, hToZ, hToH:
+    f.SetNpx(10000)
     f.SetMinimum(0)
     f.SetMaximum(1.01)
-    f.SetParameters( 500, 1000, 1.5, -1 )
-hToG.SetLineColor( ROOT.kBlue )
+    f.SetTitle(";m_{#tilde{#chi}^{0}_{1}} (GeV);#tilde{#chi}^{0}_{1} branching fraction       ")
+    f.SetParameters( m1,m2,tanb,n )
+hToG.SetLineColor( ROOT.kRed )
+hToZ.SetLineColor( ROOT.kBlue )
 hToH.SetLineColor( ROOT.kMagenta )
 
 hToG.Draw()
 hToZ.Draw("same")
 hToH.Draw("same")
-ROOT.gPad.SaveAs("test.pdf")
-"""
+
+label.DrawLatexNDC( .7, .8, "#color[2]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + #gamma}" )
+label.DrawLatexNDC( .7, .7, "#color[4]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + Z}" )
+label.DrawLatexNDC( .7, .6, "#color[616]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + h}" )
+
+label.DrawLatexNDC( .1, .94, "Higgsino-like #tilde{#chi}^{0}_{1} #scale[0.5]{M_{1}=%sGeV, M_{2}=%sGeV, tan(#beta)=%s, #eta=%s}"%(m1,m2,tanb,n) )
+
+
+ROOT.gPad.SaveAs("higgsinoBranging_M1%s_M2%s_tanb%s_n%s.pdf"%(m1,m2,tanb,n))
 
