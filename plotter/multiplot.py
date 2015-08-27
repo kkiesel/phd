@@ -13,7 +13,6 @@ class Multiplot:
         self.leg.SetFillColor( ROOT.kWhite )
 
     def add( self, h, label="" ):
-        # important histograms first, they will be drawn on top
         h.SetName(label)
         self.hists.append( h )
 
@@ -63,14 +62,18 @@ class Multiplot:
 
         if minimum==0: minimum=0.1
 
-        # fill legend (in correct order)
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
-            # todo: special cases?
-            self.leg.AddEntry( h, h.GetName(), "lpe" )
+            if "Data" in h.GetName():
+            self.leg.AddEntry( h, h.GetName(), "pe" )
+
+        # fill legend (in correct order)
         for h in self.histsToStack[-1::-1]:
             h.SetLineColor(0)
             self.leg.AddEntry( h, h.GetName(), "f" )
+        for h in self.hists:
+            if isinstance( h, ROOT.THStack ): continue
+            self.leg.AddEntry( h, h.GetName(), "l" )
 
         # change the order for drawing
         self.hists.reverse()
