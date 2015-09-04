@@ -6,7 +6,16 @@
 
 // start with root -l -q run.C
 // Using ROOT6
+
 void run( string infile="/user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-400To600.root") {
+
+  ifstream f(infile.c_str());
+  if(!f.good()) {
+    cout << "No file found, just compile." << endl;
+    TSelector::GetSelector("HistogramProducer.cc+");
+    return;
+  }
+
   gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
 
   TChain ch( "TreeWriter/eventTree" );
