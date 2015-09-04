@@ -97,7 +97,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional ):
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0], "" )
 
-#    names = ["h_met_loose"] # test plot
+    #names = ["h_met_loose"] # test plot
     for name in names:
         if name.startswith("h_"):
             drawSameHistogram( saveName, name, data, bkg, additional )
@@ -226,7 +226,7 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg])
+    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg, t5gg, t5hg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
 
