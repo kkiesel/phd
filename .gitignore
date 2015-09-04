@@ -1,4 +1,5 @@
 
+*.pkl
 *.pyc
 .*
 *~
@@ -10,3 +11,6 @@ histogramProducer/HistogramProducer_cc.so
 histogramProducer/HistogramProducer_cc_ACLiC_dict_rdict.pcm
 
 plotter/plots/
+plotter/plotsPhys14/
+
+utilities/*.pdf
