@@ -112,9 +112,11 @@ ttg.label = "#gammat#bar{t}"
 
 # signal samples
 
-#t5gg = Dataset( "T5gg_1500_1000_nTupleTest" )
-
-t2ttgg = Dataset( "T2ttgg_850_200_nTuple", col=ROOT.kMagenta+2 )
-t2ttgg.label = "T2ttgg m(#tilde{t})=850 m(#tilde{#chi}^{0}_{1})=200"
+t5gg = Dataset( "T5gg_1500_1000", col=ROOT.kMagenta )
+t5gg.label = "T5gg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
+t5hg = Dataset( "T5hg_1500_1000", col=ROOT.kMagenta+4 )
+t5hg.label = "T5hg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
+t2ttgg = Dataset( "T2ttgg_850_650_fast", col=ROOT.kMagenta+2 )
+t2ttgg.label = "T2ttgg m(#tilde{t})=850 m(#tilde{#chi}^{0}_{1})=650"
 
 
