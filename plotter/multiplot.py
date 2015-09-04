@@ -62,10 +62,7 @@ class Multiplot:
 
         if minimum==0: minimum=0.1
 
-        for h in self.hists:
-            if isinstance( h, ROOT.THStack ): continue
-            if "Data" in h.GetName():
-            self.leg.AddEntry( h, h.GetName(), "pe" )
+        # fill data first in legend?
 
         # fill legend (in correct order)
         for h in self.histsToStack[-1::-1]:
