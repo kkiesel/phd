@@ -573,8 +573,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   defaultSelection();
 
   if( selPhotons.size() && ht > 600 ) {
+
     // Calculate razor variables
-    if( true ) { // attention: computing intensive
+    if( false ) { // attention: computing intensive
       vector<TVector3> js;
       for( auto& p : selJets ) js.push_back( p->p );
       for( auto& p : selPhotons ) js.push_back( p->p );
