@@ -1,5 +1,6 @@
 import ROOT
 import re
+from math import *
 
 def getXsecInfoSMS( mother_mass, pklfilename ):
     import pickle
@@ -93,6 +94,12 @@ def absHistWeighted( origHist ):
 
     return h
 
+def rebin( h, binEdges ):
+    import array
+    binEdgesArr = array.array( 'd', binEdges )
+    h = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
+    h.Scale( 1., "width" )
+    return h
 
 def randomName():
     # Returns a random alphanumeric string
@@ -161,7 +168,9 @@ def getYAxisTitle( histo ):
         else:
             return yTitle
 
-def getROC( hSig, hBkg ):
+def getROC( hSig, hBkg, highX=True ):
+    # highX: signal is at high values of the variable
+
     nRocBins = hSig.GetNbinsX()
 
     sigEff = []
@@ -174,8 +183,13 @@ def getROC( hSig, hBkg ):
         return
 
     for i in range(1, nRocBins+1 ):
-        sigNum = hSig.Integral(1, i)
-        bkgNum = hBkg.Integral(1, i)
+        if  highX:
+            sigNum = hSig.Integral(i, nRocBins+1)
+            bkgNum = hBkg.Integral(i, nRocBins+1)
+        else:
+            sigNum = hSig.Integral(1, i)
+            bkgNum = hBkg.Integral(1, i)
+
         sigEff.append( sigNum / sigDen )
         bkgEff.append( bkgNum / bkgDen )
 
