@@ -16,7 +16,8 @@ import multiplot
 
 import auxiliary as aux
 from datasets import *
-intLumi = 5000 # /pb
+import rebinner
+intLumi = 2000 # /pb
 
 def getNprocessed( filename ):
     f = aux.getFromFile( filename, "hCutFlow" )
@@ -69,13 +70,16 @@ def compareAll( saveName="test", *datasets ):
         #    for d in datasets:
         #        drawH2( d, name )
 
-def drawSameHistogram( saveName, name, data, bkg, additional ):
+def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
     for d in bkg[-1::-1]:
         h = getHistoFromDataset( d, name )
+        if binning:
+            h = aux.rebin( h, binning )
+        aux.appendFlowBin( h )
         h.SetYTitle( aux.getYAxisTitle( h ) )
         if not h.Integral(): continue
         #h.Scale( 1./h.Integral() )
@@ -97,10 +101,14 @@ def drawSameHistogram( saveName, name, data, bkg, additional ):
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0], "" )
 
-    #names = ["h_met_loose"] # test plot
+    names = ["h_met__tr"] # test plot
     for name in names:
         if name.startswith("h_"):
             drawSameHistogram( saveName, name, data, bkg, additional )
+            hname = re.match( "(.*)__tr", name ).group(1)
+            for binningName, binnings in rebinner.cfg.items( hname ):
+                binnings = [ float(x) for x in binnings.split(" ") ]
+                drawSameHistogram( saveName+"_bin"+binningName, name, data, bkg, additional, binnings )
 
 def getProjections( h2, alongX=True ):
     hs = []
@@ -198,14 +206,22 @@ def ewkClosure( dataset, samplename="" ):
         l = aux.Label()
         save( "ewkClosure_"+name+samplename )
 
+
 def drawROCs():
-    a = aux.getROC( getHistoFromDataset( gjets, "h_g_mva_base" ), getHistoFromDataset( qcd, "h_g_mva_base" ) )
-    a.Draw()
-    a.GetXaxis().SetRangeUser(0.1,1)
-    a.GetYaxis().SetRangeUser(0.1,1)
-    ROOT.gPad.SetLogy()
-    ROOT.gPad.SetLogx()
-    save("test")
+
+    for hname in ["h_gCol_mva__base", "h_g_cIso__base", "h_g_nIso__base", "h_g_pIso__base", "h_g_sigmaIetaIeta__base", "h_g_hOverE__base"]:
+        c = ROOT.TCanvas()
+
+        effSig = getHistoFromDataset( gjets, hname )
+        effBkg = getHistoFromDataset( qcd, hname )
+
+        a = aux.getROC( effSig.GetPassedHistogram(), effBkg.GetTotalHistogram(), "mva" in hname )
+        if not a: continue
+        a.Draw()
+        a.GetXaxis().SetRangeUser(0.01,1)
+        a.GetYaxis().SetRangeUser(0.01,1)
+        l = aux.Label()
+        save("roc_"+hname)
 
 def efficiencies( dataset ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TEfficiency] )
@@ -226,7 +242,8 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg, t5gg, t5hg])
+    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg])
+    #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg, t5gg, t5hg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
 
@@ -236,6 +253,8 @@ def main():
     #qcdClosure( qcd+gjets, "_qcd-gjets" )
 
     #efficiencies( ttjets+qcd+gjets+wjets )
+
+    #drawROCs()
 
 
 
