@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # For more information, see
 # Patrick Meade, Matthew Reece and David Shih:
@@ -160,11 +160,11 @@ hToG.Draw()
 hToZ.Draw("same")
 hToH.Draw("same")
 
-label.DrawLatexNDC( .7, .8, "#color[2]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + #gamma}" )
-label.DrawLatexNDC( .7, .7, "#color[4]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + Z}" )
-label.DrawLatexNDC( .7, .6, "#color[616]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + h}" )
+label.DrawLatexNDC( .5, .7, "#color[2]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + #gamma}" )
+label.DrawLatexNDC( .5, .55, "#color[4]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + Z}" )
+label.DrawLatexNDC( .5, .4, "#color[616]{#tilde{#chi}^{0}_{1}#rightarrow#tilde{G} + h}" )
 
-label.DrawLatexNDC( .1, .94, "Higgsino-like #tilde{#chi}^{0}_{1} #scale[0.5]{M_{1}=%sGeV, M_{2}=%sGeV, tan(#beta)=%s, #eta=%s}"%par )
+label.DrawLatexNDC( .01, .92, "#scale[0.7]{Higgsino-like #tilde{#chi}^{0}_{1}} #scale[0.3]{M_{1}=%sGeV, M_{2}=%sGeV, tan(#beta)=%s, #eta=%s}"%par )
 
 
 ROOT.gPad.SaveAs("higgsinoBranching_M1%s_M2%s_tanb%s_n%s.pdf"%(m1,m2,tanb,n))
