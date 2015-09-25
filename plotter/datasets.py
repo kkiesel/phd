@@ -29,9 +29,9 @@ class Dataset:
 
     def __init__( self, n, xsec=-1, ngen=-1, col=ROOT.kBlack ):
         if xsec == -1: xsec = aux.getXsecFromName( n )
-        if ngen == -1: ngen = aux.getNgen( path + n + "_hists.root" )
+        if ngen == -1: ngen = aux.getNgen( path + n + "_V02_hists.root" )
         self.names = [ n ]
-        self.files = [ path + n + "_hists.root" ]
+        self.files = [ path + n + "_V02_nTuple_hists.root" ]
         self.xsecs = [ xsec ]
         self.ngens = [ ngen ]
         self.color = col
@@ -42,6 +42,13 @@ class Dataset:
             "\nnames: "+", ".join( self.names ) + \
             "\nfiles: "+", ".join( str(i) for i in self.xsecs ) + \
             "\nngens: "+", ".join( str(i) for i in self.ngens )
+
+# data
+data = Dataset( "SinglePhoton", 0, 0, ROOT.kBlack )
+data.label = "Data"
+
+dataJet = Dataset( "JetHT", 0, 0, ROOT.kBlack )
+dataJet.label = "Data"
 
 
 # multijet
@@ -112,11 +119,11 @@ ttg.label = "#gammat#bar{t}"
 
 # signal samples
 
-t5gg = Dataset( "T5gg_1500_1000", col=ROOT.kMagenta )
-t5gg.label = "T5gg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
-t5hg = Dataset( "T5hg_1500_1000", col=ROOT.kMagenta+4 )
-t5hg.label = "T5hg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
-t2ttgg = Dataset( "T2ttgg_850_650_fast", col=ROOT.kMagenta+2 )
-t2ttgg.label = "T2ttgg m(#tilde{t})=850 m(#tilde{#chi}^{0}_{1})=650"
+#t5gg = Dataset( "T5gg_1500_1000", col=ROOT.kMagenta )
+#t5gg.label = "T5gg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
+#t5hg = Dataset( "T5hg_1500_1000", col=ROOT.kMagenta+4 )
+#t5hg.label = "T5hg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
+#t2ttgg = Dataset( "T2ttgg_850_650_fast", col=ROOT.kMagenta+2 )
+#t2ttgg.label = "T2ttgg m(#tilde{t})=850 m(#tilde{#chi}^{0}_{1})=650"
 
 
