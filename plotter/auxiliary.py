@@ -215,7 +215,7 @@ class Label:
                 obj.SetNDC()
                 obj.Draw()
 
-    def __init__( self, drawAll=True, sim=True, status="Private Work" ):
+    def __init__( self, drawAll=True, sim=False, status="Private Work" ):
         # todo: include margins, etc
         if sim:
             self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}" )
