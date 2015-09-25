@@ -70,7 +70,10 @@ class Multiplot:
             self.leg.AddEntry( h, h.GetName(), "f" )
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
-            self.leg.AddEntry( h, h.GetName(), "l" )
+            if "p" in h.drawOption_:
+                self.leg.AddEntry( h, h.GetName(), "p" )
+            else:
+                self.leg.AddEntry( h, h.GetName(), "l" )
 
         # change the order for drawing
         self.hists.reverse()
