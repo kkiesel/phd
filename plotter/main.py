@@ -18,6 +18,7 @@ import auxiliary as aux
 from datasets import *
 import rebinner
 intLumi = 2000 # /pb
+intLumi = 52.1 # /pb
 
 def getNprocessed( filename ):
     f = aux.getFromFile( filename, "hCutFlow" )
@@ -28,7 +29,8 @@ def getHistoFromDataset( dataset, name ):
     for i in range( len(dataset.files) ):
         h = aux.getFromFile( dataset.files[i], name )
         if isinstance( h, ROOT.TH1 ):
-            h.Scale( intLumi * dataset.xsecs[i] / dataset.ngens[i] )
+            if dataset.xsecs[i]:
+                h.Scale( intLumi * dataset.xsecs[i] / dataset.ngens[i] )
             h.SetLineColor( dataset.color )
             h.SetMarkerColor( dataset.color )
 
@@ -87,7 +89,12 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
 
     for d in additional:
         h = getHistoFromDataset( d, name )
-        h.drawOption_ = "hist"
+        if h.GetLineColor() == ROOT.kBlack: # data
+            h.drawOption = "ep"
+            h.SetMarkerStyle(20)
+            h.SetBinErrorOption( ROOT.TH1.kPoisson )
+        else:
+            h.drawOption_ = "hist"
         m.add( h, d.label )
 
     if m.Draw():
@@ -101,7 +108,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0], "" )
 
-    names = ["h_met__tr"] # test plot
+    #names = ["h_met__tr"] # test plot
     for name in names:
         if name.startswith("h_"):
             drawSameHistogram( saveName, name, data, bkg, additional )
@@ -223,7 +230,7 @@ def drawROCs():
         l = aux.Label()
         save("roc_"+hname)
 
-def efficiencies( dataset ):
+def efficiencies( dataset, savename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TEfficiency] )
 
     for name in names:
@@ -232,7 +239,7 @@ def efficiencies( dataset ):
         h.Draw()
 
         l = aux.Label()
-        save( "efficiency_"+name )
+        save( "efficiency_"+savename+name )
 
 
 
@@ -242,7 +249,7 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg])
+    #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[data])
     #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg, t5gg, t5hg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
@@ -252,7 +259,9 @@ def main():
     #ewkClosure( wjets+ttjets, "_ewk" )
     #qcdClosure( qcd+gjets, "_qcd-gjets" )
 
-    #efficiencies( ttjets+qcd+gjets+wjets )
+    efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
+    #efficiencies( data, "singlePhoton_" )
+    #efficiencies( dataJet, "jetHt_" )
 
     #drawROCs()
 
