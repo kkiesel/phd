@@ -1,9 +1,11 @@
+#!/usr/bin/env python2
+
 import ROOT
 import style
 ROOT.gROOT.SetBatch()
 
-diag = ROOT.TF1("diagonal", "x", 0, 700 )
-diag_mt = ROOT.TF1("diag2", "x-173", 0, 700 )
+diag = ROOT.TF1("diagonal", "x", 0, 900 )
+diag_mt = ROOT.TF1("diag2", "x-173", 0, 900 )
 
 l = ROOT.TLatex()
 
