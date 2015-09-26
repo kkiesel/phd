@@ -7,7 +7,7 @@
 // start with root -l -q run.C
 // Using ROOT6
 
-void run( string infile="/user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-400To600.root") {
+void run( string infile="/user/kiesel/nTuples/V02/SinglePhoton_V02_nTuple.root") {
 
   ifstream f(infile.c_str());
   if(!f.good()) {
