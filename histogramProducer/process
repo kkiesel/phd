@@ -1,69 +1,22 @@
 #!/bin/bash -e
 
-# start jobs and run them in parallel
-
-#case "$1" in
-#
-#qcd)
-#  infiles=(
-#    /user/kiesel/nTuples/2015-07-20/QCD_HT300to500.root
-#    /user/kiesel/nTuples/2015-07-20/QCD_HT500to700.root
-#    /user/kiesel/nTuples/2015-07-20/QCD_HT700to1000.root
-#    /user/kiesel/nTuples/2015-07-20/QCD_HT1000to1500.root
-#    /user/kiesel/nTuples/2015-07-20/QCD_HT1500to2000.root
-#    /user/kiesel/nTuples/2015-07-20/QCD_HT2000toInf.root
-#  )
-#;;
-#
-#gjets)
-#  infiles=(
-#    /user/kiesel/nTuples/2015-07-20/GJets_HT-400To600.root
-#    /user/kiesel/nTuples/2015-07-20/GJets_HT-600ToInf.root
-#  )
-#;;
-#
-#ewk)
-#  infiles=(
-#    /user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-400To600.root
-#    /user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-600ToInf.root
-#    /user/kiesel/nTuples/2015-07-20/TTJets.root
-#  )
-#;;
-#
-#isr)
-#  infiles=(
-#    /user/kiesel/nTuples/2015-07-20/TTGJets.root
-#  )
-#;;
-#signal)
-#  infiles=(
-#    /user/kiesel/nTuples/2015-07-20/T2ttgg_850_200.root
-#    /user/kiesel/nTuples/2015-07-20/T5gg_1500_1000.root
-#    /user/kiesel/nTuples/2015-07-20/T5hg_1500_1000.root
-#  )
-#;;
-#*)
-#  echo "Does not know what you want"
-#  exit 1
-#
-#esac
-
 infiles=(
-  /user/kiesel/nTuples/2015-07-20/QCD_HT300to500.root
-  /user/kiesel/nTuples/2015-07-20/QCD_HT500to700.root
-  /user/kiesel/nTuples/2015-07-20/QCD_HT700to1000.root
-  /user/kiesel/nTuples/2015-07-20/QCD_HT1000to1500.root
-  /user/kiesel/nTuples/2015-07-20/QCD_HT1500to2000.root
-  /user/kiesel/nTuples/2015-07-20/QCD_HT2000toInf.root
-  /user/kiesel/nTuples/2015-07-20/GJets_HT-400To600.root
-  /user/kiesel/nTuples/2015-07-20/GJets_HT-600ToInf.root
-  /user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-400To600.root
-  /user/kiesel/nTuples/2015-07-20/WJetsToLNu_HT-600ToInf.root
-  /user/kiesel/nTuples/2015-07-20/TTJets.root
-  /user/kiesel/nTuples/2015-07-20/TTGJets.root
-  /user/kiesel/nTuples/2015-07-20/T2ttgg_850_200.root
-  /user/kiesel/nTuples/2015-07-20/T5gg_1500_1000.root
-  /user/kiesel/nTuples/2015-07-20/T5hg_1500_1000.root
+  /user/kiesel/nTuples/V02/TTJets_V02_nTuple.root
+  /user/kiesel/nTuples/V02/QCD_HT300to500_V02_nTuple.root
+  /user/kiesel/nTuples/V02/QCD_HT500to700_V02_nTuple.root
+  /user/kiesel/nTuples/V02/QCD_HT700to1000_V02_nTuple.root
+  /user/kiesel/nTuples/V02/QCD_HT1000to1500_V02_nTuple.root
+  /user/kiesel/nTuples/V02/QCD_HT1500to2000_V02_nTuple.root
+  /user/kiesel/nTuples/V02/QCD_HT2000toInf_V02_nTuple.root
+  /user/kiesel/nTuples/V02/GJets_HT-400To600_V02_nTuple.root
+  /user/kiesel/nTuples/V02/GJets_HT-600ToInf_V02_nTuple.root
+  /user/kiesel/nTuples/V02/WJetsToLNu_HT-400To600_V02_nTuple.root
+  /user/kiesel/nTuples/V02/WJetsToLNu_HT-600ToInf_V02_nTuple.root
+  /user/kiesel/nTuples/V02/TTGJets_V02_nTuple.root
+  /user/kiesel/nTuples/V02/DYJetsToLL_M-50_V02_nTuple.root
+  /user/kiesel/nTuples/V02/JetHT_V02_nTuple.root
+  /user/kiesel/nTuples/V02/SinglePhoton_V02_nTuple.root
+  /user/kiesel/nTuples/V02/WGToLNuG_V02_nTuple.root
 )
 
 
