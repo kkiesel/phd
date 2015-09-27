@@ -236,7 +236,44 @@ def efficiencies( dataset, savename="" ):
     for name in names:
         h = getHistoFromDataset( dataset, name )
         if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
-        h.Draw()
+
+        h_pas = h.GetPassedHistogram()
+        h_tot = h.GetTotalHistogram()
+        if "hlt" in name:
+            eff = ROOT.TEfficiency( h_pas, h_tot )
+        else:
+            eff = h
+        eff.Draw()
+
+        if name == "eff_hlt_ht__base":
+            cutValue = 600
+        elif name == "eff_hlt_pt__base":
+            cutValue = 100
+        else:
+            cutValue = None
+
+        if cutValue:
+            bin = h_pas.FindFixBin( cutValue )
+            passed = int(h_pas.Integral( bin, -1 ))
+            total = int(h_tot.Integral( bin, -1 ))
+            conf = 0.682689492137
+            e = 1.*passed/total
+            e_up = ROOT.TEfficiency.ClopperPearson( total, passed, conf, True )
+            e_dn = ROOT.TEfficiency.ClopperPearson( total, passed, conf, False )
+            print "ε = {:.1%} + {:.1%} - {:.1%}".format(e, e_up-e,e-e_dn )
+
+            # graphical representation
+            l = ROOT.TLine()
+            l.SetLineWidth(2)
+            l.SetLineColor( ROOT.kRed )
+            xmax = eff.CreateGraph().GetHistogram().GetXaxis().GetXmax()
+            l.DrawLine( cutValue, e, xmax, e )
+
+            l.SetLineStyle(2)
+            ymin = eff.CreateGraph().GetHistogram().GetYaxis().GetXmin()
+            ymax = eff.CreateGraph().GetHistogram().GetYaxis().GetXmax()
+            l.DrawLine( cutValue, ymin, cutValue, ymax )
+
 
         l = aux.Label()
         save( "efficiency_"+savename+name )
@@ -249,7 +286,7 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[data])
+    drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[data])
     #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg, t5gg, t5hg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
@@ -259,7 +296,7 @@ def main():
     #ewkClosure( wjets+ttjets, "_ewk" )
     #qcdClosure( qcd+gjets, "_qcd-gjets" )
 
-    efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
+    #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( data, "singlePhoton_" )
     #efficiencies( dataJet, "jetHt_" )
 
