@@ -565,7 +565,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   fReader.SetEntry(entry);
 
   // set weight
-  selW = *w_mc * *w_pu;
+  selW = *isRealData ? 1. : *w_mc * *w_pu;
 
   // Base selection, without cuts
   for( auto& photon : photons ) {
