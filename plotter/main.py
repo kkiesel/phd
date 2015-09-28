@@ -18,7 +18,7 @@ import auxiliary as aux
 from datasets import *
 import rebinner
 intLumi = 2000 # /pb
-intLumi = 52.1 # /pb
+intLumi = 166.37 # /pb
 
 def getNprocessed( filename ):
     f = aux.getFromFile( filename, "hCutFlow" )
@@ -298,7 +298,7 @@ def main():
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( data, "singlePhoton_" )
-    #efficiencies( dataJet, "jetHt_" )
+    #efficiencies( jetHt, "jetHt_" )
 
     #drawROCs()
 
