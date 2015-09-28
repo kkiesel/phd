@@ -3,6 +3,7 @@
 # For more information, see
 # Patrick Meade, Matthew Reece and David Shih:
 # "Prompt Decays of General Neutralino NLSPs at the Tevatron"
+# http://arxiv.org/abs/0911.4130
 
 
 import math
