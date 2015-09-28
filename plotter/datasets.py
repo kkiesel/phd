@@ -29,9 +29,9 @@ class Dataset:
 
     def __init__( self, n, xsec=-1, ngen=-1, col=ROOT.kBlack ):
         if xsec == -1: xsec = aux.getXsecFromName( n )
-        if ngen == -1: ngen = aux.getNgen( path + n + "_V02_hists.root" )
+        if ngen == -1: ngen = aux.getNgen( path + n + "_hists.root" )
         self.names = [ n ]
-        self.files = [ path + n + "_V02_nTuple_hists.root" ]
+        self.files = [ path + n + "_hists.root" ]
         self.xsecs = [ xsec ]
         self.ngens = [ ngen ]
         self.color = col
@@ -44,11 +44,20 @@ class Dataset:
             "\nngens: "+", ".join( str(i) for i in self.ngens )
 
 # data
-data = Dataset( "SinglePhoton", 0, 0, ROOT.kBlack )
+singlePhotonC = Dataset( "SinglePhoton_Run2015C-PromptReco-v1", 0, 0, ROOT.kBlack )
+singlePhotonC.label = "SinglePhotonC"
+singlePhotonD = Dataset( "SinglePhoton_Run2015D-PromptReco-v3", 0, 0, ROOT.kBlack )
+singlePhotonD.label = "SinglePhotonD"
+data = singlePhotonC + singlePhotonD
 data.label = "Data"
 
-dataJet = Dataset( "JetHT", 0, 0, ROOT.kBlack )
-dataJet.label = "Data"
+jetHtC = Dataset( "JetHT_Run2015C-PromptReco-v1", 0, 0, ROOT.kBlack )
+jetHtC.label = "JetHtC"
+jetHtD = Dataset( "JetHT_Run2015D-PromptReco-v3", 0, 0, ROOT.kBlack )
+jetHtD.label = "JetHtD"
+jetHt = jetHtC + jetHtD
+jetHt.label = "Data"
+
 
 
 # multijet
