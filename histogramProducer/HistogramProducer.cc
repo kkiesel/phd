@@ -18,6 +18,10 @@
 // User Functions
 ///////////////////////////////////////////////////////////////////////////////
 
+template <typename T> int sign(T val) {
+      return (T(0) < val) - (val < T(0));
+}
+
 map<string,int> bTaggingWorkingPoints8TeV = {
   { "CSVL", 0.244 },
   { "CSVM", 0.679 },
@@ -73,7 +77,7 @@ string getOutputFilename( string inputFileName ) {
   // Converts "/path/to/ntuple/QCD_nTuple.root" to "QCD_hists.root"
 
   auto startPos = inputFileName.rfind("/");
-  auto endPos = inputFileName.find(".root");
+  auto endPos = inputFileName.find("_nTuple.root");
   string outputName = "out.root";
   if( endPos != string::npos ) {
     outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "_hists.root";
@@ -146,7 +150,7 @@ class HistogramProducer : public TSelector {
   vector<tree::Electron*> selElectrons;
   vector<tree::Muon*> selMuons;
 
-  float selW=0; // weight
+  float selW=1.; // weight
 
   pair<float,float> mrr2;
 
@@ -565,7 +569,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   fReader.SetEntry(entry);
 
   // set weight
-  selW = *isRealData ? 1. : *w_mc * *w_pu;
+  selW = *isRealData ? 1. : sign(*w_mc); // only the sign of the mc weight is interesting
+  //selW = *isRealData ? 1. : *w_mc * *w_pu; // for now, no pu weight
 
   // Base selection, without cuts
   for( auto& photon : photons ) {
