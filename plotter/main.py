@@ -89,10 +89,14 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
 
     for d in additional:
         h = getHistoFromDataset( d, name )
+        if not h.Integral(): continue
+        if binning:
+            h = aux.rebin( h, binning )
         if h.GetLineColor() == ROOT.kBlack: # data
             h.drawOption = "ep"
             h.SetMarkerStyle(20)
             h.SetBinErrorOption( ROOT.TH1.kPoisson )
+            # TODO: make sure kPoisson works
         else:
             h.drawOption_ = "hist"
         m.add( h, d.label )
@@ -106,16 +110,19 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
 
 
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
-    names = aux.getObjectNames( bkg[0].files[0], "" )
+    names = aux.getObjectNames( bkg[0].files[0] )
 
     #names = ["h_met__tr"] # test plot
+
     for name in names:
-        if name.startswith("h_"):
-            drawSameHistogram( saveName, name, data, bkg, additional )
-            hname = re.match( "(.*)__tr", name ).group(1)
-            for binningName, binnings in rebinner.cfg.items( hname ):
-                binnings = [ float(x) for x in binnings.split(" ") ]
-                drawSameHistogram( saveName+"_bin"+binningName, name, data, bkg, additional, binnings )
+        if not name.startswith("h_"): continue
+        drawSameHistogram( saveName, name, data, bkg, additional )
+        match = re.match( "(.*)__tr", name )
+        if not match: continue
+        hname = match.group(1)
+        for binningName, binnings in rebinner.cfg.items( hname ):
+            binnings = [ float(x) for x in binnings.split(" ") ]
+            drawSameHistogram( saveName+"_bin"+binningName, name, data, bkg, additional, binnings )
 
 def getProjections( h2, alongX=True ):
     hs = []
@@ -278,6 +285,11 @@ def efficiencies( dataset, savename="" ):
         l = aux.Label()
         save( "efficiency_"+savename+name )
 
+        h_tot.SetLineColor(2)
+        h_tot.Draw("hist")
+        h_pas.Draw("same e*")
+        save( "efficiency_"+savename+name+"_raw" )
+
 
 
 
@@ -286,7 +298,7 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[data])
+    drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data])
     #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg, t5gg, t5hg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
@@ -298,7 +310,7 @@ def main():
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( data, "singlePhoton_" )
-    #efficiencies( jetHt, "jetHt_" )
+    #efficiencies( dataHt, "jetHt_" )
 
     #drawROCs()
 
