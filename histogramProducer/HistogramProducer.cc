@@ -22,10 +22,11 @@ template <typename T> int sign(T val) {
       return (T(0) < val) - (val < T(0));
 }
 
-map<string,int> bTaggingWorkingPoints8TeV = {
-  { "CSVL", 0.244 },
-  { "CSVM", 0.679 },
-  { "CSVT", 0.989 }
+// https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation74X
+map<string,float> bTaggingWorkingPoints = {
+  { "CSVv2L", 0.605 },
+  { "CSVv2M", 0.89 },
+  { "CSVv2T", 0.97}
 };
 
 pair<TVector3,TVector3> megajets( const vector<TVector3>& jets ) {
@@ -408,17 +409,17 @@ void HistogramProducer::fillObjects( string const& s ) {
 
   // trigger efficiencies
   tree::Photon* thisPhoton=0;
-  for( auto& g : selPhotons ) {
-    if( g->isLoose && !g->hasPixelSeed && abs(g->p.Eta())<1.4442 ) {
-      thisPhoton = g;
+  for( auto& photon : selPhotons ) {
+    if( photon->p.Pt() > 100 && fabs(photon->p.Eta()) < 1.4442  && !photon->hasPixelSeed && photon->isLoose ) {
+      thisPhoton = photon;
     }
   }
   if( thisPhoton ) {
 
     float ht = 0;
-    for( auto& j : selJets ) {
-      if( j->p.Pt() > 40 && fabs(j->p.Eta()) < 3. ) {
-        ht += j->p.Pt();
+    for( auto& jet : selJets ) {
+      if( jet->p.Pt() > 40 && fabs(jet->p.Eta()) < 3 && jet->p.DeltaR( thisPhoton->p )>0.4 ) {
+        ht += jet->p.Pt();
       }
     }
 
@@ -433,7 +434,7 @@ void HistogramProducer::fillObjects( string const& s ) {
 
 void HistogramProducer::fillBkgEst( string const& s ) {
   auto metAndL = met->p;
-  for( auto l : selElectrons )
+  for( auto& l : selElectrons )
     metAndL = metAndL + l->p;
   for( auto& l : selMuons )
     metAndL += l->p;
@@ -548,6 +549,7 @@ void HistogramProducer::defaultSelection()
     selElectrons.push_back( &el );
   }
   for( auto& jet : jets ) {
+    if( jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
     if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
 
     for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
@@ -555,7 +557,7 @@ void HistogramProducer::defaultSelection()
     for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
 
     selJets.push_back( &jet );
-    if( jet.bDiscriminator > bTaggingWorkingPoints8TeV["CSVL"] )
+    if( jet.bDiscriminator > bTaggingWorkingPoints["CSVv2M"] )
       selBJets.push_back( &jet );
     closeToOther:;
   }
@@ -565,7 +567,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
   //if( entry > 3 ) return true;
-  if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
+  //if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
 
   // set weight
@@ -589,18 +591,21 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   fillObjects("base");
 
   resetSelection();
+
   // New selection
+  for( auto& photon : photons ) {
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
+       selPhotons.push_back( &photon );
+    }
+  }
+
   float ht = 0;
   for( auto& jet : jets ){
-    if( jet.p.Pt() > 40 && abs(jet.p.Eta()) < 3 ) {
+    if( jet.p.Pt() > 40 && abs(jet.p.Eta()) < 3 && selPhotons.size() && jet.p.DeltaR(selPhotons[0]->p)>0.4 ) {
       ht += jet.p.Pt();
     }
   }
 
-  for( auto& photon : photons ) {
-    if( !photon.isLoose || photon.p.Pt() < 100 || abs( photon.p.Eta() ) > 1.4442 || photon.hasPixelSeed ) continue;
-    selPhotons.push_back( &photon );
-  }
   defaultSelection();
 
   if( selPhotons.size() && ht > 600 && (!*isRealData || *signalTriggerFired ) ) {
