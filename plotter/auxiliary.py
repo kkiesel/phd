@@ -97,9 +97,11 @@ def absHistWeighted( origHist ):
 def rebin( h, binEdges ):
     import array
     binEdgesArr = array.array( 'd', binEdges )
-    h = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
-    h.Scale( 1., "width" )
-    return h
+    hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
+    try: hnew.drawOption_ = h.drawOption_
+    except: pass
+    hnew.Scale( 1., "width" )
+    return hnew
 
 def randomName():
     # Returns a random alphanumeric string
