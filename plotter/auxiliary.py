@@ -104,8 +104,14 @@ def rebin( h, binEdges ):
     return hnew
 
 def randomName():
-    # Returns a random alphanumeric string
+    """
+    Generate a random string. This function is useful to give ROOT objects
+    different names to avoid overwriting.
+    """
+    from random import randint
+    from sys import maxint
     return "%x"%(randint(0, maxint))
+
 
 def TH1F_binning( name, title, binEdges ):
     # Wrapper for the TH1F constructor for variable binning
