@@ -63,6 +63,10 @@ class Multiplot:
         if minimum==0: minimum=0.1
 
         # fill data first in legend?
+        for h in self.hists:
+            if isinstance( h, ROOT.THStack ): continue
+            if h.GetName() in ["Data"]:
+                self.leg.AddEntry( h, h.GetName(), "pe" )
 
         # fill legend (in correct order)
         for h in self.histsToStack[-1::-1]:
@@ -70,8 +74,7 @@ class Multiplot:
             self.leg.AddEntry( h, h.GetName(), "f" )
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
-            if "p" in h.drawOption_:
-                self.leg.AddEntry( h, h.GetName(), "p" )
+            if h.GetName() in ["Data"]: continue
             else:
                 self.leg.AddEntry( h, h.GetName(), "l" )
 
