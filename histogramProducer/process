@@ -39,3 +39,4 @@ while [ ${#infiles[@]} -ne 0 ]; do
 
 done
 
+echo "All files processed"
