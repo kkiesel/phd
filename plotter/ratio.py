@@ -1,15 +1,6 @@
 import ROOT
 from math import sqrt
 
-def randomName():
-    """
-    Generate a random string. This function is useful to give ROOT objects
-    different names to avoid overwriting.
-    """
-    from random import randint
-    from sys import maxint
-    return "%x"%(randint(0, maxint))
-
 
 class Ratio:
     def __init__( self, title, numerator, denominator, sysHisto=None ):
