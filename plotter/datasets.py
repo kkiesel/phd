@@ -55,8 +55,8 @@ jetHtC = Dataset( "JetHT_Run2015C-PromptReco-v1", 0, 0, ROOT.kBlack )
 jetHtC.label = "JetHtC"
 jetHtD = Dataset( "JetHT_Run2015D-PromptReco-v3", 0, 0, ROOT.kBlack )
 jetHtD.label = "JetHtD"
-jetHt = jetHtC + jetHtD
-jetHt.label = "Data"
+dataHt = jetHtC + jetHtD
+dataHt.label = "Data"
 
 
 
@@ -127,6 +127,12 @@ wjets.label = "W#rightarrowl#nu"
 ttg = Dataset( "TTGJets", 3.697, 4784923, ROOT.kOrange )
 ttg.label = "#gammat#bar{t}"
 ttg.xsecs = [ ttg.xsecs[0] / (1 -2 * 0.345183617094 )**2 ] # fraction of negative events
+
+wg = Dataset( "WGToLNuG", 405.271, 6092766, ROOT.kRed-3 )
+wg.label = "#gammaW#rightarrow#gammal#nu"
+
+dy = Dataset( "DYJetsToLL_M-50", 6104, 28825132, ROOT.kRed+3 )
+dy.label = "Z#rightarrowll"
 
 # signal samples
 
