@@ -17,8 +17,7 @@ import multiplot
 import auxiliary as aux
 from datasets import *
 import rebinner
-intLumi = 2000 # /pb
-intLumi = 166.37 # /pb
+intLumi = 225.57 # /pb, https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2503.html
 
 def getNprocessed( filename ):
     f = aux.getFromFile( filename, "hCutFlow" )
@@ -80,6 +79,9 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
     for d in bkg[-1::-1]:
         h = getHistoFromDataset( d, name )
         if binning:
+            if binning[0] == "abs":
+                # h = aux.absHistWeighted( h ) TODO: get this shit working
+                binning = binning[1:]
             h = aux.rebin( h, binning )
         aux.appendFlowBin( h )
         h.SetYTitle( aux.getYAxisTitle( h ) )
@@ -112,7 +114,8 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0] )
 
-    #names = ["h_met__tr"] # test plot
+    #names = ["h_met__tr_reco"] # test plot
+    #names = ["h_dphi_met_g__tr_bit"] # test plot
 
     for name in names:
         if not name.startswith("h_"): continue
@@ -122,6 +125,8 @@ def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
         hname = match.group(1)
         for binningName, binnings in rebinner.cfg.items( hname ):
             binnings = [ float(x) for x in binnings.split(" ") ]
+            if "abs" in binningName:
+                binnings = [ "abs" ]+binnings
             drawSameHistogram( saveName+"_bin"+binningName, name, data, bkg, additional, binnings )
 
 def getProjections( h2, alongX=True ):
@@ -170,8 +175,8 @@ def drawRazor( dataset ):
 def qcdClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
 
-    gSet = "loose"
-    eSet = "looseJet"
+    gSet = "tr_reco"
+    eSet = "jControl"
 
     for name in names:
         can = ROOT.TCanvas()
@@ -198,8 +203,8 @@ def qcdClosure( dataset, samplename="" ):
 def ewkClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
 
-    gSet = "loose_genElectron"
-    eSet = "looseElectron"
+    gSet = "tr_reco_genElectron"
+    eSet = "eControl"
 
     for name in names:
         if gSet not in name: continue
@@ -208,12 +213,16 @@ def ewkClosure( dataset, samplename="" ):
         h = getHistoFromDataset( dataset, name )
         h.SetLineColor(1)
         h.SetMarkerColor(1)
+        h.Rebin(5)
+        int1 = h.Integral()
         m.add( h, "#gamma (gen e)" )
 
         h = getHistoFromDataset( dataset, name.replace( gSet, eSet ) )
-        h.Scale( 0.01 )
+        h.Rebin(5)
+        scale = int1/h.Integral()
+        h.Scale( scale )
         h.drawOption_ = "hist"
-        m.add( h, "0.01 #times #gamma_{pixel}" )
+        m.add( h, "{:.2f}% #times #gamma_{{pixel}}".format(100*scale) )
 
         m.Draw()
 
@@ -298,8 +307,8 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data])
-    #drawSameHistograms( "_allMC", bkg=[gjets, qcd, ttjets, wjets, ttg], additional=[t2ttgg, t5gg, t5hg])
+    drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data,t2ttgg])
+    #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, wjets, ttg, wg, dy], additional=[t2ttgg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
 
