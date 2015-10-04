@@ -17,7 +17,3 @@ ConfigParser.SafeConfigParser.getfloats = getfloats
 cfg = ConfigParser.SafeConfigParser()
 cfg.readfp(open('rebin.cfg'))
 
-
-
-
-cfg.getints("h_g_pt", "1" )
