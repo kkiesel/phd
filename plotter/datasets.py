@@ -62,6 +62,14 @@ dataHt.label = "Data"
 
 # multijet
 
+#
+# https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
+gjets100 = Dataset( "GJets_HT-100To200", 9110, 5026005, ROOT.kCyan+4 )
+
+#
+# https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
+gjets200 = Dataset( "GJets_HT-200To400", 2281, 10328623, ROOT.kCyan+3 )
+
 # /GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
 gjets400 = Dataset( "GJets_HT-400To600", 273, 2476770, ROOT.kCyan+2 )
@@ -70,7 +78,7 @@ gjets400 = Dataset( "GJets_HT-400To600", 273, 2476770, ROOT.kCyan+2 )
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
 gjets600 = Dataset( "GJets_HT-600ToInf", 94.5, 2550765, ROOT.kCyan )
 
-gjets = gjets600 + gjets400
+gjets = gjets600 + gjets400 + gjets200 + gjets100
 gjets.label = "#gamma+Jet"
 
 # /QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM
@@ -140,7 +148,7 @@ dy.label = "Z#rightarrowll"
 #t5gg.label = "T5gg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
 #t5hg = Dataset( "T5hg_1500_1000", col=ROOT.kMagenta+4 )
 #t5hg.label = "T5hg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
-#t2ttgg = Dataset( "T2ttgg_850_650_fast", col=ROOT.kMagenta+2 )
-#t2ttgg.label = "T2ttgg m(#tilde{t})=850 m(#tilde{#chi}^{0}_{1})=650"
+t2ttgg = Dataset( "T2ttgg_850_650_fast", col=ROOT.kMagenta+2 )
+t2ttgg.label = "T2ttgg m(#tilde{t})=850 m(#tilde{#chi}^{0}_{1})=650"
 
 
