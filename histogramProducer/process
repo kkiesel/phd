@@ -12,6 +12,8 @@ infiles=(
   /user/kiesel/nTuples/V02/QCD_HT300to500_nTuple.root
   /user/kiesel/nTuples/V02/QCD_HT2000toInf_nTuple.root
   /user/kiesel/nTuples/V02/GJets_HT-400To600_nTuple.root
+  /user/kiesel/nTuples/V02/GJets_HT-100To200_nTuple.root
+  /user/kiesel/nTuples/V02/GJets_HT-200To400_nTuple.root
   /user/kiesel/nTuples/V02/SinglePhoton_Run2015D-PromptReco-v3_nTuple.root
   /user/kiesel/nTuples/V02/WJetsToLNu_HT-400To600_nTuple.root
   /user/kiesel/nTuples/V02/WJetsToLNu_HT-600ToInf_nTuple.root
@@ -19,6 +21,7 @@ infiles=(
   /user/kiesel/nTuples/V02/DYJetsToLL_M-50_nTuple.root
   /user/kiesel/nTuples/V02/SinglePhoton_Run2015C-PromptReco-v1_nTuple.root
   /user/kiesel/nTuples/V02/WGToLNuG_nTuple.root
+  /user/kiesel/nTuples/V02/T2ttgg_850_650_fast_nTuple.root
 )
 
 
@@ -39,4 +42,8 @@ while [ ${#infiles[@]} -ne 0 ]; do
 
 done
 
-echo "All files processed"
+while [[ $(ps hu -C "root -b -l -q run.C") ]]; do
+  sleep 5
+done
+
+echo "All subprocesses started"
