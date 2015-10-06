@@ -72,17 +72,21 @@ def compareAll( saveName="test", *datasets ):
         #        drawH2( d, name )
 
 def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
+    doAbs = binning and binning[0] == "abs"
+    if doAbs: binning = binning[1:]
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
+    if "dphi" in name:
+        m.leg = ROOT.TLegend(.5,.6,.83,.92)
+        m.leg.SetFillColor( ROOT.kWhite )
+
     for d in bkg[-1::-1]:
         h = getHistoFromDataset( d, name )
-        if binning:
-            if binning[0] == "abs":
-                # h = aux.absHistWeighted( h ) TODO: get this shit working
-                binning = binning[1:]
-            h = aux.rebin( h, binning )
+        if doAbs: h = aux.absHistWeighted( h )
+        if binning: h = aux.rebin( h, binning )
+
         aux.appendFlowBin( h )
         h.SetYTitle( aux.getYAxisTitle( h ) )
         if not h.Integral(): continue
@@ -92,8 +96,9 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
     for d in additional:
         h = getHistoFromDataset( d, name )
         if not h.Integral(): continue
-        if binning:
-            h = aux.rebin( h, binning )
+        if doAbs: h = aux.absHistWeighted( h )
+        if binning: h = aux.rebin( h, binning )
+
         if h.GetLineColor() == ROOT.kBlack: # data
             h.drawOption = "ep"
             h.SetMarkerStyle(20)
@@ -101,6 +106,10 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
             # TODO: make sure kPoisson works
         else:
             h.drawOption_ = "hist"
+        if "T2" in d.label:
+            h.SetLineWidth(20)
+            h.SetLineColor(ROOT.kBlue)
+
         m.add( h, d.label )
 
     if m.Draw():
@@ -110,24 +119,31 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
         can.SetLogy()
         save( "sameHistogram%s_%s_log"%(saveName,name) )
 
+def getBinnigsFromName( name ):
+    out = { "": None }
+    # get histogram name
+    match = re.match( "(.*)__.*", name )
+    if match:
+        hname = match.group(1)
+        for binningName, binning in rebinner.cfg.items( hname ):
+            binning = [ float(x) for x in binning.split(" ") ]
+            if "abs" in binningName: binning.insert( 0, "abs" )
+            out[binningName] = binning
+    return out
+
 
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0] )
 
     #names = ["h_met__tr_reco"] # test plot
     #names = ["h_dphi_met_g__tr_bit"] # test plot
+    names = [ "h_dphi_met_j1__tr_met200", "h_dphi_met_j2__tr_met200", "h_met__tr_reco", "h_g_pt__tr_reco", "h_n_bjet__tr_met200_dphi_j2", "h_g_pt__tr_met200_dphi_j2"]
 
     for name in names:
         if not name.startswith("h_"): continue
-        drawSameHistogram( saveName, name, data, bkg, additional )
-        match = re.match( "(.*)__tr", name )
-        if not match: continue
-        hname = match.group(1)
-        for binningName, binnings in rebinner.cfg.items( hname ):
-            binnings = [ float(x) for x in binnings.split(" ") ]
-            if "abs" in binningName:
-                binnings = [ "abs" ]+binnings
-            drawSameHistogram( saveName+"_bin"+binningName, name, data, bkg, additional, binnings )
+
+        for binningName, binning in getBinnigsFromName( name ).iteritems():
+            drawSameHistogram( saveName+"_bin"+binningName, name, data, bkg, additional, binning )
 
 def getProjections( h2, alongX=True ):
     hs = []
@@ -176,58 +192,101 @@ def qcdClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
 
     gSet = "tr_reco"
-    eSet = "jControl"
+    cSet = "jControl"
 
     for name in names:
-        can = ROOT.TCanvas()
-        if eSet not in name: continue
-        m = multiplot.Multiplot()
+        if cSet not in name: continue
 
-        h1 = getHistoFromDataset( dataset, name.replace( eSet, gSet ) )
-        h1.SetLineColor(1)
-        h1.SetMarkerColor(1)
-        m.add( h1, "#gamma" )
 
-        h = getHistoFromDataset( dataset, name )
-        if h.Integral(): h.Scale( h1.Integral()/h.Integral() )
-        h.drawOption_ = "hist"
-        m.add( h, "#gamma-like" )
+        hdir = getHistoFromDataset( dataset, name )
+        hdir.SetLineColor(1)
+        hdir.SetMarkerColor(1)
+        hdir.SetMarkerStyle(20)
+        hdir.drawOption_ = "p"
 
-        m.Draw()
+        hpre = getHistoFromDataset( dataset, name.replace( cSet, gSet ) )
+        scale = hdir.Integral() / hpre.Integral()
+        hpre.Scale( scale )
+        hpre.drawOption_ = "hist"
 
-        l = aux.Label()
-        save( "qcdClosure_"+name+samplename )
-        can.SetLogy()
-        save( "qcdClosure_"+name+samplename+"_log" )
+        for h in hdir, hpre:
+            h.SetYTitle( aux.getYAxisTitle( h ) )
+
+        for binningName, binning in getBinnigsFromName( name ).iteritems():
+            can = ROOT.TCanvas()
+            m = multiplot.Multiplot()
+            mod_dir = hdir
+            mod_pre = hpre
+
+            if binning:
+                if binning[0] == "abs":
+                    binning = binning[1:]
+                    mod_dir = aux.absHistWeighted( hdir )
+                    mod_pre = aux.absHistWeighted( hpre )
+                mod_dir = aux.rebin(mod_dir, binning)
+                mod_pre = aux.rebin(mod_pre, binning)
+
+
+            if name == "h_g_eta__jControl":
+                m.maximum = 7000
+                m.minimum = 2000
+            m.add( mod_dir, "#gamma" )
+            m.add( mod_pre, "#gamma-like" )
+
+            m.Draw()
+
+            l = aux.Label()
+            save( "qcdClosure_"+name+samplename+binningName )
+            can.SetLogy()
+            save( "qcdClosure_"+name+samplename+binningName+"_log" )
+
 
 def ewkClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
 
     gSet = "tr_reco_genElectron"
-    eSet = "eControl"
+    cSet = "eControl"
 
     for name in names:
         if gSet not in name: continue
-        m = multiplot.Multiplot()
 
-        h = getHistoFromDataset( dataset, name )
-        h.SetLineColor(1)
-        h.SetMarkerColor(1)
-        h.Rebin(5)
-        int1 = h.Integral()
-        m.add( h, "#gamma (gen e)" )
+        hdir = getHistoFromDataset( dataset, name )
+        hdir.SetLineColor(1)
+        hdir.SetMarkerColor(1)
+        hdir.SetMarkerStyle(20)
+        hdir.drawOption_ = "p"
 
-        h = getHistoFromDataset( dataset, name.replace( gSet, eSet ) )
-        h.Rebin(5)
-        scale = int1/h.Integral()
-        h.Scale( scale )
-        h.drawOption_ = "hist"
-        m.add( h, "{:.2f}% #times #gamma_{{pixel}}".format(100*scale) )
+        hpre = getHistoFromDataset( dataset, name.replace( gSet, cSet ) )
+        scale = hdir.Integral() / hpre.Integral()
+        hpre.Scale( scale )
+        hpre.drawOption_ = "hist"
+        for h in hdir, hpre:
+            h.SetYTitle( aux.getYAxisTitle( h ) )
 
-        m.Draw()
+        for binningName, binning in getBinnigsFromName( name ).iteritems():
+            can = ROOT.TCanvas()
+            m = multiplot.Multiplot()
+            mod_dir = hdir
+            mod_pre = hpre
 
-        l = aux.Label()
-        save( "ewkClosure_"+name+samplename )
+            if binning:
+                if binning[0] == "abs":
+                    binning = binning[1:]
+                    mod_dir = aux.absHistWeighted( hdir )
+                    mod_pre = aux.absHistWeighted( hpre )
+                mod_dir = aux.rebin(mod_dir, binning)
+                mod_pre = aux.rebin(mod_pre, binning)
+
+            if name == "h_met__tr_reco_genElectron": mod_dir.SetMaximum( mod_dir.GetMaximum() *5 )
+            m.add( mod_dir, "#gamma (gen e)" )
+            m.add( mod_pre, "{:.2f}% #times #gamma_{{pixel}}".format(100*scale) )
+
+            m.Draw()
+
+            l = aux.Label()
+            save( "ewkClosure_"+name+samplename+binningName )
+            can.SetLogy()
+            save( "ewkClosure_"+name+samplename+binningName+"_log" )
 
 
 def drawROCs():
@@ -307,14 +366,14 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data,t2ttgg])
-    #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, wjets, ttg, wg, dy], additional=[t2ttgg])
+    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data,t2ttgg])
+    #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, ttg, wjets, wg], additional=[t2ttgg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
 
     #ewkClosure( ttjets, "_tt" )
     #ewkClosure( wjets, "_w" )
-    #ewkClosure( wjets+ttjets, "_ewk" )
+    ewkClosure( wjets+ttjets, "_ewk" )
     #qcdClosure( qcd+gjets, "_qcd-gjets" )
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
