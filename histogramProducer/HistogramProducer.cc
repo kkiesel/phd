@@ -168,47 +168,45 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_mt_g_met__"+s] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 100, 0, 1000 );
 
   h["h_ht__"+s] = TH1F( "", ";H_{T}", 200, 0, 2500 );
+  h["h_genLikeHt__"+s] = TH1F( "", ";H_{T}", 200, 0, 2500 );
   h["h_ht_g__"+s] = TH1F( "", ";HE_{T}", 200, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T}", 200, 0, 2500 );
 
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1500 );
-  h["h_g_eta__"+s] = TH1F( "", ";#eta", 100, -3, 3 );
+  h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 100, 0, 3 );
 
   // jet
   h["h_j1_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 100, 0, 1500 );
-  h["h_j1_eta__"+s] = TH1F( "", ";#eta^{1.jet}", 100, -3, 3 );
+  h["h_j1_eta__"+s] = TH1F( "", ";|#eta^{1.jet}|", 100, 0, 3 );
   h["h_j2_pt__"+s] = TH1F( "", ";p_{T}^{2.jet} (GeV)", 100, 0, 1500 );
-  h["h_j2_eta__"+s] = TH1F( "", ";#eta^{2.jet}", 100, -3, 3 );
+  h["h_j2_eta__"+s] = TH1F( "", ";|#eta^{2.jet}|", 100, 0, 3 );
   h["h_j3_pt__"+s] = TH1F( "", ";p_{T}^{3.jet} (GeV)", 100, 0, 1500 );
-  h["h_j3_eta__"+s] = TH1F( "", ";#eta^{3.jet}", 100, -3, 3 );
+  h["h_j3_eta__"+s] = TH1F( "", ";|#eta^{3.jet}|", 100, 0, 3 );
 
   // b-jets
   h["h_bj1_pt__"+s] = TH1F( "", ";p_{T}^{1.b-jet} (GeV)", 100, 0, 1500 );
-  h["h_bj1_eta__"+s] = TH1F( "", ";#eta^{1.b-jet}", 100, -3, 3 );
+  h["h_bj1_eta__"+s] = TH1F( "", ";|#eta^{1.b-jet}|", 100, 0, 3 );
   h["h_bj2_pt__"+s] = TH1F( "", ";p_{T}^{2.b-jet} (GeV)", 100, 0, 1500 );
-  h["h_bj2_eta__"+s] = TH1F( "", ";#eta^{2.b-jet}", 100, -3, 3 );
+  h["h_bj2_eta__"+s] = TH1F( "", ";|#eta^{2.b-jet}|", 100, 0, 3 );
   h["h_bj3_pt__"+s] = TH1F( "", ";p_{T}^{3.b-jet} (GeV)", 100, 0, 1500 );
-  h["h_bj3_eta__"+s] = TH1F( "", ";#eta^{3.b-jet}", 100, -3, 3 );
+  h["h_bj3_eta__"+s] = TH1F( "", ";|#eta^{3.b-jet}|", 100, 0, 3 );
 
   // angles
-  h["h_dphi_met_g__"+s] = TH1F( "", ";#Delta#phi(E_{T}^{miss},#gamma)", 100, -3.5, 3.5 );
-  h["h_dphi_met_j1__"+s] = TH1F( "", ";#Delta#phi(E_{T}^{miss},1.jet)", 100, -3.5, 3.5 );
-  h["h_dphi_met_j2__"+s] = TH1F( "", ";#Delta#phi(E_{T}^{miss},2.jet)", 100, -3.5, 3.5 );
-  h["h_dphi_met_j3__"+s] = TH1F( "", ";#Delta#phi(E_{T}^{miss},3.jet)", 100, -3.5, 3.5 );
-  h["h_dphi_met_recoil__"+s] = TH1F( "", ";#Delta#phi(E_{T}^{miss},#Sigma jet)", 100, -3.5, 3.5 );
+  h["h_dphi_met_g__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#gamma)|", 100, 0, 3.5 );
+  h["h_dphi_met_j1__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},1.jet)|", 100, 0, 3.5 );
+  h["h_dphi_met_j2__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},2.jet)|", 100, 0, 3.5 );
+  h["h_dphi_met_j3__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},3.jet)|", 100, 0, 3.5 );
+  h["h_dphi_met_recoil__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#Sigma jet)|", 100, 0, 3.5 );
 
   // multiplicities
-  h["h_n_vertex__"+s] = TH1F( "", ";Vertices", 61, -0.5, 60.5 );
-  h["h_n_photon__"+s] = TH1F( "", ";Photons", 6, -0.5, 5.5 );
-  h["h_n_jet__"+s] = TH1F( "", ";Jets", 21, -0.5, 20.5 );
-  h["h_n_bjet__"+s] = TH1F( "", ";B Jets", 21, -0.5, 20.5 );
-  h["h_n_electron__"+s] = TH1F( "", ";Electrons", 4, -0.5, 3.5 );
-  h["h_n_muon__"+s] = TH1F( "", ";Muons", 4, -0.5, 3.5 );
+  h["h_n_vertex__"+s] = TH1F( "", ";Vertex multiplicity", 61, -0.5, 60.5 );
+  h["h_n_photon__"+s] = TH1F( "", ";Photon multiplicity", 6, -0.5, 5.5 );
+  h["h_n_jet__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
+  h["h_n_bjet__"+s] = TH1F( "", ";b-jet multiplicity", 21, -0.5, 20.5 );
+  h["h_n_electron__"+s] = TH1F( "", ";electron multiplicity", 4, -0.5, 3.5 );
+  h["h_n_muon__"+s] = TH1F( "", ";muon multiplicity", 4, -0.5, 3.5 );
 
   h2["h2_razorPlane__"+s] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
-
-//  eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T};#varepsilon", 200, 0, 2000 );
-//  eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T};#varepsilon", 200, 0, 2000 );
 
 }
 
@@ -238,8 +236,8 @@ void HistogramProducer::initObjects( string const& s ) {
   h2["h2_match_photon_genElectron__"+s] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen e}", 100, 0, 0.5, 100, 0, 4 );
   h2["h2_match_photon_genPhoton__"+s] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen #gamma}", 100, 0, 0.5, 100, 0, 4 );
 
-  eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T};#varepsilon", 200, 0, 2000 );
-  eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T};#varepsilon", 200, 0, 2000 );
+  eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 200, 0, 2000 );
+  eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon", 200, 0, 2000 );
 
 }
 
@@ -285,47 +283,58 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_ht_g__"+s].Fill( ht_g, selW );
   h["h_st__"+s].Fill( st, selW );
 
+  float genLikeHt = 0;
+  for( auto& jet : selJets ) {
+    if( !jet->isLoose || jet->p.Pt() < 40 || abs(jet->p.Eta()) > 3 ) continue;
+    bool closePhoton = false;
+    for( auto& p: selPhotons ) { if( p->p.DeltaR( jet->p ) < .4 ) closePhoton=true; }
+    if( ! closePhoton ) {
+      genLikeHt += jet->p.Pt();
+    }
+  }
+  h["h_genLikeHt__"+s].Fill( genLikeHt, selW );
+
   if( selPhotons.size() > 0 ) {
     h["h_mt_g_met__"+s].Fill( (selPhotons[0]->p + met->p).Pt(), selW );
     h["h_g_pt__"+s].Fill( selPhotons[0]->p.Pt(), selW );
-    h["h_g_eta__"+s].Fill( selPhotons[0]->p.Eta(), selW );
+    h["h_g_eta__"+s].Fill( fabs(selPhotons[0]->p.Eta()), selW );
   }
 
   if( selJets.size() > 2 ) {
     h["h_j3_pt__"+s].Fill( selJets[2]->p.Pt(), selW );
-    h["h_j3_eta__"+s].Fill( selJets[2]->p.Eta(), selW );
+    h["h_j3_eta__"+s].Fill( fabs(selJets[2]->p.Eta()), selW );
   }
   if( selJets.size() > 1 ) {
     h["h_j2_pt__"+s].Fill( selJets[1]->p.Pt(), selW );
-    h["h_j2_eta__"+s].Fill( selJets[1]->p.Eta(), selW );
+    h["h_j2_eta__"+s].Fill( fabs(selJets[1]->p.Eta()), selW );
   }
   if( selJets.size() > 0 ) {
     h["h_j1_pt__"+s].Fill( selJets[0]->p.Pt(), selW );
-    h["h_j1_eta__"+s].Fill( selJets[0]->p.Eta(), selW );
+    h["h_j1_eta__"+s].Fill( fabs(selJets[0]->p.Eta()), selW );
   }
 
   if( selBJets.size() > 2 ) {
     h["h_bj3_pt__"+s].Fill( selBJets[2]->p.Pt(), selW );
-    h["h_bj3_eta__"+s].Fill( selBJets[2]->p.Eta(), selW );
+    h["h_bj3_eta__"+s].Fill( fabs(selBJets[2]->p.Eta()), selW );
   }
   if( selBJets.size() > 1 ) {
     h["h_bj2_pt__"+s].Fill( selBJets[1]->p.Pt(), selW );
-    h["h_bj2_eta__"+s].Fill( selBJets[1]->p.Eta(), selW );
+    h["h_bj2_eta__"+s].Fill( fabs(selBJets[1]->p.Eta()), selW );
   }
   if( selBJets.size() > 0 ) {
     h["h_bj1_pt__"+s].Fill( selBJets[0]->p.Pt(), selW );
-    h["h_bj1_eta__"+s].Fill( selBJets[0]->p.Eta(), selW );
+    h["h_bj1_eta__"+s].Fill( fabs(selBJets[0]->p.Eta()), selW );
   }
 
   if( selPhotons.size() > 0 )
-    h["h_dphi_met_g__"+s].Fill( met->p.DeltaPhi( selPhotons[0]->p ), selW );
+    h["h_dphi_met_g__"+s].Fill( fabs(met->p.DeltaPhi( selPhotons[0]->p )), selW );
   if( selJets.size() > 0 )
-    h["h_dphi_met_j1__"+s].Fill( met->p.DeltaPhi( selJets[0]->p ), selW );
+    h["h_dphi_met_j1__"+s].Fill( fabs(met->p.DeltaPhi( selJets[0]->p )), selW );
   if( selJets.size() > 1 )
-    h["h_dphi_met_j2__"+s].Fill( met->p.DeltaPhi( selJets[1]->p ), selW );
+    h["h_dphi_met_j2__"+s].Fill( fabs(met->p.DeltaPhi( selJets[1]->p )), selW );
   if( selJets.size() > 2 )
-    h["h_dphi_met_j3__"+s].Fill( met->p.DeltaPhi( selJets[2]->p ), selW );
-  h["h_dphi_met_recoil__"+s].Fill( met->p.DeltaPhi( recoil ), selW );
+    h["h_dphi_met_j3__"+s].Fill( fabs(met->p.DeltaPhi( selJets[2]->p )), selW );
+  h["h_dphi_met_recoil__"+s].Fill( fabs(met->p.DeltaPhi( recoil )), selW );
 
   h["h_n_vertex__"+s].Fill( *nGoodVertices, selW );
   h["h_n_photon__"+s].Fill( selPhotons.size(), selW );
@@ -337,14 +346,6 @@ void HistogramProducer::fillSelection( string const& s ) {
   if( mrr2.first > 1e-7 ) {
     h2["h2_razorPlane__"+s].Fill( mrr2.first, mrr2.second, selW );
   }
-
-/*  if( selPhotons.size() > 0 ) {
-    if( *crossTriggerHtFired && selHt > 600 )
-      eff["eff_hlt_pt__"+s].Fill( *signalTriggerFired, selPhotons[0]->p.Pt() );
-    if( *crossTriggerPhotonFired && selPhotons[0]->p.Pt() > 100 )
-      eff["eff_hlt_ht__"+s].Fill( *signalTriggerFired, selHt );
-  }
-*/
 
 } // end fill
 
@@ -541,7 +542,7 @@ void HistogramProducer::Init(TTree *tree)
 
 void HistogramProducer::SlaveBegin(TTree *tree)
 {
-  vector<string> strs = { "tr_bit", "tr_reco", "tr_reco_cleanHt", "tr_met200", "tr_met200_dphi", "tr_met200_dphi_j2", "tr_met200_dphi_j2_genElectron", "tr_met200_dphi_j2_genPhoton", "eControl", "jControl", "tr_reco_genElectron" };
+  vector<string> strs = { "tr_bit", "tr_bit_2j", "tr_reco", "tr_reco_cleanHt", "tr_met200", "tr_met200_dphi", "tr_met200_dphi_j2", "tr_met200_dphi_j2_genElectron", "tr_met200_dphi_j2_genPhoton", "eControl", "jControl", "tr_reco_genElectron" };
   for( auto& v : strs ) initSelection(v);
   initObjects("base");
 
@@ -618,6 +619,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( *signalTriggerFired ) {
     fillSelection("tr_bit");
+  }
+
+  if( *signalTriggerFired && selJets.size() > 2 ) {
+    fillSelection("tr_bit_2j");
   }
 
   selHt = 0;
