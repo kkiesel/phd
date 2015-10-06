@@ -81,6 +81,14 @@ gjets600 = Dataset( "GJets_HT-600ToInf", 94.5, 2550765, ROOT.kCyan )
 gjets = gjets600 + gjets400 + gjets200 + gjets100
 gjets.label = "#gamma+Jet"
 
+# /QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM
+# https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
+qcd100 = Dataset( "QCD_HT100to200", 27540000, 80142962, ROOT.kBlue+7 )
+
+# /QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM
+# https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
+qcd200 = Dataset( "QCD_HT200to300", 1735000, 18717349, ROOT.kBlue+6 )
+
 # /QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
 qcd300 = Dataset( "QCD_HT300to500", 366800, 20086103, ROOT.kBlue+5 )
@@ -105,7 +113,7 @@ qcd1500 = Dataset( "QCD_HT1500to2000", 121.5, 3848411, ROOT.kBlue+1 )
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
 qcd2000 = Dataset( "QCD_HT2000toInf", 25.42,  1961774, ROOT.kBlue )
 
-qcd = qcd2000 + qcd1500 + qcd1000 + qcd700 + qcd500 + qcd300
+qcd = qcd2000 + qcd1500 + qcd1000 + qcd700 + qcd500 + qcd300 + qcd200 + qcd100
 qcd.label = "Multijet"
 # todo: check nEvents
 
@@ -149,6 +157,7 @@ dy.label = "Z#rightarrowll"
 #t5hg = Dataset( "T5hg_1500_1000", col=ROOT.kMagenta+4 )
 #t5hg.label = "T5hg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
 t2ttgg = Dataset( "T2ttgg_850_650_fast", col=ROOT.kMagenta+2 )
-t2ttgg.label = "T2ttgg m(#tilde{t})=850 m(#tilde{#chi}^{0}_{1})=650"
-
+t2ttgg.label = "T2ttgg #scale[0.7]{#tilde{t}:850 #tilde{#chi}^{0}_{1}:650}"
+t2ttgg.label = "T2ttgg (x10)"
+t2ttgg.xsecs = [ 10.*t2ttgg.xsecs[0] ]
 
