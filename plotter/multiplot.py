@@ -9,7 +9,7 @@ class Multiplot:
         self.minimum = None
         self.maximum = None
 
-        self.leg = ROOT.TLegend(.7,.7,.93,.92)
+        self.leg = ROOT.TLegend(.6,.6,.93,.92)
         self.leg.SetFillColor( ROOT.kWhite )
 
     def add( self, h, label="" ):
@@ -62,19 +62,25 @@ class Multiplot:
 
         if minimum==0: minimum=0.1
 
-        # fill data first in legend?
+        # Fill legend:
+        # Data first
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
             if h.GetName() in ["Data"]:
                 self.leg.AddEntry( h, h.GetName(), "pe" )
 
-        # fill legend (in correct order)
+        # Stacked histograms
         for h in self.histsToStack[-1::-1]:
             h.SetLineColor(0)
             self.leg.AddEntry( h, h.GetName(), "f" )
+
+        # Other histograms
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
             if h.GetName() in ["Data"]: continue
+
+            if "p" in h.drawOption_:
+                self.leg.AddEntry( h, h.GetName(), "ep" )
             else:
                 self.leg.AddEntry( h, h.GetName(), "l" )
 
