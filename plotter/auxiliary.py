@@ -1,5 +1,6 @@
 import ROOT
 import re
+import math
 from math import *
 
 def getXsecInfoSMS( mother_mass, pklfilename ):
@@ -64,17 +65,29 @@ def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
 
     return outList
 
+def rebin( h, binEdges ):
+    import array
+    binEdgesArr = array.array( 'd', binEdges )
+    hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
+    try: hnew.drawOption_ = h.drawOption_
+    except: pass
+    hnew.Scale( 1., "width" )
+    return hnew
+
 def absHistWeighted( origHist ):
     origNbins = origHist.GetNbinsX()
     origXmin = origHist.GetBinLowEdge(1)
     origXmax = origHist.GetBinLowEdge(origHist.GetNbinsX()+1)
-    if origXmin + origXmax:
+    if origXmin + origXmax > 0.1:
         if origXmin:
             print "cant handle assymetric histograms"
         # else: print "already symetric?"
         return origHist
 
-    h = ROOT.TH1F( "", origHist.GetTitle(), int(math.ceil(origNbins/2.)), 0, origXmax )
+    h = origHist.Clone()
+    newN = int(math.ceil(origNbins/2.))
+    # TODO: doesn not work, only first bin in filled
+    h = rebin( h, [ origXmax *i/newN for i in range(newN+1)] )
 
     for origBin in range( origNbins+2 ):
         newBin = int(abs(origBin - (origNbins+1.)/2)) + 1
@@ -93,15 +106,6 @@ def absHistWeighted( origHist ):
             h.SetBinError( newBin, origHist.GetBinError(origBin) )
 
     return h
-
-def rebin( h, binEdges ):
-    import array
-    binEdgesArr = array.array( 'd', binEdges )
-    hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
-    try: hnew.drawOption_ = h.drawOption_
-    except: pass
-    hnew.Scale( 1., "width" )
-    return hnew
 
 def randomName():
     """
