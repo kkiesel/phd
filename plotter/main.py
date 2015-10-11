@@ -106,9 +106,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
             # TODO: make sure kPoisson works
         else:
             h.drawOption_ = "hist"
-        if "T2" in d.label:
-            h.SetLineWidth(20)
-            h.SetLineColor(ROOT.kBlue)
+            h.SetLineWidth(3)
 
         m.add( h, d.label )
 
