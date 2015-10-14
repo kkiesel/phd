@@ -211,6 +211,37 @@ def getROC( hSig, hBkg, highX=True ):
     return rocGraph
 
 
+def automaticRebinner( hlist, maxEvents=0 ):
+    # Ereates an array of bin edges on a list of histograms, such that each histogram
+    # has at least 'maxEvents' events in each bin.
+    out = []
+    tmp = [0]*len(hlist)
+    nBins = hlist[0].GetNbinsX()
+
+    # check overflow bin
+    overflowList = [ h.GetBinContent( nBins+1 ) for h in hlist ]
+    if max(overflowList) > 1e-10:
+        out.append( hlist[0].GetBinLowEdge(nBins+1) )
+
+    for bin in range(nBins, -1, -1 ):
+
+        for ih, h in enumerate(hlist):
+            x = int(h.GetBinContent(bin))
+            if x: print bin, h.GetBinLowEdge(bin), x
+            else: print bin, h.GetBinLowEdge(bin)
+            tmp[ih] += h.GetBinContent(bin)
+
+        if max( tmp ) > maxEvents:
+            if out:
+                out.append( hlist[0].GetBinLowEdge(bin) )
+            else:
+                out.append( hlist[0].GetBinLowEdge(bin+1) )
+            tmp = [0]*len(hlist)
+
+
+    print out[::-1]
+
+
 class Label:
     # Create labels
     # Usage:
