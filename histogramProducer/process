@@ -11,6 +11,8 @@ infiles=(
   /user/kiesel/nTuples/V02/JetHT_Run2015D-PromptReco-v3_nTuple.root
   /user/kiesel/nTuples/V02/QCD_HT300to500_nTuple.root
   /user/kiesel/nTuples/V02/QCD_HT2000toInf_nTuple.root
+  /user/kiesel/nTuples/V02/QCD_HT100to200_nTuple.root
+  /user/kiesel/nTuples/V02/QCD_HT200to300_nTuple.root
   /user/kiesel/nTuples/V02/GJets_HT-400To600_nTuple.root
   /user/kiesel/nTuples/V02/GJets_HT-100To200_nTuple.root
   /user/kiesel/nTuples/V02/GJets_HT-200To400_nTuple.root
