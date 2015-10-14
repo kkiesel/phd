@@ -123,7 +123,7 @@ qcd.label = "Multijet"
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8
 ttjets = Dataset( "TTJets", 670.3, 43024978, ROOT.kRed+2 )
 ttjets.label = "t#bar{t}"
-ttjets.xsecs = [ ttjets.xsecs[0] / (1 -2 * 0.361129919331 )**2 ] # fraction of negative events
+#ttjets.xsecs = [ ttjets.xsecs[0] / (1 -2 * 0.361129919331 )**2 ] # fraction of negative events
 
 # /WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8
@@ -142,7 +142,7 @@ wjets.label = "W#rightarrowl#nu"
 # https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8&shown=262168
 ttg = Dataset( "TTGJets", 3.697, 4784923, ROOT.kOrange )
 ttg.label = "#gammat#bar{t}"
-ttg.xsecs = [ ttg.xsecs[0] / (1 -2 * 0.345183617094 )**2 ] # fraction of negative events
+#ttg.xsecs = [ ttg.xsecs[0] / (1 -2 * 0.345183617094 )**2 ] # fraction of negative events
 
 wg = Dataset( "WGToLNuG", 405.271, 6092766, ROOT.kRed-3 )
 wg.label = "#gammaW#rightarrow#gammal#nu"
