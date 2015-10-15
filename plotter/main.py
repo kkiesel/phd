@@ -17,7 +17,7 @@ import multiplot
 import auxiliary as aux
 from datasets import *
 import rebinner
-intLumi = 225.57 # /pb, https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2503.html
+intLumi = 594.65 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2510/3.html
 
 def getNprocessed( filename ):
     f = aux.getFromFile( filename, "hCutFlow" )
@@ -82,6 +82,18 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
         m.leg = ROOT.TLegend(.5,.6,.83,.92)
         m.leg.SetFillColor( ROOT.kWhite )
 
+    scale = 1.
+    for d in additional:
+        h_data = getHistoFromDataset( d, name )
+        if True:
+            sumBkg = None
+            for d in bkg[-1::-1]:
+                h = getHistoFromDataset( d, name )
+                if sumBkg: sumBkg.Add( h )
+                else: sumBkg = h
+            if sumBkg.Integral(): scale = h_data.Integral() / sumBkg.Integral()
+
+
     for d in bkg[-1::-1]:
         h = getHistoFromDataset( d, name )
         if doAbs: h = aux.absHistWeighted( h )
@@ -91,7 +103,9 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
         h.SetYTitle( aux.getYAxisTitle( h ) )
         if not h.Integral(): continue
         #h.Scale( 1./h.Integral() )
+        h.Scale( scale )
         m.addStack( h, d.label )
+
 
     for d in additional:
         h = getHistoFromDataset( d, name )
@@ -135,7 +149,7 @@ def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
 
     #names = ["h_met__tr_reco"] # test plot
     #names = ["h_dphi_met_g__tr_bit"] # test plot
-    names = [ "h_dphi_met_j1__tr_met200", "h_dphi_met_j2__tr_met200", "h_met__tr_reco", "h_g_pt__tr_reco", "h_n_bjet__tr_met200_dphi_j2", "h_g_pt__tr_met200_dphi_j2"]
+    #names = [ "h_dphi_met_j1__tr_met200", "h_dphi_met_j2__tr_met200", "h_met__tr_reco", "h_g_pt__tr_reco", "h_n_bjet__tr_met200_dphi_j2", "h_g_pt__tr_met200_dphi_j2"]
 
     for name in names:
         if not name.startswith("h_"): continue
@@ -364,6 +378,7 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
+    #drawSameHistograms( "_gqcd_data", bkg=[gjets, qcd], additional=[data])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data,t2ttgg])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, ttg, wjets, wg], additional=[t2ttgg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
@@ -371,7 +386,7 @@ def main():
 
     #ewkClosure( ttjets, "_tt" )
     #ewkClosure( wjets, "_w" )
-    ewkClosure( wjets+ttjets, "_ewk" )
+    #ewkClosure( wjets+ttjets, "_ewk" )
     #qcdClosure( qcd+gjets, "_qcd-gjets" )
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
@@ -379,7 +394,7 @@ def main():
     #efficiencies( dataHt, "jetHt_" )
 
     #drawROCs()
-
+    drawSameHistogram( "test", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600], [] )
 
 
 if __name__ == "__main__":
