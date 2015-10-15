@@ -18,10 +18,6 @@
 // User Functions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T> int sign(T val) {
-      return (T(0) < val) - (val < T(0));
-}
-
 // https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation74X
 map<string,float> bTaggingWorkingPoints = {
   { "CSVv2L", 0.605 },
@@ -117,9 +113,6 @@ class HistogramProducer : public TSelector {
   void initObjects( string const& s );
   void fillObjects( string const& s );
 
-  void initBkgEst( string const& s );
-  void fillBkgEst( string const& s );
-
   TTreeReader fReader;
   TTreeReaderArray<tree::Photon> photons;
   TTreeReaderArray<tree::Jet> jets;
@@ -129,21 +122,21 @@ class HistogramProducer : public TSelector {
   TTreeReaderArray<tree::GenParticle> genParticles;
 
   TTreeReaderValue<tree::MET> met;
-  TTreeReaderValue<Float_t> w_pu;
-  TTreeReaderValue<Float_t> w_mc;
+  TTreeReaderValue<Float_t> pu_weight;
+  TTreeReaderValue<Char_t> mc_weight;
 
   TTreeReaderValue<Int_t> nGoodVertices;
-  TTreeReaderValue<Int_t> nPV;
   TTreeReaderValue<Int_t> genLeptonsFromW;
+  TTreeReaderValue<Float_t> genHt;
+  TTreeReaderValue<Float_t> dR_recoGenJet;
 
   TTreeReaderValue<ULong64_t> eventNo;
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
 
-  TTreeReaderValue<Bool_t> isRealData;
-  TTreeReaderValue<Bool_t> signalTriggerFired;
-  TTreeReaderValue<Bool_t> crossTriggerPhotonFired;
-  TTreeReaderValue<Bool_t> crossTriggerHtFired;
+  TTreeReaderValue<Bool_t> signalTrigger;
+  TTreeReaderValue<Bool_t> crossTriggerPhoton;
+  TTreeReaderValue<Bool_t> crossTriggerHt;
 
   vector<tree::Photon*> selPhotons;
   vector<tree::Jet*> selJets;
@@ -240,30 +233,6 @@ void HistogramProducer::initObjects( string const& s ) {
   eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon", 200, 0, 2000 );
 
 }
-
-void HistogramProducer::initBkgEst( string const& s ) {
-  h["h_metAndL__"+s] = TH1F( "", ";E^{miss}_{T} #vec{+} l (GeV)", 100, 0, 1000 );
-
-  // profile
-  prof["profile_g_pt_met__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTp_{T}#GT (GeV)", 100, 0, 1000 );
-  prof["profile_jets_met__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTJets#GT", 100, 0, 1000 );
-
-  // isolation dependencies
-  prof["profile_cIso_met__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{#pi}#GT (GeV)", 100, 0, 1000 );
-  prof["profile_nIso_met__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{n}#GT (GeV)", 100, 0, 1000 );
-  prof["profile_pIso_met__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{#gamma}#GT (GeV)", 100, 0, 1000 );
-  prof["profile_sie_met__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LT#sigma_{i#etai#eta}#GT", 100, 0, 1000 );
-  prof["profile_hOverE_met__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTH/E#GT", 100, 0, 1000 );
-  prof["profile_mva_met__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTy_{MVA}#GT", 100, 0, 1000 );
-
-  prof["profile_cIso_met_gloose__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{#pi}#GT (GeV)", 100, 0, 1000 );
-  prof["profile_nIso_met_gloose__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{n}#GT (GeV)", 100, 0, 1000 );
-  prof["profile_pIso_met_gloose__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTI_{#gamma}#GT (GeV)", 100, 0, 1000 );
-  prof["profile_sie_met_gloose__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LT#sigma_{i#etai#eta}#GT", 100, 0, 1000 );
-  prof["profile_hOverE_met_gloose__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTH/E#GT", 100, 0, 1000 );
-  prof["profile_mva_met_gloose__"+s] = TProfile( "", ";E^{miss}_{T} (GeV);#LTy_{MVA}#GT", 100, 0, 1000 );
-}
-
 
 void HistogramProducer::fillSelection( string const& s ) {
 
@@ -433,85 +402,12 @@ void HistogramProducer::fillObjects( string const& s ) {
       }
     }
 
-    if( *crossTriggerHtFired && ht > 600 ) {
-      eff["eff_hlt_pt__"+s].Fill( *signalTriggerFired, thisPhoton->p.Pt() );
+    if( *crossTriggerHt && ht > 600 ) {
+      eff["eff_hlt_pt__"+s].Fill( *signalTrigger, thisPhoton->p.Pt() );
     }
-    if( *crossTriggerPhotonFired && thisPhoton->p.Pt() > 100 ) {
-      eff["eff_hlt_ht__"+s].Fill( *signalTriggerFired, ht );
+    if( *crossTriggerPhoton && thisPhoton->p.Pt() > 100 ) {
+      eff["eff_hlt_ht__"+s].Fill( *signalTrigger, ht );
     }
-
-  }
-
-}
-
-void HistogramProducer::fillBkgEst( string const& s ) {
-  auto metAndL = met->p;
-  for( auto& l : selElectrons )
-    metAndL = metAndL + l->p;
-  for( auto& l : selMuons )
-    metAndL += l->p;
-
-  h["h_metAndL__"+s].Fill( metAndL.Pt(), selW );
-
-  // profile
-  if( selPhotons.size() > 0 )
-    prof["profile_g_pt_met__"+s].Fill( met->p.Pt(), selPhotons[0]->p.Pt(), selW );
-  prof["profile_jets_met__"+s].Fill( met->p.Pt(), selJets.size(), selW );
-
-  // isolations
-  for( auto& p : selPhotons ) {
-    prof["profile_cIso_met__"+s].Fill( met->p.Pt(), p->isoChargedHadronsEA, selW );
-    prof["profile_nIso_met__"+s].Fill( met->p.Pt(), p->isoNeutralHadronsEA, selW );
-    prof["profile_pIso_met__"+s].Fill( met->p.Pt(), p->isoPhotonsEA, selW );
-    prof["profile_sie_met__"+s].Fill( met->p.Pt(), p->sigmaIetaIeta, selW );
-    prof["profile_hOverE_met__"+s].Fill( met->p.Pt(), p->hOverE, selW );
-    prof["profile_mva_met__"+s].Fill( met->p.Pt(), p->mvaValue, selW );
-  }
-  for( auto& p : selPhotons ) {
-    if( p->p.Pt() < 50 || abs(p->p.Eta()) > 1.4442 ) continue;
-    if(
-      p->hOverE < 0.028
-      && p->sigmaIetaIeta < 0.0107
-      && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-      && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
-    )
-    prof["profile_cIso_met_gloose__"+s].Fill( met->p.Pt(), p->isoChargedHadronsEA, selW );
-    if(
-      p->hOverE < 0.028
-      && p->sigmaIetaIeta < 0.0107
-      && p->isoChargedHadronsEA < 2.67
-      && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
-    )
-    prof["profile_nIso_met_gloose__"+s].Fill( met->p.Pt(), p->isoNeutralHadronsEA, selW );
-    if(
-      p->hOverE < 0.028
-      && p->sigmaIetaIeta < 0.0107
-      && p->isoChargedHadronsEA < 2.67
-      && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-    )
-    prof["profile_pIso_met_gloose__"+s].Fill( met->p.Pt(), p->isoPhotonsEA, selW );
-    if(
-      p->hOverE < 0.028
-      && p->isoChargedHadronsEA < 2.67
-      && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-      && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
-    )
-    prof["profile_sie_met_gloose__"+s].Fill( met->p.Pt(), p->sigmaIetaIeta, selW );
-    if(
-      p->sigmaIetaIeta < 0.0107
-      && p->isoChargedHadronsEA < 2.67
-      && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-      && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
-    )
-    prof["profile_hOverE_met_gloose__"+s].Fill( met->p.Pt(), p->hOverE, selW );
-    if(
-      p->hOverE < 0.028
-      && p->sigmaIetaIeta < 0.0107
-      && p->isoChargedHadronsEA < 2.67
-      && p->isoNeutralHadronsEA < 7.23 + exp(0.0028*p->p.Pt()+0.5408)
-      && p->isoPhotonsEA < 2.11 + 0.0014*p->p.Pt()
-    )
-    prof["profile_mva_met_gloose__"+s].Fill( met->p.Pt(), p->mvaValue, selW );
 
   }
 
@@ -526,12 +422,14 @@ HistogramProducer::HistogramProducer():
   genParticles( fReader, "genParticles" ),
   met( fReader, "met" ),
   nGoodVertices( fReader, "nGoodVertices" ),
-  w_pu( fReader, "pu_weight" ),
-  w_mc( fReader, "mc_weight" ),
-  isRealData( fReader, "isRealData" ),
-  signalTriggerFired( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
-  crossTriggerPhotonFired( fReader, "HLT_Photon90_v" ),
-  crossTriggerHtFired( fReader, "HLT_PFHT600_v" )
+  pu_weight( fReader, "pu_weight" ),
+  mc_weight( fReader, "mc_weight" ),
+  genLeptonsFromW( fReader, "genLeptonsFromW" ),
+  genHt( fReader, "genHt" ),
+  dR_recoGenJet( fReader, "dR_recoGenJet" ),
+  signalTrigger( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
+  crossTriggerPhoton( fReader, "HLT_Photon90_v" ),
+  crossTriggerHt( fReader, "HLT_PFHT600_v" )
 {
 }
 
@@ -545,6 +443,21 @@ void HistogramProducer::SlaveBegin(TTree *tree)
   vector<string> strs = { "tr_bit", "tr_bit_2j", "tr_reco", "tr_reco_cleanHt", "tr_met200", "tr_met200_dphi", "tr_met200_dphi_j2", "tr_met200_dphi_j2_genElectron", "tr_met200_dphi_j2_genPhoton", "eControl", "jControl", "tr_reco_genElectron" };
   for( auto& v : strs ) initSelection(v);
   initObjects("base");
+
+  h["h_g_pt__HLT_Photon90_ht000"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_ht100"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_ht200"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_ht300"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_ht400"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_PFHT500_ht000"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_PFHT500_ht500"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_PFHT500_ht600"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_PFHT500_ht700"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_PFHT500_ht800"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+  h["h_g_pt__HLT_Photon90_PFHT500_ht900"] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1000 );
+
+  h["h_genHt"] = TH1F("", ";H_{T}^{gen} (GeV)", 300, 0, 3000 );
+  h["h_genHt_lowHt"] = TH1F("", ";H_{T}^{gen} (GeV)", 500, 0, 500 );
 
   // after all initializations
   for( auto& it : eff ) it.second.SetUseWeightedEvents();
@@ -582,9 +495,31 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   fReader.SetEntry(entry);
 
   // set weight
-  selW = *isRealData ? 1. : sign(*w_mc); // only the sign of the mc weight is interesting
-  //selW = *isRealData ? 1. : *w_mc * *w_pu; // for now, no pu weight
+  selW = *mc_weight * *pu_weight;
 
+  float ht = 0;
+  for( auto& jet : jets ){
+    float pt = jet.p.Pt();
+    if(pt>40) ht += pt;
+  }
+  if( *crossTriggerPhoton ) {
+    if( ht >= 000 ) h["h_g_pt__HLT_Photon90_ht000"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 100 ) h["h_g_pt__HLT_Photon90_ht100"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 200 ) h["h_g_pt__HLT_Photon90_ht200"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 300 ) h["h_g_pt__HLT_Photon90_ht300"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 400 ) h["h_g_pt__HLT_Photon90_ht400"].Fill( photons[0].p.Pt(), selW );
+  }
+  if( *signalTrigger ) {
+    if( ht >= 000 ) h["h_g_pt__HLT_Photon90_PFHT500_ht000"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 500 ) h["h_g_pt__HLT_Photon90_PFHT500_ht500"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 600 ) h["h_g_pt__HLT_Photon90_PFHT500_ht600"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 700 ) h["h_g_pt__HLT_Photon90_PFHT500_ht700"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 800 ) h["h_g_pt__HLT_Photon90_PFHT500_ht800"].Fill( photons[0].p.Pt(), selW );
+    if( ht >= 900 ) h["h_g_pt__HLT_Photon90_PFHT500_ht900"].Fill( photons[0].p.Pt(), selW );
+  }
+  h["h_genHt"].Fill( *genHt, selW );
+  h["h_genHt_lowHt"].Fill( *genHt, selW );
+/*
   // Base selection, without cuts
   for( auto& photon : photons ) {
     selPhotons.push_back( &photon );
@@ -617,11 +552,11 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     selHt += jet.p.Pt();
   }
 
-  if( *signalTriggerFired ) {
+  if( *signalTrigger ) {
     fillSelection("tr_bit");
   }
 
-  if( *signalTriggerFired && selJets.size() > 2 ) {
+  if( *signalTrigger && selJets.size() > 2 ) {
     fillSelection("tr_bit_2j");
   }
 
@@ -726,7 +661,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if( selPhotons.size() && selHt > 600 ) {
      fillSelection("jControl");
   }
-
+*/
   return kTRUE;
 }
 
