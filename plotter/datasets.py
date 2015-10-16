@@ -1,6 +1,7 @@
 import ROOT
 import copy
 import auxiliary as aux
+import os.path
 
 path = "../histogramProducer/"
 
@@ -28,10 +29,11 @@ class Dataset:
         return out
 
     def __init__( self, n, xsec=-1, col=ROOT.kBlack, ngen=-1 ):
+        fname = path+n+"_hists.root"
         if xsec == -1: xsec = aux.getXsecFromName( n )
-        if ngen == -1: ngen = aux.getNgen( path + n + "_hists.root" )
+        if ngen == -1 and os.path.isfile(fname): ngen = aux.getNgen( fname )
         self.names = [ n ]
-        self.files = [ path + n + "_hists.root" ]
+        self.files = [ fname ]
         self.xsecs = [ xsec ]
         self.ngens = [ ngen ]
         self.color = col
@@ -65,6 +67,10 @@ dataHt.label = "Data"
 
 
 # multijet
+
+# /GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM
+# https://cms-pdmv.cern.ch/mcm/requests?page=0&dataset_name=GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8&shown=137439217713
+gjets_pt15 = Dataset( "GJet_Pt-15ToInf", 364375, ROOT.kCyan )
 
 #
 #
