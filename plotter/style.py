@@ -54,6 +54,11 @@ def defaultStyle():
     st.cd()
     return st
 
+def style2d():
+    st = defaultStyle()
+    st.SetPadRightMargin(0.16)
+    return st
+
 defaultStyle()
 
 # not style, but similar
