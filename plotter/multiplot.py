@@ -66,7 +66,7 @@ class Multiplot:
         # Data first
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
-            if h.GetName() in ["Data"]:
+            if "Data" in h.GetName():
                 self.leg.AddEntry( h, h.GetName(), "pe" )
 
         # Stacked histograms
@@ -77,7 +77,7 @@ class Multiplot:
         # Other histograms
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
-            if h.GetName() in ["Data"]: continue
+            if "Data" in h.GetName(): continue
 
             if "p" in h.drawOption_:
                 self.leg.AddEntry( h, h.GetName(), "ep" )
