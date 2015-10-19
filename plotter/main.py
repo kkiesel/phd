@@ -55,10 +55,13 @@ def compare( datasets, name, saveName ):
 
     save( "compare%s_%s"%(saveName,name) )
 
-def drawH2( dataset, name ):
+def drawH2( dataset, name, savename="test" ):
+    x = style.style2d()
+    c = ROOT.TCanvas()
     h = getHistoFromDataset( dataset, name )
     h.Draw("colz")
-    save( "simpleH2_%s_%s"%(dataset.label,name) )
+    save( "simpleH2_%s_%s"%(savename,name) )
+    style.defaultStyle()
 
 
 def compareAll( saveName="test", *datasets ):
@@ -67,9 +70,6 @@ def compareAll( saveName="test", *datasets ):
     for name in names:
         if name.startswith("h_"):
             compare( datasets, name, saveName )
-        #if name.startswith("h2_"):
-        #    for d in datasets:
-        #        drawH2( d, name )
 
 def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
     doAbs = binning and binning[0] == "abs"
@@ -114,7 +114,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
         if binning: h = aux.rebin( h, binning )
 
         if h.GetLineColor() == ROOT.kBlack: # data
-            h.drawOption = "ep"
+            h.drawOption_ = "ep"
             h.SetMarkerStyle(20)
             h.SetBinErrorOption( ROOT.TH1.kPoisson )
             # TODO: make sure kPoisson works
@@ -379,6 +379,7 @@ def main():
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
     #drawSameHistograms( "_gqcd_data", bkg=[gjets, qcd], additional=[data])
+    #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data,t2ttgg])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, ttg, wjets, wg], additional=[t2ttgg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
@@ -394,8 +395,10 @@ def main():
     #efficiencies( dataHt, "jetHt_" )
 
     #drawROCs()
-    drawSameHistogram( "test", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600], [] )
+    drawSameHistogram( "_gjets", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600], [] )
+    drawSameHistogram( "_gjets", "h_genHt_lowHt", [], [gjets_pt15,gjets40,gjets100,gjets200,gjets400,gjets600], [] )
 
+    for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]): drawH2( data, h2name, "data" )
 
 if __name__ == "__main__":
     main()
