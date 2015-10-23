@@ -1,11 +1,9 @@
 // Shared libray should be produced with compiling
 // https://github.com/cms-susy-photon-rwth-1b/TreeWriter
 // The lib should be in the CMSSW lib path
-
-//R__LOAD_LIBRARY(TreeParticles)
+// Alternative: Compile https://github.com/cms-susy-photon-rwth-1b/tools/tree/master/templates
 
 // start with root -l -q run.C
-// Using ROOT6
 
 void run( string infile="/user/kiesel/nTuples/V02/SinglePhoton_V02_nTuple.root") {
 

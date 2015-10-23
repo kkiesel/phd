@@ -1,30 +1,46 @@
 #!/bin/bash -e
 
 infiles=(
-  /user/kiesel/nTuples/V02/QCD_HT700to1000_nTuple.root
-  /user/kiesel/nTuples/V02/TTJets_nTuple.root
-  /user/kiesel/nTuples/V02/QCD_HT500to700_nTuple.root
-  /user/kiesel/nTuples/V02/QCD_HT1000to1500_nTuple.root
-  /user/kiesel/nTuples/V02/QCD_HT1500to2000_nTuple.root
-  /user/kiesel/nTuples/V02/TTGJets_nTuple.root
-  /user/kiesel/nTuples/V02/GJets_HT-600ToInf_nTuple.root
-  /user/kiesel/nTuples/V02/JetHT_Run2015D-PromptReco-v3_nTuple.root
-  /user/kiesel/nTuples/V02/QCD_HT300to500_nTuple.root
-  /user/kiesel/nTuples/V02/QCD_HT2000toInf_nTuple.root
-  /user/kiesel/nTuples/V02/QCD_HT100to200_nTuple.root
-  /user/kiesel/nTuples/V02/QCD_HT200to300_nTuple.root
-  /user/kiesel/nTuples/V02/GJets_HT-400To600_nTuple.root
-  /user/kiesel/nTuples/V02/GJets_HT-100To200_nTuple.root
-  /user/kiesel/nTuples/V02/GJets_HT-200To400_nTuple.root
-  /user/kiesel/nTuples/V02/SinglePhoton_Run2015D-PromptReco-v3_nTuple.root
-  /user/kiesel/nTuples/V02/WJetsToLNu_HT-400To600_nTuple.root
-  /user/kiesel/nTuples/V02/WJetsToLNu_HT-600ToInf_nTuple.root
-  /user/kiesel/nTuples/V02/JetHT_Run2015C-PromptReco-v1_nTuple.root
-  /user/kiesel/nTuples/V02/DYJetsToLL_M-50_nTuple.root
-  /user/kiesel/nTuples/V02/SinglePhoton_Run2015C-PromptReco-v1_nTuple.root
-  /user/kiesel/nTuples/V02/WGToLNuG_nTuple.root
-  /user/kiesel/nTuples/V02/T2ttgg_850_650_fast_nTuple.root
+  /user/kiesel/nTuples/V03/TTJets_nTuple.root
+  /user/kiesel/nTuples/V03/DYJetsToLL_M-50_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-200To400_nTuple.root
+  /user/kiesel/nTuples/V03/TTGJets_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-40To100_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-100To200_nTuple.root
+  /user/kiesel/nTuples/V03/SinglePhoton_nTuple.root
+  /user/kiesel/nTuples/V03/WJetsToLNu_HT-100To200_nTuple.root
+  /user/kiesel/nTuples/V03/WGToLNuG_PtG-500_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-600ToInf_nTuple.root
+  /user/kiesel/nTuples/V03/WJetsToLNu_HT-200To400_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-400To600_nTuple.root
+  /user/kiesel/nTuples/V03/WJetsToLNu_HT-600To800_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT100to200_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT500to700_nTuple.root
+  /user/kiesel/nTuples/V03/WJetsToLNu_HT-2500ToInf_nTuple.root
+  /user/kiesel/nTuples/V03/WJetsToLNu_HT-1200To2500_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT200to300_nTuple.root
+  /user/kiesel/nTuples/V03/MET_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT1500to2000_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT1000to1500_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT2000toInf_nTuple.root
 )
+infiles=(
+  /user/kiesel/nTuples/V03/GJets_HT-200To400_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-40To100_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-100To200_nTuple.root
+  /user/kiesel/nTuples/V03/SinglePhoton_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-600ToInf_nTuple.root
+  /user/kiesel/nTuples/V03/GJets_HT-400To600_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT100to200_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT500to700_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT300to500_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT700to1000_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT200to300_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT1500to2000_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT1000to1500_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT2000toInf_nTuple.root
+)
+
 
 
 # run with no input file first, to compile all versions
@@ -44,8 +60,8 @@ while [ ${#infiles[@]} -ne 0 ]; do
 
 done
 
-while [[ $(ps hu -C "root -b -l -q run.C") ]]; do
-  sleep 5
-done
+#while [[ $(ps hu -C "root -b -l -q run.C") ]]; do
+#  sleep 5
+#done
 
 echo "All subprocesses started"
