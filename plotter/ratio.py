@@ -1,15 +1,16 @@
 import ROOT
+import auxiliary as aux
 from math import sqrt
 
 
 class Ratio:
     def __init__( self, title, numerator, denominator, sysHisto=None ):
         if isinstance( numerator, ROOT.TProfile ):
-            numerator_cl = numerator.ProjectionX( randomName() )
+            numerator_cl = numerator.ProjectionX( aux.randomName() )
             numerator_cl.SetLineColor( numerator.GetLineColor() )
             numerator = numerator_cl
         if isinstance( denominator, ROOT.TProfile ):
-            denominator_cl = denominator.ProjectionX( randomName() )
+            denominator_cl = denominator.ProjectionX( aux.randomName() )
             denominator_cl.SetLineColor( denominator.GetLineColor() )
             denominator = denominator_cl
 
@@ -17,9 +18,9 @@ class Ratio:
         self.numerator = numerator
         self.denominator = denominator
         self.sysHisto = sysHisto
-        self.ratio = numerator.Clone( randomName() )
-        self.ratioSys = denominator.Clone( randomName() )
-        self.totalUncert = denominator.Clone( randomName() )
+        self.ratio = numerator.Clone( aux.randomName() )
+        self.ratioSys = denominator.Clone( aux.randomName() )
+        self.totalUncert = denominator.Clone( aux.randomName() )
         self.allowUnsymmetricYaxis_ = False
 
     def calculateRatio( self ):
@@ -80,7 +81,8 @@ class Ratio:
     def draw( self ):
         self.calculateRatio()
 
-        yMin, yMax = self.getYrange()
+        #yMin, yMax = self.getYrange()
+        yMin, yMax = [0.8, 1.2]
 
         # Set ratio properties
         for hist in [ self.ratio, self.ratioSys, self.totalUncert ]:
