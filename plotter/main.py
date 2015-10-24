@@ -15,7 +15,6 @@ import style
 import multiplot
 
 import auxiliary as aux
-from datasets import *
 import rebinner
 intLumi = 594.65 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2510/3.html
 
@@ -398,5 +397,6 @@ def main():
 
 
 if __name__ == "__main__":
+    from datasets import *
     main()
 
