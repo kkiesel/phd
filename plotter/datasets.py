@@ -65,18 +65,14 @@ data = Dataset( "SinglePhoton", 0, ROOT.kBlack )
 data.label = "Data(Run D)"
 
 
-jetHtC = Dataset( "JetHT_Run2015C-PromptReco-v1", 0, ROOT.kBlack )
-jetHtC.label = "JetHtC"
-jetHtD = Dataset( "JetHT_Run2015D-PromptReco-v3", 0, ROOT.kBlack )
-jetHtD.label = "JetHtD"
-dataHt = jetHtC + jetHtD
+dataHt = Dataset( "JetHT", 0, ROOT.kBlack )
 dataHt.label = "Data"
 
 # k-factors from twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
 
 # multijet
 
-gjets_pt15 = Dataset( "GJet_Pt-15ToInf", 364375, ROOT.kCyan, "GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8" )
+gjets_pt15 = Dataset( "GJet_Pt-15ToInf", 364375, ROOT.kCyan-2, "GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8" )
 
 gjets40 = Dataset( "GJets_HT-40To100", 20730, ROOT.kCyan-1, "GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 gjets100 = Dataset( "GJets_HT-100To200", 9226, ROOT.kCyan+4, "GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
@@ -104,24 +100,38 @@ qcd.label = "Multijet"
 ttjets = Dataset( "TTJets", 670.3,  ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 ttjets.label = "t#bar{t}"
 
-wjets400 = Dataset( "WJetsToLNu_HT-400To600", 48.98*1.21, ROOT.kRed, "WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets600 = Dataset( "WJetsToLNu_HT-600ToInf", 18.77*1.21, ROOT.kRed-4, "WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets100 = Dataset( "WJetsToLNu_HT-100To200", 1347.*1.21, ROOT.kRed-6, "WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets200 = Dataset( "WJetsToLNu_HT-200To400", 360*1.21, ROOT.kRed-5, "WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets400 = Dataset( "WJetsToLNu_HT-400To600", 48.98*1.21, ROOT.kRed-4, "WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets600 = Dataset( "WJetsToLNu_HT-600To800", 12.8*1.21, ROOT.kRed-3, "WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets800 = Dataset( "WJetsToLNu_HT-800To1200", 5.26*1.21, ROOT.kRed-2, "WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets1200 = Dataset( "WJetsToLNu_HT-1200To2500", 1.33*1.21, ROOT.kRed-1, "WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets2500 = Dataset( "WJetsToLNu_HT-2500ToInf", 0.03089*1.21, ROOT.kRed, "WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets600_inf = Dataset( "WJetsToLNu_HT-600ToInf", 18.77*1.21, ROOT.kRed, "WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 
-wjets = wjets600 + wjets400
+wjets = wjets600_inf + wjets400 + wjets200 + wjets100
+wjets = wjets2500 + wjets1200 + wjets800 + wjets600 + wjets400 + wjets200 + wjets100
 wjets.label = "W#rightarrowl#nu"
 
 # isr
-
 ttg = Dataset( "TTGJets", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia88" )
 ttg.label = "#gammat#bar{t}"
 
-wg = Dataset( "WGToLNuG", 405.271, ROOT.kRed-3 )
+wg = Dataset( "WGToLNuG", 405.271, ROOT.kRed-3, "" )
 wg.label = "#gammaW#rightarrow#gammal#nu"
 
-dy = Dataset( "DYJetsToLL_M-50", 6104, ROOT.kRed+3 )
+# cross section from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#DY_Z
+dy = Dataset( "DYJetsToLL_M-50", 6025.2, ROOT.kRed+3, "DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 dy.label = "Z#rightarrowll"
 
 # signal samples
+
+t5wg_1500_125 = Dataset( "T5wg_1500_125", col=ROOT.kGreen+4 )
+t5wg_1500_125.label = "T5wg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=125"
+
+t5wg_1500_1475 = Dataset( "T5wg_1500_1475", col=ROOT.kGreen+5 )
+t5wg_1500_1475.label = "T5wg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1475"
+
 
 #t5gg = Dataset( "T5gg_1500_1000", col=ROOT.kMagenta )
 #t5gg.label = "T5gg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
