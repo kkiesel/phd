@@ -17,7 +17,9 @@ import multiplot
 import auxiliary as aux
 from datasets import *
 import rebinner
-intLumi = 594.65 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2510/3.html
+
+intLumi = 1280.23 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2522.html
+intLumi = 1264 # /pb only RunD
 
 def getNprocessed( filename ):
     f = aux.getFromFile( filename, "hCutFlow" )
@@ -378,7 +380,7 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    #drawSameHistograms( "_gqcd_data", bkg=[gjets, qcd], additional=[data])
+    #drawSameHistograms( "_gqcd_data", bkg=[gjets_pt15, gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data,t2ttgg])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, ttg, wjets, wg], additional=[t2ttgg])
@@ -391,14 +393,15 @@ def main():
     #qcdClosure( qcd+gjets, "_qcd-gjets" )
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
+    #efficiencies( qcd+gjets, "gqcd_" )
     #efficiencies( data, "singlePhoton_" )
     #efficiencies( dataHt, "jetHt_" )
 
     #drawROCs()
-    drawSameHistogram( "_gjets", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600], [] )
-    drawSameHistogram( "_gjets", "h_genHt_lowHt", [], [gjets_pt15,gjets40,gjets100,gjets200,gjets400,gjets600], [] )
+    #drawSameHistogram( "_gjets", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600], [] )
+    #drawSameHistogram( "_gjets", "h_genHt_lowHt", [], [gjets_pt15,gjets40,gjets100,gjets200,gjets400,gjets600], [] )
 
-    for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]): drawH2( data, h2name, "data" )
+    #for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]): drawH2( data, h2name, "data" )
 
 if __name__ == "__main__":
     main()
