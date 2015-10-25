@@ -11,6 +11,7 @@ class Multiplot:
 
         self.leg = ROOT.TLegend(.6,.6,.93,.92)
         self.leg.SetFillColor( ROOT.kWhite )
+        self.leg.SetFillStyle(0)
 
     def add( self, h, label="" ):
         h.SetName(label)
