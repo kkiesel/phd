@@ -15,7 +15,6 @@ import style
 import multiplot
 
 import auxiliary as aux
-from datasets import *
 import rebinner
 
 intLumi = 1280.23 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2522.html
@@ -404,5 +403,6 @@ def main():
     #for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]): drawH2( data, h2name, "data" )
 
 if __name__ == "__main__":
+    from datasets import *
     main()
 

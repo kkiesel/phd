@@ -211,33 +211,33 @@ def getROC( hSig, hBkg, highX=True ):
     return rocGraph
 
 
-def automaticRebinner( hlist, maxEvents=0 ):
+def automaticRebinner( hlist, minEvents=3 ):
     # Ereates an array of bin edges on a list of histograms, such that each histogram
     # has at least 'maxEvents' events in each bin.
+    if minEvents == 0: minEvents = 1e-10
     out = []
     tmp = [0]*len(hlist)
     nBins = hlist[0].GetNbinsX()
 
     # check overflow bin
     overflowList = [ h.GetBinContent( nBins+1 ) for h in hlist ]
-    if max(overflowList) > 1e-10:
+    if min(overflowList) > minEvents:
         out.append( hlist[0].GetBinLowEdge(nBins+1) )
 
     for bin in range(nBins, -1, -1 ):
 
-        for ih, h in enumerate(hlist):
-            x = int(h.GetBinContent(bin))
-            if x: print bin, h.GetBinLowEdge(bin), x
-            else: print bin, h.GetBinLowEdge(bin)
-            tmp[ih] += h.GetBinContent(bin)
+        contents = [ h.GetBinContent( bin ) for h in hlist ]
+        tmp = [sum(x) for x in zip(tmp, contents)]
 
-        if max( tmp ) > maxEvents:
-            if out:
-                out.append( hlist[0].GetBinLowEdge(bin) )
-            else:
+        # check upper bondary of last entry
+        if not out:
+            if contents != [0]*len(hlist):
                 out.append( hlist[0].GetBinLowEdge(bin+1) )
-            tmp = [0]*len(hlist)
 
+        else:
+            if min(contents) > minEvents:
+                out.append( hlist[0].GetBinLowEdge(bin) )
+                tmp = [0]*len(hlist)
 
     print out[::-1]
 

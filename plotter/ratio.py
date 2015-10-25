@@ -1,4 +1,5 @@
 import ROOT
+import auxiliary as aux
 from math import sqrt
 import auxiliary as aux
 
@@ -81,7 +82,8 @@ class Ratio:
     def draw( self ):
         self.calculateRatio()
 
-        yMin, yMax = self.getYrange()
+        #yMin, yMax = self.getYrange()
+        yMin, yMax = [0.8, 1.2]
 
         # Set ratio properties
         for hist in [ self.ratio, self.ratioSys, self.totalUncert ]:
