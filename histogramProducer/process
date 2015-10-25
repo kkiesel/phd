@@ -7,41 +7,32 @@ infiles=(
   /user/kiesel/nTuples/V03/TTGJets_nTuple.root
   /user/kiesel/nTuples/V03/GJets_HT-40To100_nTuple.root
   /user/kiesel/nTuples/V03/GJets_HT-100To200_nTuple.root
-  /user/kiesel/nTuples/V03/SinglePhoton_nTuple.root
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-100To200_nTuple.root
   /user/kiesel/nTuples/V03/WGToLNuG_PtG-500_nTuple.root
   /user/kiesel/nTuples/V03/GJets_HT-600ToInf_nTuple.root
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-200To400_nTuple.root
   /user/kiesel/nTuples/V03/GJets_HT-400To600_nTuple.root
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-600To800_nTuple.root
+  /user/kiesel/nTuples/V03/WJetsToLNu_HT-800To1200_nTuple.root
+  /user/kiesel/nTuples/V03/WJetsToLNu_HT-400To600_nTuple.root
+  /user/kiesel/nTuples/V03/GJet_Pt-15ToInf_nTuple.root
+  /user/kiesel/nTuples/V03/WJetsToLNu_HT-600ToInf_nTuple.root
   /user/kiesel/nTuples/V03/QCD_HT100to200_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT700to1000_nTuple.root
   /user/kiesel/nTuples/V03/QCD_HT500to700_nTuple.root
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-2500ToInf_nTuple.root
+  /user/kiesel/nTuples/V03/QCD_HT300to500_nTuple.root
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-1200To2500_nTuple.root
   /user/kiesel/nTuples/V03/QCD_HT200to300_nTuple.root
-  /user/kiesel/nTuples/V03/MET_nTuple.root
   /user/kiesel/nTuples/V03/QCD_HT1500to2000_nTuple.root
   /user/kiesel/nTuples/V03/QCD_HT1000to1500_nTuple.root
   /user/kiesel/nTuples/V03/QCD_HT2000toInf_nTuple.root
+  /user/kiesel/nTuples/V03/T5wg_1500_125_nTuple.root
+  /user/kiesel/nTuples/V03/T5wg_1500_1475_nTuple.root
+  /user/kiesel/nTuples/V04/SinglePhoton_nTuple.root
+  /user/kiesel/nTuples/V0V/JetHT_nTuple.root
+  /user/kiesel/nTuples/V04/MET_nTuple.root
 )
-infiles=(
-  /user/kiesel/nTuples/V03/GJets_HT-200To400_nTuple.root
-  /user/kiesel/nTuples/V03/GJets_HT-40To100_nTuple.root
-  /user/kiesel/nTuples/V03/GJets_HT-100To200_nTuple.root
-  /user/kiesel/nTuples/V03/SinglePhoton_nTuple.root
-  /user/kiesel/nTuples/V03/GJets_HT-600ToInf_nTuple.root
-  /user/kiesel/nTuples/V03/GJets_HT-400To600_nTuple.root
-  /user/kiesel/nTuples/V03/QCD_HT100to200_nTuple.root
-  /user/kiesel/nTuples/V03/QCD_HT500to700_nTuple.root
-  /user/kiesel/nTuples/V03/QCD_HT300to500_nTuple.root
-  /user/kiesel/nTuples/V03/QCD_HT700to1000_nTuple.root
-  /user/kiesel/nTuples/V03/QCD_HT200to300_nTuple.root
-  /user/kiesel/nTuples/V03/QCD_HT1500to2000_nTuple.root
-  /user/kiesel/nTuples/V03/QCD_HT1000to1500_nTuple.root
-  /user/kiesel/nTuples/V03/QCD_HT2000toInf_nTuple.root
-)
-
-
 
 # run with no input file first, to compile all versions
 root -b -l -q run.C\(\"0\"\)
