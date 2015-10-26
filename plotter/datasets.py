@@ -100,17 +100,22 @@ qcd.label = "Multijet"
 ttjets = Dataset( "TTJets", 670.3,  ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 ttjets.label = "t#bar{t}"
 
-wjets100 = Dataset( "WJetsToLNu_HT-100To200", 1347.*1.21, ROOT.kRed-6, "WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets200 = Dataset( "WJetsToLNu_HT-200To400", 360*1.21, ROOT.kRed-5, "WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets400 = Dataset( "WJetsToLNu_HT-400To600", 48.98*1.21, ROOT.kRed-4, "WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets600 = Dataset( "WJetsToLNu_HT-600To800", 12.8*1.21, ROOT.kRed-3, "WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets800 = Dataset( "WJetsToLNu_HT-800To1200", 5.26*1.21, ROOT.kRed-2, "WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets1200 = Dataset( "WJetsToLNu_HT-1200To2500", 1.33*1.21, ROOT.kRed-1, "WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets2500 = Dataset( "WJetsToLNu_HT-2500ToInf", 0.03089*1.21, ROOT.kRed, "WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets600_inf = Dataset( "WJetsToLNu_HT-600ToInf", 18.77*1.21, ROOT.kRed, "WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets100 = Dataset( "WJetsToLNu_HT-100To200", 1345., ROOT.kRed-6, "WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets200 = Dataset( "WJetsToLNu_HT-200To400", 359.7, ROOT.kRed-5, "WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets400 = Dataset( "WJetsToLNu_HT-400To600", 48.91, ROOT.kRed-4, "WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets600 = Dataset( "WJetsToLNu_HT-600To800", 12.05, ROOT.kRed-3, "WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets800 = Dataset( "WJetsToLNu_HT-800To1200", 5.501, ROOT.kRed-2, "WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets1200 = Dataset( "WJetsToLNu_HT-1200To2500", 1.329, ROOT.kRed-1, "WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets2500 = Dataset( "WJetsToLNu_HT-2500ToInf", 0.03216, ROOT.kRed, "WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wjets600_inf = Dataset( "WJetsToLNu_HT-600ToInf", 18.77, ROOT.kRed, "WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 
-wjets = wjets600_inf + wjets400 + wjets200 + wjets100
-wjets = wjets2500 + wjets1200 + wjets800 + wjets600 + wjets400 + wjets200 + wjets100
+# k-factor
+wjetsSamples = [ wjets2500, wjets1200, wjets800, wjets600, wjets400, wjets200, wjets100 ]
+for ds in wjetsSamples+[wjets600_inf]:
+    ds.xsecs = [ ds.xsecs[0] * 1.21 ]
+
+wjets = wjets600_inf + wjets400 + wjets200 + wjets100 # no high HT samples
+wjets = sum( wjetsSamples )
 wjets.label = "W#rightarrowl#nu"
 
 # isr
