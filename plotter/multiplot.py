@@ -22,7 +22,7 @@ class Multiplot:
         self.histsToStack.append( h )
 
     def getMinimum( self ):
-        return min( [ h.GetMinimum() for h in self.hists ] )
+        return min( [ h.GetMinimum(0) for h in self.hists+self.histsToStack if not isinstance( h, ROOT.THStack ) ] )
 
     def getMaximum( self ):
         return max( [ h.GetMaximum() for h in self.hists ] )
@@ -36,7 +36,7 @@ class Multiplot:
         for h in self.histsToStack:
             h.Sumw2( False )
             h.SetFillColor( h.GetLineColor() )
-            h.SetLineColor( ROOT.kBlack )
+            #h.SetLineColor( ROOT.kBlack )
             stack.Add( h )
 
         self.hists.append( stack )
