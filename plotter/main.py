@@ -72,7 +72,7 @@ def compareAll( saveName="test", *datasets ):
         if name.startswith("h_"):
             compare( datasets, name, saveName )
 
-def drawSameHistogram( saveName, name, data, bkg, additional, binning=None ):
+def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
     doAbs = binning and binning[0] == "abs"
     if doAbs: binning = binning[1:]
 
@@ -397,8 +397,17 @@ def main():
     #efficiencies( dataHt, "jetHt_" )
 
     #drawROCs()
-    #drawSameHistogram( "_gjets", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600], [] )
-    #drawSameHistogram( "_gjets", "h_genHt_lowHt", [], [gjets_pt15,gjets40,gjets100,gjets200,gjets400,gjets600], [] )
+    #drawSameHistogram( "_gjets", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600] )
+    #drawSameHistogram( "_qcd", "h_genHt", [], [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
+    drawSameHistogram( "_wjets", "h_genHt", [], [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
+    """drawSameHistogram( "_wjets_trans1", "h_genHt", [], [wjets100,wjets200], binning=range(90,410,1) )
+    drawSameHistogram( "_wjets_trans2", "h_genHt", [], [wjets200,wjets400], binning=range(190,610,1) )
+    drawSameHistogram( "_wjets_trans3", "h_genHt", [], [wjets400,wjets600], binning=range(390,810,1) )
+    drawSameHistogram( "_wjets_trans4", "h_genHt", [], [wjets600,wjets800], binning=range(590,1210,2) )
+    drawSameHistogram( "_wjets_trans5", "h_genHt", [], [wjets800,wjets1200], binning=range(790,2510,2) )
+    drawSameHistogram( "_wjets_trans6", "h_genHt", [], [wjets1200,wjets2500], binning=range(1190,3000,2) )
+    """
+    drawSameHistogram( "_wjets_trans45", "h_genHt", [], [wjets600,wjets800,wjets1200], binning=range(590,1510,5) )
 
     #for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]): drawH2( data, h2name, "data" )
 
