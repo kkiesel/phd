@@ -16,25 +16,44 @@ import multiplot
 
 import auxiliary as aux
 
+def drange(start, stop, step):
+    r = start
+    while r < stop:
+        yield r
+        r += step
+
+def drange(start, stop, n):
+    out = [start]
+    step = (stop-start)/n
+    while out[-1] < stop:
+        out.append( out[-1] + step )
+    return out
+
+
+
 def save( name, folder="plots/", endings=[".pdf"] ):
     for ending in endings:
         ROOT.gPad.GetCanvas().SaveAs( folder + name+ ending )
 
-def drawSame( fullName, fastName, hname ):
+def drawSame( fullName, fastName, hname, binning=[] ):
     fullh = aux.getFromFile( fullName, hname )
     fasth = aux.getFromFile( fastName, hname )
     if not fullh.Integral() or not fasth.Integral(): return
+    if binning:
+        fullh = aux.rebin( fullh, binning )
+        fasth = aux.rebin( fasth, binning )
 
     for h in fullh, fasth:
         if "pt" in hname: h.GetXaxis().SetRangeUser(0, 150 )
         if "cIsoWorst" in hname: h.GetXaxis().SetRangeUser(0, 15 )
 
-    fullh.SetLineColor( ROOT.kRed )
     fullh.drawOption_ = "hist"
 
+    fasth.SetMarkerColor( ROOT.kRed )
+    fasth.SetLineColor( ROOT.kRed )
     fasth.SetMarkerStyle(20)
-    fasth.SetMarkerSize(0.3)
-    fasth.drawOption_ = "e"
+    fasth.SetMarkerSize(0.4)
+    fasth.drawOption_ = "pe"
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
@@ -46,18 +65,23 @@ def drawSame( fullName, fastName, hname ):
     r.draw()
 
     save( "fastSimStudies_DY_"+hname )
+    can.SetLogy(1)
+    save( "fastSimStudies_DY_"+hname+"_log" )
+
 
 
 
 def main():
-    fullName = "../../DY_FullSim_hists.root"
-    fastName = "../../DY_FastSim_hists.root"
+    fullName = "../fastSimComparison/DY_FullSim_hists.root"
+    fastName = "../fastSimComparison/DY_FastSim_hists.root"
 
 
     names = aux.getObjectNames( fullName )
 
-    for name in names:
-        drawSame( fullName, fastName, name )
+    #for name in names: drawSame( fullName, fastName, name )
+
+    drawSame( fullName, fastName, "eta_loose", drange(0, 2.5, 100) )
+    drawSame( fullName, fastName, "pt_loose" )
 
 
 if __name__ == "__main__":
