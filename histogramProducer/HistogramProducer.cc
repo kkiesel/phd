@@ -234,6 +234,7 @@ void HistogramProducer::initObjects( string const& s ) {
 
   eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 200, 0, 2000 );
   eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon", 200, 0, 2000 );
+  eff["eff_hlt_nVertex__"+s] = TEfficiency( "", ";Vertex multiplicity", 41, -0.5, 40.5 );
 
 }
 
@@ -415,6 +416,9 @@ void HistogramProducer::fillObjects( string const& s ) {
     }
     if( *crossTriggerPhoton && thisPhoton->p.Pt() > 100 ) {
       eff["eff_hlt_ht__"+s].Fill( *signalTrigger, ht );
+    }
+    if( thisPhoton->p.Pt()>100 && ht>600 ) {
+      eff["eff_hlt_nVertex__"+s].Fill( *signalTrigger, *nGoodVertices );
     }
 
   }
