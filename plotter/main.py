@@ -371,11 +371,70 @@ def efficiencies( dataset, savename="" ):
         h_pas.Draw("same e*")
         save( "efficiency_"+savename+name+"_raw" )
 
+def getRazorProjection( dataset, xaxis, cut ):
+    h2 = getHistoFromDataset( dataset, "h2_razorPlane__tr" )
+    if xaxis:
+        h = h2.ProjectionX("_px", h2.GetYaxis().FindFixBin( cut ), -1)
+    else:
+        h = h2.ProjectionY("_py", h2.GetXaxis().FindFixBin( cut ), -1)
+    return h
 
 
+def compareRazorProjections( bkg, additional, xaxis=True, cut=-1, binning=[] ):
+
+    can = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+
+    for d in bkg[-1::-1]:
+        h = getRazorProjection( d, xaxis,cut )
+        if binning: h = aux.rebin( h, binning )
+        aux.appendFlowBin( h )
+        h.SetYTitle( aux.getYAxisTitle( h ) )
+        if not h.Integral(): continue
+        m.addStack( h, d.label )
+
+
+    for d in additional:
+        h = getRazorProjection( d, xaxis,cut )
+        if not h.Integral(): continue
+        if binning: h = aux.rebin( h, binning )
+
+        if h.GetLineColor() == ROOT.kBlack: # data
+            h.drawOption_ = "ep"
+            h.SetMarkerStyle(20)
+            h.SetBinErrorOption( ROOT.TH1.kPoisson )
+        else:
+            h.drawOption_ = "hist"
+            h.SetLineWidth(3)
+
+        m.add( h, d.label )
+
+    if m.Draw():
+
+        l = aux.Label()
+        save( "razorProjections" )
+        can.SetLogy()
+        save( "razorProjections_log" )
+
+def razorStudies():
+    compareRazorProjections( [gjets,qcd,ttjets,wjets], [t5wg_1500_125], False )
+
+
+def transitions():
+    drawSameHistogram( "_gjets", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600] )
+    drawSameHistogram( "_qcd", "h_genHt", [], [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
+    drawSameHistogram( "_wjets", "h_genHt", [], [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
+    drawSameHistogram( "_wjets_trans1", "h_genHt", [], [wjets100,wjets200], binning=range(90,410,1) )
+    drawSameHistogram( "_wjets_trans2", "h_genHt", [], [wjets200,wjets400], binning=range(190,610,1) )
+    drawSameHistogram( "_wjets_trans3", "h_genHt", [], [wjets400,wjets600], binning=range(390,810,1) )
+    drawSameHistogram( "_wjets_trans4", "h_genHt", [], [wjets600,wjets800], binning=range(590,1210,2) )
+    drawSameHistogram( "_wjets_trans5", "h_genHt", [], [wjets800,wjets1200], binning=range(790,2510,2) )
+    drawSameHistogram( "_wjets_trans6", "h_genHt", [], [wjets1200,wjets2500], binning=range(1190,3000,2) )
+    drawSameHistogram( "_wjets_trans45", "h_genHt", [], [wjets600,wjets800,wjets1200], binning=range(590,1510,5) )
 
 
 def main():
+    #transitions()
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
@@ -397,19 +456,10 @@ def main():
     #efficiencies( dataHt, "jetHt_" )
 
     #drawROCs()
-    #drawSameHistogram( "_gjets", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600] )
-    #drawSameHistogram( "_qcd", "h_genHt", [], [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
-    drawSameHistogram( "_wjets", "h_genHt", [], [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
-    """drawSameHistogram( "_wjets_trans1", "h_genHt", [], [wjets100,wjets200], binning=range(90,410,1) )
-    drawSameHistogram( "_wjets_trans2", "h_genHt", [], [wjets200,wjets400], binning=range(190,610,1) )
-    drawSameHistogram( "_wjets_trans3", "h_genHt", [], [wjets400,wjets600], binning=range(390,810,1) )
-    drawSameHistogram( "_wjets_trans4", "h_genHt", [], [wjets600,wjets800], binning=range(590,1210,2) )
-    drawSameHistogram( "_wjets_trans5", "h_genHt", [], [wjets800,wjets1200], binning=range(790,2510,2) )
-    drawSameHistogram( "_wjets_trans6", "h_genHt", [], [wjets1200,wjets2500], binning=range(1190,3000,2) )
-    """
-    drawSameHistogram( "_wjets_trans45", "h_genHt", [], [wjets600,wjets800,wjets1200], binning=range(590,1510,5) )
 
     #for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]): drawH2( data, h2name, "data" )
+
+    razorStudies()
 
 if __name__ == "__main__":
     from datasets import *
