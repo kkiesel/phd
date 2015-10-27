@@ -24,7 +24,7 @@ def drange(start, stop, step):
 
 def drange(start, stop, n):
     out = [start]
-    step = (stop-start)/n
+    step = 1.*(stop-start)/n
     while out[-1] < stop:
         out.append( out[-1] + step )
     return out
@@ -78,10 +78,14 @@ def main():
 
     names = aux.getObjectNames( fullName )
 
-    #for name in names: drawSame( fullName, fastName, name )
+    for name in names: drawSame( fullName, fastName, name )
 
     drawSame( fullName, fastName, "eta_loose", drange(0, 2.5, 100) )
-    drawSame( fullName, fastName, "pt_loose" )
+    drawSame( fullName, fastName, "pt_loose_eb" )
+    drawSame( fullName, fastName, "pt_loose_ee" )
+    drawSame( fullName, fastName, "cIso_loose", drange(0, 10, 100 ) )
+    drawSame( fullName, fastName, "nIso_loose", drange(0, 10, 100 ) )
+    drawSame( fullName, fastName, "pIso_loose", drange(0, 10, 100 ) )
 
 
 if __name__ == "__main__":
