@@ -115,7 +115,7 @@ for ds in wjetsSamples+[wjets600_inf]:
     ds.xsecs = [ ds.xsecs[0] * 1.21 ]
 
 wjets = wjets600_inf + wjets400 + wjets200 + wjets100 # no high HT samples
-wjets = sum( wjetsSamples )
+wjets = wjets2500 + wjets1200 + wjets800 + wjets600 + wjets400 + wjets200 + wjets100
 wjets.label = "W#rightarrowl#nu"
 
 # isr
