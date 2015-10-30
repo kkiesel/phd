@@ -73,12 +73,11 @@ def compareAll( saveName="test", *datasets ):
             compare( datasets, name, saveName )
 
 def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
-    doAbs = binning and binning[0] == "abs"
-    if doAbs: binning = binning[1:]
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
+    """
     if "dphi" in name:
         m.leg = ROOT.TLegend(.5,.6,.83,.92)
         m.leg.SetFillColor( ROOT.kWhite )
@@ -93,25 +92,22 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
                 if sumBkg: sumBkg.Add( h )
                 else: sumBkg = h
             if sumBkg.Integral(): scale = h_data.Integral() / sumBkg.Integral()
+    """
 
 
     for d in bkg[-1::-1]:
-        h = getHistoFromDataset( d, name )
-        if doAbs: h = aux.absHistWeighted( h )
+        h = d.getHist( name )
         if binning: h = aux.rebin( h, binning )
 
         aux.appendFlowBin( h )
         h.SetYTitle( aux.getYAxisTitle( h ) )
         if not h.Integral(): continue
-        #h.Scale( 1./h.Integral() )
-        h.Scale( scale )
         m.addStack( h, d.label )
 
-
+    """
     for d in additional:
         h = getHistoFromDataset( d, name )
         if not h.Integral(): continue
-        if doAbs: h = aux.absHistWeighted( h )
         if binning: h = aux.rebin( h, binning )
 
         if h.GetLineColor() == ROOT.kBlack: # data
@@ -124,9 +120,9 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
             h.SetLineWidth(3)
 
         m.add( h, d.label )
+    """
 
     if m.Draw():
-
         l = aux.Label()
         save( "sameHistogram%s_%s"%(saveName,name) )
         can.SetLogy()
@@ -138,17 +134,18 @@ def getBinnigsFromName( name ):
     match = re.match( "(.*)__.*", name )
     if match:
         hname = match.group(1)
-        for binningName, binning in rebinner.cfg.items( hname ):
-            binning = [ float(x) for x in binning.split(" ") ]
-            if "abs" in binningName: binning.insert( 0, "abs" )
-            out[binningName] = binning
+        if rebinner.cfg.has_section(hname):
+            for binningName, binning in rebinner.cfg.items( hname ):
+                binning = [ float(x) for x in binning.split(" ") ]
+                out[binningName] = binning
     return out
 
 
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0] )
 
-    #names = ["h_met__tr_reco"] # test plot
+    #names = ["h_met__tr"] # test plot
+    names = ["h_g_pt__tr"] # test plot
     #names = ["h_dphi_met_g__tr_bit"] # test plot
     #names = [ "h_dphi_met_j1__tr_met200", "h_dphi_met_j2__tr_met200", "h_met__tr_reco", "h_g_pt__tr_reco", "h_n_bjet__tr_met200_dphi_j2", "h_g_pt__tr_met200_dphi_j2"]
 
@@ -232,10 +229,6 @@ def qcdClosure( dataset, samplename="" ):
             mod_pre = hpre
 
             if binning:
-                if binning[0] == "abs":
-                    binning = binning[1:]
-                    mod_dir = aux.absHistWeighted( hdir )
-                    mod_pre = aux.absHistWeighted( hpre )
                 mod_dir = aux.rebin(mod_dir, binning)
                 mod_pre = aux.rebin(mod_pre, binning)
 
@@ -283,10 +276,6 @@ def ewkClosure( dataset, samplename="" ):
             mod_pre = hpre
 
             if binning:
-                if binning[0] == "abs":
-                    binning = binning[1:]
-                    mod_dir = aux.absHistWeighted( hdir )
-                    mod_pre = aux.absHistWeighted( hpre )
                 mod_dir = aux.rebin(mod_dir, binning)
                 mod_pre = aux.rebin(mod_pre, binning)
 
@@ -422,6 +411,7 @@ def razorStudies():
 
 def transitions():
     drawSameHistogram( "_gjets", "h_genHt", [], [gjets40,gjets100,gjets200,gjets400,gjets600] )
+    drawSameHistogram( "_gjets_inc15", "h_genHt", [], [gjets_pt15,gjets40,gjets100], binning=range(0,120) )
     drawSameHistogram( "_qcd", "h_genHt", [], [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
     drawSameHistogram( "_wjets", "h_genHt", [], [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
     drawSameHistogram( "_wjets_trans1", "h_genHt", [], [wjets100,wjets200], binning=range(90,410,1) )
@@ -430,6 +420,7 @@ def transitions():
     drawSameHistogram( "_wjets_trans4", "h_genHt", [], [wjets600,wjets800], binning=range(590,1210,2) )
     drawSameHistogram( "_wjets_trans5", "h_genHt", [], [wjets800,wjets1200], binning=range(790,2510,2) )
     drawSameHistogram( "_wjets_trans6", "h_genHt", [], [wjets1200,wjets2500], binning=range(1190,3000,2) )
+    drawSameHistogram( "_wjets_trans6", "h_genHt", [], [wjets1200,wjets2500], binning=range(1200,3000,20) )
     drawSameHistogram( "_wjets_trans45", "h_genHt", [], [wjets600,wjets800,wjets1200], binning=range(590,1510,5) )
 
 
@@ -440,7 +431,8 @@ def main():
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
     #drawSameHistograms( "_gqcd_data", bkg=[gjets_pt15, gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
-    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, wg, dy], additional=[data,t2ttgg])
+    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
+    drawSameHistograms( "_mc_data", bkg=[gjets, qcd], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, ttg, wjets, wg], additional=[t2ttgg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
@@ -459,7 +451,7 @@ def main():
 
     #for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]): drawH2( data, h2name, "data" )
 
-    razorStudies()
+    #razorStudies()
 
 if __name__ == "__main__":
     from datasets import *
