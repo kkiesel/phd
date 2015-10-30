@@ -9,8 +9,6 @@ def defaultStyle():
     st.SetCanvasDefH(600)
     st.SetCanvasDefW(600)
 
-    st.SetLineScalePS(0)
-
     st.SetPadTickX( 1 )
     st.SetPadTickY( 1 )
 
