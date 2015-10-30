@@ -49,19 +49,20 @@ class Multiplot:
 
         minimum = self.getMinimum()
         maximum = self.getMaximum()
-
         if ROOT.gPad and ROOT.gPad.GetLogy():
             maximum = 2.5*maximum
-            minimum = 0.3*minimum
+            #minimum = 0.3*minimum
         else:
-            maximum = maximum + (maximum-minimum)*.1
+            maximum += (maximum-minimum)*.1
+            #minimum -= (maximum-minimum)*.1
+            #minimum = max([0,minimum])
 
         if self.maximum != None:
             maximum = self.maximum
         if self.minimum != None:
             minimum = self.minimum
 
-        if minimum==0: minimum=0.1
+        #if minimum==0: minimum=0.1
 
         # Fill legend:
         # Data first
