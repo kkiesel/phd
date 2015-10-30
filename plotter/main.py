@@ -20,10 +20,6 @@ import rebinner
 intLumi = 1280.23 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2522.html
 intLumi = 1264 # /pb only RunD
 
-def getNprocessed( filename ):
-    f = aux.getFromFile( filename, "hCutFlow" )
-    return int(f.GetBinContent(1))
-
 def getHistoFromDataset( dataset, name ):
     h0 = None
     for i in range( len(dataset.files) ):
@@ -39,10 +35,6 @@ def getHistoFromDataset( dataset, name ):
 
     return h0
 
-def save( name, folder="plots/", endings=[".pdf"] ):
-    for ending in endings:
-        ROOT.gPad.SaveAs( folder + name+ ending )
-
 def compare( datasets, name, saveName ):
     m = multiplot.Multiplot()
 
@@ -54,14 +46,14 @@ def compare( datasets, name, saveName ):
 
     m.Draw()
 
-    save( "compare%s_%s"%(saveName,name) )
+    aux.save( "compare%s_%s"%(saveName,name) )
 
 def drawH2( dataset, name, savename="test" ):
     x = style.style2d()
     c = ROOT.TCanvas()
     h = getHistoFromDataset( dataset, name )
     h.Draw("colz")
-    save( "simpleH2_%s_%s"%(savename,name) )
+    aux.save( "simpleH2_%s_%s"%(savename,name) )
     style.defaultStyle()
 
 
@@ -124,21 +116,9 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
 
     if m.Draw():
         l = aux.Label()
-        save( "sameHistogram%s_%s"%(saveName,name) )
+        aux.save( "sameHistogram%s_%s"%(saveName,name) )
         can.SetLogy()
-        save( "sameHistogram%s_%s_log"%(saveName,name) )
-
-def getBinnigsFromName( name ):
-    out = { "": None }
-    # get histogram name
-    match = re.match( "(.*)__.*", name )
-    if match:
-        hname = match.group(1)
-        if rebinner.cfg.has_section(hname):
-            for binningName, binning in rebinner.cfg.items( hname ):
-                binning = [ float(x) for x in binning.split(" ") ]
-                out[binningName] = binning
-    return out
+        aux.save( "sameHistogram%s_%s_log"%(saveName,name) )
 
 
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
@@ -152,7 +132,7 @@ def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     for name in names:
         if not name.startswith("h_"): continue
 
-        for binningName, binning in getBinnigsFromName( name ).iteritems():
+        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             drawSameHistogram( saveName+"_bin"+binningName, name, data, bkg, additional, binning )
 
 def getProjections( h2, alongX=True ):
@@ -186,7 +166,7 @@ def drawRazor( dataset ):
     fr = h2.Fit( "razorFitFunc" )
     h2.Draw("cont2")
     razorFit.Draw("same")
-    save( "razorPlane" )
+    aux.save( "razorPlane" )
 
     pX = getProjections( h2 )
     pX[0].Draw()
@@ -196,7 +176,7 @@ def drawRazor( dataset ):
     for h in pX: leg.AddEntry( h, h.GetName(), "l" )
     leg.Draw()
 
-    save( "razorAlongX" )
+    aux.save( "razorAlongX" )
 
 def qcdClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
@@ -242,9 +222,9 @@ def qcdClosure( dataset, samplename="" ):
             m.Draw()
 
             l = aux.Label()
-            save( "qcdClosure_"+name+samplename+binningName )
+            aux.save( "qcdClosure_"+name+samplename+binningName )
             can.SetLogy()
-            save( "qcdClosure_"+name+samplename+binningName+"_log" )
+            aux.save( "qcdClosure_"+name+samplename+binningName+"_log" )
 
 
 def ewkClosure( dataset, samplename="" ):
@@ -269,7 +249,7 @@ def ewkClosure( dataset, samplename="" ):
         for h in hdir, hpre:
             h.SetYTitle( aux.getYAxisTitle( h ) )
 
-        for binningName, binning in getBinnigsFromName( name ).iteritems():
+        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             can = ROOT.TCanvas()
             m = multiplot.Multiplot()
             mod_dir = hdir
@@ -286,9 +266,9 @@ def ewkClosure( dataset, samplename="" ):
             m.Draw()
 
             l = aux.Label()
-            save( "ewkClosure_"+name+samplename+binningName )
+            aux.save( "ewkClosure_"+name+samplename+binningName )
             can.SetLogy()
-            save( "ewkClosure_"+name+samplename+binningName+"_log" )
+            aux.save( "ewkClosure_"+name+samplename+binningName+"_log" )
 
 
 def drawROCs():
@@ -305,7 +285,7 @@ def drawROCs():
         a.GetXaxis().SetRangeUser(0.01,1)
         a.GetYaxis().SetRangeUser(0.01,1)
         l = aux.Label()
-        save("roc_"+hname)
+        aux.save("roc_"+hname)
 
 def efficiencies( dataset, savename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TEfficiency] )
@@ -353,12 +333,12 @@ def efficiencies( dataset, savename="" ):
 
 
         l = aux.Label()
-        save( "efficiency_"+savename+name )
+        aux.save( "efficiency_"+savename+name )
 
         h_tot.SetLineColor(2)
         h_tot.Draw("hist")
         h_pas.Draw("same e*")
-        save( "efficiency_"+savename+name+"_raw" )
+        aux.save( "efficiency_"+savename+name+"_raw" )
 
 def getRazorProjection( dataset, xaxis, cut ):
     h2 = getHistoFromDataset( dataset, "h2_razorPlane__tr" )
@@ -401,9 +381,9 @@ def compareRazorProjections( bkg, additional, xaxis=True, cut=-1, binning=[] ):
     if m.Draw():
 
         l = aux.Label()
-        save( "razorProjections" )
+        aux.save( "razorProjections" )
         can.SetLogy()
-        save( "razorProjections_log" )
+        aux.save( "razorProjections_log" )
 
 def razorStudies():
     compareRazorProjections( [gjets,qcd,ttjets,wjets], [t5wg_1500_125], False )

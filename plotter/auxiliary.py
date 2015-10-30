@@ -242,6 +242,25 @@ def automaticRebinner( hlist, minEvents=3 ):
     print out[::-1]
 
 
+def save( name, folder="plots/", endings=[".pdf"] ):
+    for ending in endings:
+        ROOT.gPad.SaveAs( folder + name+ ending )
+
+
+def getBinnigsFromName( name ):
+    out = { "": None }
+    # get histogram name
+    match = re.match( "(.*)__.*", name )
+    if match:
+        hname = match.group(1)
+        if rebinner.cfg.has_section(hname):
+            for binningName, binning in rebinner.cfg.items( hname ):
+                binning = [ float(x) for x in binning.split(" ") ]
+                out[binningName] = binning
+    return out
+
+
+
 class Label:
     # Create labels
     # Usage:
