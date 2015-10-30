@@ -3,6 +3,8 @@ import copy
 import auxiliary as aux
 import os.path
 
+from main import intLumi
+
 path = "../histogramProducer/"
 
 class Dataset:
@@ -56,6 +58,20 @@ class Dataset:
     def getNgenFromFile( self ):
         for ngen, file in zip(self.ngens, self.files):
             print file, ngen, aux.getNgen( file )
+
+
+    def getHist( self, name ):
+        h0 = None
+        for i in range( len(self.files) ):
+            h = aux.getFromFile( self.files[i], name )
+            if isinstance( h, ROOT.TH1 ):
+                if self.xsecs[i]:
+                    h.Scale( intLumi * self.xsecs[i] / self.ngens[i] )
+                h.SetLineColor( self.color )
+                h.SetMarkerColor( self.color )
+            if h0: h0.Add( h )
+            else: h0 = h
+        return h0
 
 
 
@@ -134,7 +150,7 @@ dy.label = "Z#rightarrowll"
 t5wg_1500_125 = Dataset( "T5wg_1500_125", col=ROOT.kGreen+4 )
 t5wg_1500_125.label = "T5wg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=125"
 
-t5wg_1500_1475 = Dataset( "T5wg_1500_1475", col=ROOT.kGreen+5 )
+t5wg_1500_1475 = Dataset( "T5wg_1500_1475", col=ROOT.kGreen+3 )
 t5wg_1500_1475.label = "T5wg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1475"
 
 
