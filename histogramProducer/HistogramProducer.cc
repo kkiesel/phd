@@ -83,6 +83,17 @@ string getOutputFilename( string inputFileName ) {
 
 }
 
+template <typename VectorClass>
+int indexOfMatchedParticle( const tree::Particle& tag, const std::vector<VectorClass>& particles, float deltaR=.1, float relPt=-1 ) {
+  int match=-1;
+  for( int i=0; i<(int)particles.size(); ++i ) {
+    if(    ( deltaR<0 || particles.at(i)->p.DeltaR( tag.p ) < deltaR )
+        && ( relPt<0  || fabs(particles.at(i)->p.Pt()-tag.p.Pt())/tag.p.Pt() < relPt ) ) {
+      return match;
+    }
+  }
+  return match;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -471,23 +482,23 @@ void HistogramProducer::defaultSelection()
 {
   for( auto& mu : muons ) {
     if( mu.p.Pt() < 15 ) continue;
+    if( indexOfMatchedParticle<tree::Photon*>( mu, selPhotons ) >= 0 ) continue;
     selMuons.push_back( &mu );
   }
   for( auto& el : electrons ) {
     if( !el.isLoose || el.p.Pt() < 15 ) continue;
+    if( indexOfMatchedParticle<tree::Photon*>( el, selPhotons ) >= 0 ) continue;
     selElectrons.push_back( &el );
   }
   for( auto& jet : jets ) {
     if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
-
-    for( auto& p: selPhotons   ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
-    for( auto& p: selElectrons ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
-    for( auto& p: selMuons     ) { if( p->p.DeltaR( jet.p ) < .4 ) goto closeToOther; }
+    if( indexOfMatchedParticle<tree::Photon*>( jet, selPhotons, .3 ) >= 0 ) continue;
+    if( indexOfMatchedParticle<tree::Photon*>( jet, selElectrons, .3 ) >= 0 ) continue;
+    if( indexOfMatchedParticle<tree::Photon*>( jet, selMuons, .3 ) >= 0 ) continue;
 
     selJets.push_back( &jet );
     if( jet.bDiscriminator > bTaggingWorkingPoints["CSVv2M"] )
       selBJets.push_back( &jet );
-    closeToOther:;
   }
 }
 
@@ -543,6 +554,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     vector<TVector3> js;
     for( auto& p : selJets ) js.push_back( p->p );
     for( auto& p : selPhotons ) js.push_back( p->p );
+    for( auto& p : selElectrons ) js.push_back( p->p );
+    for( auto& p : selMuons ) js.push_back( p->p );
     mrr2 = razorVariables( megajets( js ), met->p );
   }
 
