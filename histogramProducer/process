@@ -15,7 +15,7 @@ infiles=(
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-600To800_nTuple.root
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-800To1200_nTuple.root
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-400To600_nTuple.root
-  /user/kiesel/nTuples/V03/GJet_Pt-15ToInf_nTuple.root
+#  /user/kiesel/nTuples/V03/GJet_Pt-15ToInf_nTuple.root
   /user/kiesel/nTuples/V03/WJetsToLNu_HT-600ToInf_nTuple.root
   /user/kiesel/nTuples/V03/QCD_HT100to200_nTuple.root
   /user/kiesel/nTuples/V03/QCD_HT700to1000_nTuple.root
