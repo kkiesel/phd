@@ -493,8 +493,8 @@ void HistogramProducer::defaultSelection()
   for( auto& jet : jets ) {
     if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
     if( indexOfMatchedParticle<tree::Photon*>( jet, selPhotons, .3 ) >= 0 ) continue;
-    if( indexOfMatchedParticle<tree::Photon*>( jet, selElectrons, .3 ) >= 0 ) continue;
-    if( indexOfMatchedParticle<tree::Photon*>( jet, selMuons, .3 ) >= 0 ) continue;
+    if( indexOfMatchedParticle<tree::Electron*>( jet, selElectrons, .3 ) >= 0 ) continue;
+    if( indexOfMatchedParticle<tree::Muon*>( jet, selMuons, .3 ) >= 0 ) continue;
 
     selJets.push_back( &jet );
     if( jet.bDiscriminator > bTaggingWorkingPoints["CSVv2M"] )
@@ -518,7 +518,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   selHt = 0;
   for( auto& jet : jets ){
-    selHt += jet.p.Pt();
+    if( jet.p.Pt()>40 && fabs(jet.p.Eta())<3) {
+      selHt += jet.p.Pt();
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////
