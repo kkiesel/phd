@@ -15,7 +15,6 @@ import style
 import multiplot
 
 import auxiliary as aux
-import rebinner
 
 intLumi = 1280.23 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2522.html
 intLumi = 1264 # /pb only RunD
@@ -89,16 +88,15 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
 
     for d in bkg[-1::-1]:
         h = d.getHist( name )
+        if not h.Integral(): continue
         if binning: h = aux.rebin( h, binning )
 
         aux.appendFlowBin( h )
         h.SetYTitle( aux.getYAxisTitle( h ) )
-        if not h.Integral(): continue
         m.addStack( h, d.label )
 
-    """
     for d in additional:
-        h = getHistoFromDataset( d, name )
+        h = d.getHist( name )
         if not h.Integral(): continue
         if binning: h = aux.rebin( h, binning )
 
@@ -112,7 +110,6 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
             h.SetLineWidth(3)
 
         m.add( h, d.label )
-    """
 
     if m.Draw():
         l = aux.Label()
@@ -411,8 +408,7 @@ def main():
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
     #drawSameHistograms( "_gqcd_data", bkg=[gjets_pt15, gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
-    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
-    drawSameHistograms( "_mc_data", bkg=[gjets, qcd], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
+    drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, ttg, wjets, wg], additional=[t2ttgg])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
