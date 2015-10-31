@@ -2,6 +2,10 @@ import ROOT
 import re
 import math
 from math import *
+import ConfigParser
+
+binCfg = ConfigParser.SafeConfigParser()
+binCfg.readfp(open('rebin.cfg'))
 
 def getXsecInfoSMS( mother_mass, pklfilename ):
     import pickle
@@ -253,8 +257,8 @@ def getBinnigsFromName( name ):
     match = re.match( "(.*)__.*", name )
     if match:
         hname = match.group(1)
-        if rebinner.cfg.has_section(hname):
-            for binningName, binning in rebinner.cfg.items( hname ):
+        if binCfg.has_section(hname):
+            for binningName, binning in binCfg.items( hname ):
                 binning = [ float(x) for x in binning.split(" ") ]
                 out[binningName] = binning
     return out
