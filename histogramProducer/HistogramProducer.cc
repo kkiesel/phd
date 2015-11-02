@@ -165,7 +165,6 @@ class HistogramProducer : public TSelector {
   map<string,TProfile> prof;
   map<string,TEfficiency> eff;
 
-  bool isGJet_Pt15ToInf;
   bool isData;
 
 };
@@ -460,7 +459,6 @@ void HistogramProducer::Init(TTree *tree)
 {
   fReader.SetTree(tree);
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
-  isGJet_Pt15ToInf = inputName.find("GJet_Pt-15ToInf") != string::npos;
   isData = inputName.find("SinglePhoton") != string::npos
     || inputName.find("JetHT") != string::npos
     || inputName.find("MET") != string::npos;
@@ -508,8 +506,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   //if( entry > 3 ) return true;
   //if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
-
-  if( isGJet_Pt15ToInf && *genHt > 40 ) return true;
 
   // set weight
   selW = *mc_weight * *pu_weight;
