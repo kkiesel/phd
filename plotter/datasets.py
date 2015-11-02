@@ -52,7 +52,8 @@ class Dataset:
     def __str__( self ):
         return "Dataset: " + self.label + "\ncolor: " + str(self.color) + \
             "\nnames: "+", ".join( self.names ) + \
-            "\nfiles: "+", ".join( str(i) for i in self.xsecs ) + \
+            "\nfiles: "+", ".join( self.files ) + \
+            "\nxsecs: "+", ".join( str(i) for i in self.xsecs ) + \
             "\nngens: "+", ".join( str(i) for i in self.ngens )
 
     def getNgenFromFile( self ):
