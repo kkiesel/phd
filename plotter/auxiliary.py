@@ -28,6 +28,7 @@ def getXsecSMSstop( mother_mass ):
 
 def getXsecFromName( name ):
     m = re.match( "[^_]*_(\d+)_[^\d]*.*", name )
+    if not m: m = re.match( ".*mGluino-(\d+)_.*", name )
     firstNumber = int( m.groups()[0] ) if m else 0
 
     if "T5" in name:
