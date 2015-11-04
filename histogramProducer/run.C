@@ -21,6 +21,6 @@ void run( string infile="/user/kiesel/nTuples/V02/SinglePhoton_V02_nTuple.root")
 
   double start_time = time(NULL);
   ch.Process( "HistogramProducer.cc+" );
-  cout << "Job needed " << 1.*( time(NULL) - start_time)/60 << " min real time." << endl;
+  cout << " in " << 1.*( time(NULL) - start_time)/60 << " min" << endl;
 
 }
