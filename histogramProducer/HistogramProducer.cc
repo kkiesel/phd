@@ -611,12 +611,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for( auto& photon : photons ) {
     if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
         && !photon.isLoose
-        && photon.hOverE < 0.028
-        && photon.sigmaIetaIeta < 0.0107
-    //    && photon.isoChargedHadronsEA < 2.67
-//        && photon.isoChargedHadronsEA > 2.67 // more chargediso
-//        && photon.isoNeutralHadronsEA < 7.23 + exp(0.0028*photon.p.Pt()+0.5408)
-//        && photon.isoPhotonsEA < 2.11 + 0.0014*photon.p.Pt()
+        && photon.hOverE < 0.05
+        && photon.sigmaIetaIeta < 0.0103
     ) {
       selPhotons.push_back( &photon );
     }
