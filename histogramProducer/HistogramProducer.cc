@@ -245,6 +245,11 @@ void HistogramProducer::initObjects( string const& s ) {
   eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 200, 0, 2000 );
   eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon", 200, 0, 2000 );
   eff["eff_hlt_nVertex__"+s] = TEfficiency( "", ";Vertex multiplicity", 41, -0.5, 40.5 );
+  eff["eff_hlt_sie__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 41, -0.5, 40.5 );
+  eff["eff_hlt_hoe__"+s] = TEfficiency( "", ";H/E", 41, -0.5, 40.5 );
+  eff["eff_hlt_cIso__"+s] = TEfficiency( "", ";I_{#pi} (GeV)", 41, -0.5, 40.5 );
+  eff["eff_hlt_nIso__"+s] = TEfficiency( "", ";I_{n} (GeV)", 41, -0.5, 40.5 );
+  eff["eff_hlt_pIso__"+s] = TEfficiency( "", ";I_{#gamma} (GeV)", 41, -0.5, 40.5 );
 
 }
 
@@ -407,7 +412,7 @@ void HistogramProducer::fillObjects( string const& s ) {
   // trigger efficiencies
   tree::Photon* thisPhoton=0;
   for( auto& photon : selPhotons ) {
-    if( photon->p.Pt() > 20 && fabs(photon->p.Eta()) < 1.4442 && photon->isLoose ) {
+    if( photon->p.Pt() > 15 && fabs(photon->p.Eta()) < 1.4442 && photon->isLoose ) {
       thisPhoton = photon;
       break; // take leading photon
     }
@@ -427,8 +432,13 @@ void HistogramProducer::fillObjects( string const& s ) {
     if( *crossTriggerPhoton && thisPhoton->p.Pt() > 100 ) {
       eff["eff_hlt_ht__"+s].Fill( *signalTrigger, ht );
     }
-    if( thisPhoton->p.Pt()>100 && ht>600 ) {
+    if( thisPhoton->p.Pt()>100 && ht>600 && *crossTriggerHt ) {
       eff["eff_hlt_nVertex__"+s].Fill( *signalTrigger, *nGoodVertices );
+      eff["eff_hlt_hoe__"+s].Fill( *signalTrigger, thisPhoton->hOverE );
+      eff["eff_hlt_sie__"+s].Fill( *signalTrigger, thisPhoton->sigmaIetaIeta );
+      eff["eff_hlt_cIso__"+s].Fill( *signalTrigger, thisPhoton->isoChargedHadronsEA );
+      eff["eff_hlt_nIso__"+s].Fill( *signalTrigger, thisPhoton->isoNeutralHadronsEA );
+      eff["eff_hlt_pIso__"+s].Fill( *signalTrigger, thisPhoton->isoPhotonsEA );
     }
 
   }
@@ -623,7 +633,7 @@ void HistogramProducer::Terminate()
 {
 
   auto outputName = getOutputFilename( fReader.GetTree()->GetCurrentFile()->GetName() );
-  cout << "Writing to output file " << outputName << endl;
+  cout << "Created " << outputName;
 
   // save all defined histograms to file
   TFile file( outputName.c_str(), "RECREATE");
@@ -643,8 +653,6 @@ void HistogramProducer::Terminate()
 }
 
 void HistogramProducer::resetSelection() {
-  mrr2.first = 0;
-  mrr2.second = 0;
   selPhotons.clear();
   selJets.clear();
   selBJets.clear();
