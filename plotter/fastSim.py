@@ -116,7 +116,16 @@ def drawSame( fullName, fastName, hname, binning=[] ):
     can.SetLogy(1)
     save( "fastSimStudies_"+ds+"_"+hname+"_log" )
 
+def scaleFactors( fullName, fastName ):
+    ds = datasetAbbr( fullName )
 
+    fullNGen = aux.getNgen( fullName )
+    fastNGen = aux.getNgen( fastName )
+
+    fullh = aux.getFromFile( fullName, "isLoose_loose_eb_genPhoton" )
+    fasth = aux.getFromFile( fastName, "isLoose_loose_eb_genPhoton" )
+
+    print "full/fast", fullh.GetEntries()/fasth.GetEntries() * fastNGen/fullNGen
 
 
 def main():
@@ -132,11 +141,11 @@ def main():
 
         names = aux.getObjectNames( fullName )
         for name in names: drawSame( fullName, fastName, name )
-        drawSame( fullName, fastName, "eta_loose", drange(0, 2.5, 100) )
         drawSame( fullName, fastName, "cIso_loose", drange(0, 3, 10 ) )
         drawSame( fullName, fastName, "nIso_loose", drange(0, 8, 10 ) )
         drawSame( fullName, fastName, "pIso_loose", drange(0, 5, 10 ) )
 
+        scaleFactors( fullName, fastName )
 
 if __name__ == "__main__":
     main()
