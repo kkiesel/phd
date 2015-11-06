@@ -18,6 +18,7 @@ import auxiliary as aux
 
 intLumi = 1280.23 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2522.html
 intLumi = 1264 # /pb only RunD
+intLumi = 594.6-16 # /pb, only okt05 file
 
 def getHistoFromDataset( dataset, name ):
     h0 = None
@@ -52,7 +53,36 @@ def drawH2( dataset, name, savename="test" ):
     c = ROOT.TCanvas()
     h = getHistoFromDataset( dataset, name )
     h.Draw("colz")
-    aux.save( "simpleH2_%s_%s"%(savename,name) )
+    l = aux.Label(sim=savename!="data")
+    aux.save( "h2_%s_%s"%(savename,name) )
+    style.defaultStyle()
+
+def subtractH2( dataset_num, dataset_den, name, savename="test" ):
+    x = style.style2d()
+    x.SetPalette( 1 )
+    c = ROOT.TCanvas()
+    num = getHistoFromDataset( dataset_num, name )
+    den = getHistoFromDataset( dataset_den, name )
+    h = num.Clone()
+    h.GetZaxis().SetTitle("( Data-Simulation ) / #sigma_{stat}               ")
+
+    for xbin in range(h.GetNbinsX()+2):
+        for ybin in range(h.GetNbinsY()+2):
+            n = num.GetBinContent(xbin,ybin)
+            e_n = num.GetBinError(xbin,ybin)
+            d = den.GetBinContent(xbin,ybin)
+            e_d = den.GetBinError(xbin,ybin)
+            if e_n == 0: e_n = 1.4
+            if e_d == 0: e_d = 1.4
+            h.SetBinContent(xbin,ybin, (n-d)/math.sqrt(e_n**2 + e_d**2) )
+
+    absMax = max( [ abs(h.GetMaximum()),abs(h.GetMinimum()) ] )
+    h.SetMaximum( absMax )
+    h.SetMinimum( -absMax )
+
+    h.Draw("colz")
+    l = aux.Label()
+    aux.save( "h2subtract_%s_%s"%(savename,name) )
     style.defaultStyle()
 
 
@@ -112,6 +142,14 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
         m.add( h, d.label )
 
     if m.Draw():
+
+        # ratio
+        #hdata = [ d.getHist(name) for d in additional if "Data" in d.label ][0]
+        #hsm = m.hists[0].GetStack().Last()
+        #if hdata.Integral():
+        #    r = ratio.Ratio( "Data/SM", hdata, hsm )
+        #    r.draw(0,2)
+
         l = aux.Label()
         aux.save( "sameHistogram%s_%s"%(saveName,name) )
         can.SetLogy()
@@ -122,9 +160,9 @@ def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0] )
 
     #names = ["h_met__tr"] # test plot
-    names = ["h_g_pt__tr"] # test plot
+    #names = ["h_g_pt__tr"] # test plot
     #names = ["h_dphi_met_g__tr_bit"] # test plot
-    #names = [ "h_dphi_met_j1__tr_met200", "h_dphi_met_j2__tr_met200", "h_met__tr_reco", "h_g_pt__tr_reco", "h_n_bjet__tr_met200_dphi_j2", "h_g_pt__tr_met200_dphi_j2"]
+    #names = [ "h_ht__tr"]
 
     for name in names:
         if not name.startswith("h_"): continue
@@ -284,6 +322,69 @@ def drawROCs():
         l = aux.Label()
         aux.save("roc_"+hname)
 
+def efficienciesDataMC( dataset_data, dataset_mc, savename="" ):
+    names = aux.getObjectNames( dataset_data.files[0], "", [ROOT.TEfficiency] )
+
+    for name in names:
+        h = getHistoFromDataset( dataset_data, name )
+        if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
+
+        h_pass = h.GetPassedHistogram()
+        h_tot = h.GetTotalHistogram()
+
+        h_tot.SetTitle("")
+
+        h_tot.SetLineColor(ROOT.kGray)
+        h_tot.SetFillColor(ROOT.kGray)
+        h_tot.SetMaximum( 1.3*h_pass.GetMaximum() )
+        h_tot.Draw("hist")
+        h_pass.SetLineColor(ROOT.kBlack)
+        h_pass.Draw("same hist")
+
+
+
+        """
+        if "hlt" in name:
+            eff = ROOT.TEfficiency( h_pass, h_tot )
+        else:
+            eff = h
+        eff.Draw()
+
+        if name == "eff_hlt_ht__base":
+            cutValue = 600
+        elif name == "eff_hlt_pt__base":
+            cutValue = 100
+        else:
+            cutValue = None
+
+        if cutValue:
+            bin = h_pass.FindFixBin( cutValue )
+            passed = int(h_pass.Integral( bin, -1 ))
+            total = int(h_tot.Integral( bin, -1 ))
+            conf = 0.682689492137
+            e = 1.*passed/total
+            e_up = ROOT.TEfficiency.ClopperPearson( total, passed, conf, True )
+            e_dn = ROOT.TEfficiency.ClopperPearson( total, passed, conf, False )
+            print "ε = {:.1%} + {:.1%} - {:.1%}".format(e, e_up-e,e-e_dn )
+
+            # graphical representation
+            l = ROOT.TLine()
+            l.SetLineWidth(2)
+            l.SetLineColor( ROOT.kRed )
+            xmax = eff.CreateGraph().GetHistogram().GetXaxis().GetXmax()
+            l.DrawLine( cutValue, e, xmax, e )
+
+            l.SetLineStyle(2)
+            ymin = eff.CreateGraph().GetHistogram().GetYaxis().GetXmin()
+            ymax = eff.CreateGraph().GetHistogram().GetYaxis().GetXmax()
+            l.DrawLine( cutValue, ymin, cutValue, ymax )
+
+
+        """
+        l = aux.Label()
+        aux.save( "efficiencyDataMC_"+savename+name )
+
+
 def efficiencies( dataset, savename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TEfficiency] )
 
@@ -297,7 +398,10 @@ def efficiencies( dataset, savename="" ):
             eff = ROOT.TEfficiency( h_pas, h_tot )
         else:
             eff = h
+
         eff.Draw()
+        ROOT.gPad.Update()
+        eff.GetPaintedGraph().GetYaxis().SetRangeUser(0.9, 1.01)
 
         if name == "eff_hlt_ht__base":
             cutValue = 600
@@ -336,6 +440,53 @@ def efficiencies( dataset, savename="" ):
         h_tot.Draw("hist")
         h_pas.Draw("same e*")
         aux.save( "efficiency_"+savename+name+"_raw" )
+
+def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
+    names = aux.getObjectNames( dataset.files[0] )
+    names = [ n for n in names if "_genPhoton" in n and n.startswith("h_") ]
+    #names = [ "h_g_pt__tr_genPhoton" ]
+
+    for name in names:
+        can = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+
+        h_tot = dataset.getHist( name.replace("_genPhoton","" ) )
+        h_g = dataset.getHist( name )
+        h_e = dataset.getHist( name.replace("_genPhoton","_genElectron" ) )
+
+        h_isr_tot = isrDataset.getHist( name.replace("_genPhoton","" ) )
+        h_isr_g = isrDataset.getHist( name )
+        h_isr_e = isrDataset.getHist( name.replace("_genPhoton","_genElectron" ) )
+
+        for h in h_tot, h_isr_tot:
+            h.SetMarkerStyle(20)
+            h.SetMarkerSize(0.5)
+            h.drawOption_="ep"
+
+        for h in h_g, h_isr_g:
+            h.SetLineStyle(2)
+            h.drawOption_="hist"
+
+        for h in h_e, h_isr_e:
+            h.SetLineStyle(3)
+            h.drawOption_="hist"
+
+        m.add( h_tot, dataset.label )
+        m.add( h_g, "#gamma" )
+        m.add( h_e, "e" )
+        m.add( h_isr_tot, isrDataset.label )
+        m.add( h_isr_g, "#gamma" )
+        m.add( h_isr_e, "e" )
+
+        if m.Draw():
+
+            l = aux.Label()
+            aux.save( "ewkIsrSampleSplitting_%s_%s"%(saveName,name) )
+            can.SetLogy()
+            aux.save( "ewkIsrSampleSplitting_%s_%s_log"%(saveName,name) )
+
+
+
 
 def getRazorProjection( dataset, xaxis, cut ):
     h2 = getHistoFromDataset( dataset, "h2_razorPlane__tr" )
@@ -406,10 +557,11 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    #drawSameHistograms( "_gqcd_data", bkg=[gjets_pt15, gjets, qcd], additional=[data])
+    #drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
-    drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
-    #drawSameHistograms( "_mc", bkg=[gjets, qcd, ttjets, ttg, wjets, wg], additional=[t2ttgg])
+    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
+    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[data,t5wg_1500_125, t5gg_1000_200])
+    #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[t5wg_1500_125, t5gg_1000_200])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
 
@@ -422,10 +574,18 @@ def main():
     #efficiencies( qcd+gjets, "gqcd_" )
     #efficiencies( data, "singlePhoton_" )
     #efficiencies( dataHt, "jetHt_" )
+    #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
 
     #drawROCs()
+    ewkIsrSamplesSplitting( ttjets, ttg, "tt" )
 
-    #for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]): drawH2( data, h2name, "data" )
+    """
+    for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]):
+        break
+        drawH2( data, h2name, "data" )
+        drawH2( qcd+gjets, h2name, "gqcd" )
+        subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
+    """
 
     #razorStudies()
 
