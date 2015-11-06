@@ -11,7 +11,7 @@
 #include "TEfficiency.h"
 
 //#include "TreeParticles.hpp"
-#include "../../CMSSW/treewriter/CMSSW_7_4_5/src/TreeWriter/TreeWriter/plugins/TreeParticles.hpp"
+#include "../../CMSSW/treewriter/CMSSW_7_4_14/src/TreeWriter/TreeWriter/plugins/TreeParticles.hpp"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,6 +68,12 @@ pair<float,float> razorVariables( const pair<TVector3,TVector3>& megajets, const
   float r2 = mrt2 / mr2;
   return pair<float,float>(sqrt(mr2),r2);
 }
+
+std::ostream& operator << ( std::ostream& os, const TVector3& p ) {
+  os << p.Pt() << "\t" << p.Eta() << "\t" << p.Phi();
+  return os;
+}
+
 
 string getOutputFilename( string inputFileName ) {
 
@@ -179,6 +185,7 @@ void HistogramProducer::initSelection( string const& s ) {
 
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1500 );
   h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 100, 0, 3 );
+  h["h_g_phi__"+s] = TH1F( "", ";#phi", 200, -3.2, 3.2 );
 
   // jet
   h["h_j1_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 100, 0, 1500 );
@@ -213,6 +220,7 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_n_muon__"+s] = TH1F( "", ";muon multiplicity", 4, -0.5, 3.5 );
 
   h2["h2_razorPlane__"+s] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
+  h2["h2_g_pt_ht__"+s] = TH2F( "", ";p_{T} (GeV); H_{T} (GeV)", 100, 0, 1000, 150, 500, 2000 );
 
 }
 
@@ -245,11 +253,11 @@ void HistogramProducer::initObjects( string const& s ) {
   eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 200, 0, 2000 );
   eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon", 200, 0, 2000 );
   eff["eff_hlt_nVertex__"+s] = TEfficiency( "", ";Vertex multiplicity", 41, -0.5, 40.5 );
-  eff["eff_hlt_sie__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 41, -0.5, 40.5 );
-  eff["eff_hlt_hoe__"+s] = TEfficiency( "", ";H/E", 41, -0.5, 40.5 );
-  eff["eff_hlt_cIso__"+s] = TEfficiency( "", ";I_{#pi} (GeV)", 41, -0.5, 40.5 );
-  eff["eff_hlt_nIso__"+s] = TEfficiency( "", ";I_{n} (GeV)", 41, -0.5, 40.5 );
-  eff["eff_hlt_pIso__"+s] = TEfficiency( "", ";I_{#gamma} (GeV)", 41, -0.5, 40.5 );
+  eff["eff_hlt_sie__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 100, 0, 0.1 );
+  eff["eff_hlt_hoe__"+s] = TEfficiency( "", ";H/E", 100, 0, 0.15 );
+  eff["eff_hlt_cIso__"+s] = TEfficiency( "", ";I_{#pi} (GeV)", 100, 0, 10 );
+  eff["eff_hlt_nIso__"+s] = TEfficiency( "", ";I_{n} (GeV)", 100, 0, 20 );
+  eff["eff_hlt_pIso__"+s] = TEfficiency( "", ";I_{#gamma} (GeV)", 100, 0, 20 );
 
 }
 
@@ -275,6 +283,8 @@ void HistogramProducer::fillSelection( string const& s ) {
     h["h_mt_g_met__"+s].Fill( (selPhotons[0]->p + met->p).Pt(), selW );
     h["h_g_pt__"+s].Fill( selPhotons[0]->p.Pt(), selW );
     h["h_g_eta__"+s].Fill( fabs(selPhotons[0]->p.Eta()), selW );
+    h["h_g_phi__"+s].Fill( selPhotons[0]->p.Phi(), selW );
+    h2["h2_g_pt_ht__"+s].Fill( selPhotons[0]->p.Pt(), selHt, selW );
   }
 
   if( selJets.size() > 2 ) {
@@ -479,7 +489,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
   initObjects("base");
   h["h_genHt"] = TH1F( "", ";H_{T}^{gen} (GeV)", 6000, 0, 3000 );
 
-  vector<string> strs = { "trBit", "tr", "tr_met200", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl" };
+  vector<string> strs = { "trBit", "tr", "tr_met200", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90" };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -551,7 +561,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   /////////////////////////////////////////////////////////////////////////////
   // New selection
   for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
+    // todo: correct hasPixelSeed?
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && photon.hasPixelSeed && photon.isLoose ) {
        selPhotons.push_back( &photon );
     }
   }
@@ -567,6 +578,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     mrr2 = razorVariables( megajets( js ), met->p );
   }
 
+  if( *crossTriggerPhoton && selPhotons.size() ) {
+    fillSelection("trPhoton90");
+  }
 
   if( *signalTrigger ) {
     fillSelection("trBit");
@@ -580,7 +594,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
           break;
         }
     }
-    if( selPhotons[0]->isTrue ) {
+    if( selPhotons[0]->isTrueAlternative ) {
       fillSelection("tr_genPhoton");
     }
     if( met->p.Pt() > 200 ) {
@@ -595,7 +609,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // electron sample
 
   for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && photon.hasPixelSeed && photon.isLoose ) {
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
       selPhotons.push_back( &photon );
     }
   }
