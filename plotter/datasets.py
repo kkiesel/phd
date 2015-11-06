@@ -154,13 +154,5 @@ t5wg_1500_125.label = "T5wg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=125"
 t5wg_1500_1475 = Dataset( "T5wg_1500_1475", col=ROOT.kGreen+3 )
 t5wg_1500_1475.label = "T5wg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1475"
 
-
-#t5gg = Dataset( "T5gg_1500_1000", col=ROOT.kMagenta )
-#t5gg.label = "T5gg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
-#t5hg = Dataset( "T5hg_1500_1000", col=ROOT.kMagenta+4 )
-#t5hg.label = "T5hg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1000"
-#t2ttgg = Dataset( "T2ttgg_850_650_fast", col=ROOT.kGreen+4 )
-#t2ttgg.label = "T2ttgg #scale[0.7]{#tilde{t}:850 #tilde{#chi}^{0}_{1}:650}"
-#t2ttgg.label = "T2ttgg (x10)"
-#t2ttgg.xsecs = [ 10.*t2ttgg.xsecs[0] ]
-
+t5gg_1000_200 = Dataset( "SMS-T5gg_mGluino-1000_mNeutralino-200", col=ROOT.kGreen+2 )
+t5gg_1000_200.label = "T5gg m(#tilde{g})=1000 m(#tilde{#chi}^{0}_{1})=200"
