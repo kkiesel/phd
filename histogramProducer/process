@@ -31,6 +31,7 @@ infiles=(
   /user/kiesel/nTuples/V03_2/SinglePhoton_nTuple.root
   /user/kiesel/nTuples/V03_2/JetHT_nTuple.root
   /user/kiesel/nTuples/V03_2/MET_nTuple.root
+  /user/kiesel/nTuples/SMS-T5gg_mGluino-1000_mNeutralino-200_nTuple.root
 )
 
 # run with no input file first, to compile all versions
