@@ -249,7 +249,7 @@ def automaticRebinner( hlist, minEvents=3 ):
 
 def save( name, folder="plots/", endings=[".pdf"] ):
     for ending in endings:
-        ROOT.gPad.SaveAs( folder + name+ ending )
+        ROOT.gPad.GetCanvas().SaveAs( folder + name+ ending )
 
 
 def getBinnigsFromName( name ):
