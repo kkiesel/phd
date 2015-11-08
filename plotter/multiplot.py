@@ -32,11 +32,10 @@ class Multiplot:
             return
         stack = ROOT.THStack()
         stack.SetTitle( ";%s;%s"%(self.histsToStack[0].GetXaxis().GetTitle(),self.histsToStack[0].GetYaxis().GetTitle()) )
-        stack.drawOption_ = ""
+        stack.drawOption_ = "hist"
         for h in self.histsToStack:
-            h.Sumw2( False )
             h.SetFillColor( h.GetLineColor() )
-            #h.SetLineColor( ROOT.kBlack )
+            h.SetLineColor( ROOT.kBlack )
             stack.Add( h )
 
         self.hists.append( stack )
