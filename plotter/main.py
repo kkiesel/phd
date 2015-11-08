@@ -125,6 +125,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
         h.SetYTitle( aux.getYAxisTitle( h ) )
         m.addStack( h, d.label )
 
+    dataHist = None
     for d in additional:
         h = d.getHist( name )
         if not h.Integral(): continue
@@ -135,6 +136,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
             h.SetMarkerStyle(20)
             h.SetBinErrorOption( ROOT.TH1.kPoisson )
             # TODO: make sure kPoisson works
+            dataHist = h
         else:
             h.drawOption_ = "hist"
             h.SetLineWidth(3)
@@ -144,11 +146,10 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
     if m.Draw():
 
         # ratio
-        #hdata = [ d.getHist(name) for d in additional if "Data" in d.label ][0]
-        #hsm = m.hists[0].GetStack().Last()
-        #if hdata.Integral():
-        #    r = ratio.Ratio( "Data/SM", hdata, hsm )
-        #    r.draw(0,2)
+        hsm = m.hists[0].GetStack().Last()
+        if dataHist:
+            r = ratio.Ratio( "Data/SM", dataHist, hsm )
+            r.draw(0,2)
 
         l = aux.Label()
         aux.save( "sameHistogram%s_%s"%(saveName,name) )
@@ -265,8 +266,8 @@ def qcdClosure( dataset, samplename="" ):
 def ewkClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
 
-    gSet = "tr_reco_genElectron"
-    cSet = "eControl"
+    gSet = "tr_genElectron"
+    cSet = "tr_eControl"
 
     for name in names:
         if gSet not in name: continue
@@ -401,7 +402,7 @@ def efficiencies( dataset, savename="" ):
 
         eff.Draw()
         ROOT.gPad.Update()
-        eff.GetPaintedGraph().GetYaxis().SetRangeUser(0.9, 1.01)
+        #eff.GetPaintedGraph().GetYaxis().SetRangeUser(0.9, 1.01)
 
         if name == "eff_hlt_ht__base":
             cutValue = 600
@@ -426,10 +427,13 @@ def efficiencies( dataset, savename="" ):
             l.SetLineColor( ROOT.kRed )
             xmax = eff.CreateGraph().GetHistogram().GetXaxis().GetXmax()
             l.DrawLine( cutValue, e, xmax, e )
+            l.DrawLine( cutValue, e_up, xmax, e_up )
+            l.DrawLine( cutValue, e_dn, xmax, e_dn )
 
+            # cut line
             l.SetLineStyle(2)
-            ymin = eff.CreateGraph().GetHistogram().GetYaxis().GetXmin()
-            ymax = eff.CreateGraph().GetHistogram().GetYaxis().GetXmax()
+            ymin = eff.GetPaintedGraph().GetYaxis().GetXmin()
+            ymax = eff.GetPaintedGraph().GetYaxis().GetXmax()
             l.DrawLine( cutValue, ymin, cutValue, ymax )
 
 
