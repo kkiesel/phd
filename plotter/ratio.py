@@ -108,11 +108,12 @@ class Ratio:
 
         self.totalUncert.SetFillStyle(3002)
         self.totalUncert.SetMarkerSize(0)
-        self.totalUncert.SetFillColor(2)
+        self.totalUncert.SetMarkerStyle(0)
         self.totalUncert.SetFillColor( self.denominator.GetLineColor() )
         self.totalUncert.SetLineColor(0)
 
         self.ratioStat.SetLineWidth(5)
+        self.ratioStat.SetMarkerStyle(0)
         self.ratioStat.SetLineColor(ROOT.kGray)
 
         clearXaxisCurrentPad()
