@@ -134,8 +134,9 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
         if h.GetLineColor() == ROOT.kBlack: # data
             h.drawOption_ = "ep"
             h.SetMarkerStyle(20)
+            # disable errors for data, so that ErrorOption is working
+            h.Sumw2(False)
             h.SetBinErrorOption( ROOT.TH1.kPoisson )
-            # TODO: make sure kPoisson works
             dataHist = h
         else:
             h.drawOption_ = "hist"
@@ -557,6 +558,7 @@ def transitions():
 
 
 def main():
+    pass
     #transitions()
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
@@ -581,7 +583,7 @@ def main():
     #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
 
     #drawROCs()
-    ewkIsrSamplesSplitting( ttjets, ttg, "tt" )
+    #ewkIsrSamplesSplitting( ttjets, ttg, "tt" )
 
     """
     for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]):
