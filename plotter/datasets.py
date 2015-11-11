@@ -79,11 +79,18 @@ class Dataset:
 
 # data
 data = Dataset( "SinglePhoton", 0, ROOT.kBlack )
-data.label = "Data(Run D)"
 
+data_prompt = Dataset( "SinglePhoton_PromptReco-v4", 0, ROOT.kBlack )
+data_okt05 = Dataset( "SinglePhoton_RunD-05Oct2015", 0, ROOT.kBlack )
 
-dataHt = Dataset( "JetHT", 0, ROOT.kBlack )
-dataHt.label = "Data"
+data = data_prompt+data_okt05
+data.label = "Data"
+
+jetHt_prompt = Dataset( "JetHT_PromptReco-v4", 0, ROOT.kBlack )
+jetHt_okt05 = Dataset( "JetHT_05Oct2015", 0, ROOT.kBlack )
+
+dataHt = jetHt_prompt+jetHt_okt05
+dataHt.label = "Data (JetHt)"
 
 # k-factors from twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
 
@@ -141,6 +148,21 @@ ttg.label = "#gammat#bar{t}"
 
 wg = Dataset( "WGToLNuG", 405.271, ROOT.kRed-3, "" )
 wg.label = "#gammaW#rightarrow#gammal#nu"
+
+
+# znunu
+znunu100 = Dataset( "ZJetsToNuNu_HT-100To200", 280.47, ROOT.kMagenta+3 , "ZJetsToNuNu_HT-100To200_13TeV-madgraph" )
+znunu200 = Dataset( "ZJetsToNuNu_HT-200To400", 78.36, ROOT.kMagenta+2 , "ZJetsToNuNu_HT-200To400_13TeV-madgraph" )
+znunu400 = Dataset( "ZJetsToNuNu_HT-400To600", 10.94, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-400To600_13TeV-madgraph" )
+znunu600 = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.20, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-600ToInf_13TeV-madgraph" )
+
+for ds in znunu600,znunu400,znunu200,znunu100:
+    # apply k-factor
+    ds.xsecs = [ ds.xsecs[0] * 1.23 ]
+
+znunu = znunu600 + znunu400 + znunu200 + znunu100
+znunu.label = "Z#rightarrow#nu#nu"
+
 
 # cross section from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#DY_Z
 dy = Dataset( "DYJetsToLL_M-50", 6025.2, ROOT.kRed+3, "DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
