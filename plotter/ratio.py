@@ -25,6 +25,7 @@ def createBottomPad( r=.2 ):
     rPad.Draw()
     rPad.cd()
     rPad.SetLogy(0)
+    return rPad
 
 def convertToTH1( profile ):
     h = profile.ProjectionX( aux.randomName() )
@@ -117,7 +118,7 @@ class Ratio:
         self.ratioStat.SetLineColor(ROOT.kGray)
 
         clearXaxisCurrentPad()
-        createBottomPad()
+        p = createBottomPad()
 
         self.totalUncert.Draw("e2")
         self.ratioStat.Draw("same e")
