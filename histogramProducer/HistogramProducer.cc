@@ -424,8 +424,9 @@ void HistogramProducer::fillObjects( string const& s ) {
   tree::Photon* thisPhoton=0;
   for( auto& photon : selPhotons ) {
     if( photon->p.Pt() > 15 && fabs(photon->p.Eta()) < 1.4442 && photon->isLoose ) {
-      thisPhoton = photon;
-      break; // take leading photon
+      if( !thisPhoton || thisPhoton->p.Pt() > photon->p.Pt() ) {
+        thisPhoton = photon;
+      }
     }
   }
   if( thisPhoton ) {
