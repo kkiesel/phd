@@ -10,8 +10,9 @@
 #include "TProfile.h"
 #include "TEfficiency.h"
 
-//#include "TreeParticles.hpp"
-#include "../../CMSSW/treewriter/CMSSW_7_4_14/src/TreeWriter/TreeWriter/plugins/TreeParticles.hpp"
+#include "TreeParticles.hpp"
+#include "Weighter.hpp"
+#include "CutFlow.hpp"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -173,6 +174,11 @@ class HistogramProducer : public TSelector {
 
   bool isData;
 
+  Weighter nVertexWeighter;
+  Weighter nJetWeighter;
+
+  CutFlowPhoton looseCutFlowPhoton;
+
 };
 
 void HistogramProducer::initSelection( string const& s ) {
@@ -226,20 +232,20 @@ void HistogramProducer::initSelection( string const& s ) {
 
 void HistogramProducer::initObjects( string const& s ) {
 
-  eff["h_j_looseID__"+s] = TEfficiency( "", ";loose jet ID", 2, 0., 2. );
+  eff["eff_j_looseID__"+s] = TEfficiency( "", ";loose jet ID", 2, 0., 2. );
 
-  eff["h_gCol_sigmaIetaIeta__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 100, 0, 0.07 );
-  eff["h_gCol_hOverE__"+s] = TEfficiency( "", ";H/E", 100, 0, 0.15 );
-  eff["h_gCol_r9__"+s] = TEfficiency( "", ";r9", 110, 0, 1.1 );
-  eff["h_gCol_cIso__"+s] = TEfficiency( "", ";I_{#pi}", 200, 0, 150 );
-  eff["h_gCol_mva__"+s] = TEfficiency( "", ";y_{mva}", 120, -1.1, 1.1 );
+  eff["eff_gCol_sigmaIetaIeta__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 100, 0, 0.02 );
+  eff["eff_gCol_hOverE__"+s] = TEfficiency( "", ";H/E", 100, 0, 0.15 );
+  eff["eff_gCol_r9__"+s] = TEfficiency( "", ";r9", 110, 0, 1.1 );
+  eff["eff_gCol_cIso__"+s] = TEfficiency( "", ";I_{#pi}", 200, 0, 150 );
+  eff["eff_gCol_mva__"+s] = TEfficiency( "", ";y_{mva}", 120, -1.1, 1.1 );
 
-  eff["h_g_sigmaIetaIeta__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 100, 0, 0.07 );
-  eff["h_g_hOverE__"+s] = TEfficiency( "", ";H/E", 100, 0, 0.15 );
-  eff["h_g_r9__"+s] = TEfficiency( "", ";r9", 110, 0, 1.1 );
-  eff["h_g_cIso__"+s] = TEfficiency( "", ";I_{#pi}", 200, 0, 150 );
-  eff["h_g_nIso__"+s] = TEfficiency( "", ";I_{n}", 200, 0, 150 );
-  eff["h_g_pIso__"+s] = TEfficiency( "", ";I_{#gamma}", 200, 0, 150 );
+  eff["eff_g_sigmaIetaIeta__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 100, 0, 0.02 );
+  eff["eff_g_hOverE__"+s] = TEfficiency( "", ";H/E", 100, 0, 0.15 );
+  eff["eff_g_r9__"+s] = TEfficiency( "", ";r9", 110, 0, 1.1 );
+  eff["eff_g_cIso__"+s] = TEfficiency( "", ";I_{#pi}", 100, 0, 10 );
+  eff["eff_g_nIso__"+s] = TEfficiency( "", ";I_{n}", 200, 0, 20 );
+  eff["eff_g_pIso__"+s] = TEfficiency( "", ";I_{#gamma}", 200, 0, 20 );
 
 
   // matching
@@ -250,10 +256,12 @@ void HistogramProducer::initObjects( string const& s ) {
   h2["h2_match_photon_genElectron__"+s] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen e}", 100, 0, 0.5, 100, 0, 4 );
   h2["h2_match_photon_genPhoton__"+s] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen #gamma}", 100, 0, 0.5, 100, 0, 4 );
 
+  eff["eff_hlt_pt__offlineHT650__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon_{H_{T}>650GeV}", 200, 0, 2000 );
   eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 200, 0, 2000 );
+  eff["eff_hlt_ht__offlinePT100__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon_{p_{T}>100GeV}", 200, 0, 2000 );
   eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon", 200, 0, 2000 );
   eff["eff_hlt_nVertex__"+s] = TEfficiency( "", ";Vertex multiplicity", 41, -0.5, 40.5 );
-  eff["eff_hlt_sie__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 100, 0, 0.1 );
+  eff["eff_hlt_sie__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 400, 0, 0.02 );
   eff["eff_hlt_hoe__"+s] = TEfficiency( "", ";H/E", 100, 0, 0.15 );
   eff["eff_hlt_cIso__"+s] = TEfficiency( "", ";I_{#pi} (GeV)", 100, 0, 10 );
   eff["eff_hlt_nIso__"+s] = TEfficiency( "", ";I_{n} (GeV)", 100, 0, 20 );
@@ -373,50 +381,43 @@ void HistogramProducer::fillObjects( string const& s ) {
         h2["h2_match_photon_genElectron__"+s].Fill( photon->p.DeltaR( p.p ), photon->p.Pt()/p.p.Pt(), selW );
     }
 
-    eff["h_gCol_sigmaIetaIeta__"+s].FillWeighted( photon->isTrue, selW, photon->sigmaIetaIeta );
-    eff["h_gCol_hOverE__"+s].FillWeighted( photon->isTrue, selW, photon->hOverE );
-    eff["h_gCol_r9__"+s].FillWeighted( photon->isTrue, selW, photon->r9 );
-    eff["h_gCol_cIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoChargedHadronsEA );
-    eff["h_gCol_mva__"+s].FillWeighted( photon->isTrue, selW, photon->mvaValue );
+    eff["eff_gCol_sigmaIetaIeta__"+s].FillWeighted( photon->isTrue, selW, photon->sigmaIetaIeta );
+    eff["eff_gCol_hOverE__"+s].FillWeighted( photon->isTrue, selW, photon->hOverE );
+    eff["eff_gCol_r9__"+s].FillWeighted( photon->isTrue, selW, photon->r9 );
+    eff["eff_gCol_cIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoChargedHadronsEA );
+    eff["eff_gCol_mva__"+s].FillWeighted( photon->isTrue, selW, photon->mvaValue );
 
-/*    if( photon->p.Pt() < 90 || abs(photon->p.Eta()) > 1.4442 ) continue;
-    if(
-      photon->hOverE < 0.028
-      && photon->sigmaIetaIeta < 0.0107
-      && photon->isoNeutralHadronsEA < 7.23 + exp(0.0028*photon->p.Pt()+0.5408)
-      && photon->isoPhotonsEA < 2.11 + 0.0014*photon->p.Pt()
-    )
-    eff["h_g_cIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoChargedHadronsEA );
-    if(
-      photon->hOverE < 0.028
-      && photon->sigmaIetaIeta < 0.0107
-      && photon->isoChargedHadronsEA < 2.67
-      && photon->isoPhotonsEA < 2.11 + 0.0014*photon->p.Pt()
-    )
-    eff["h_g_nIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoNeutralHadronsEA );
-    if(
-      photon->hOverE < 0.028
-      && photon->sigmaIetaIeta < 0.0107
-      && photon->isoChargedHadronsEA < 2.67
-      && photon->isoNeutralHadronsEA < 7.23 + exp(0.0028*photon->p.Pt()+0.5408)
-    )
-    eff["h_g_nIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoPhotonsEA );
-    if(
-      photon->hOverE < 0.028
-      && photon->isoChargedHadronsEA < 2.67
-      && photon->isoNeutralHadronsEA < 7.23 + exp(0.0028*photon->p.Pt()+0.5408)
-      && photon->isoPhotonsEA < 2.11 + 0.0014*photon->p.Pt()
-    )
-    eff["h_g_sigmaIetaIeta__"+s].FillWeighted( photon->isTrue, selW, photon->sigmaIetaIeta );
-    if(
-      photon->sigmaIetaIeta < 0.0107
-      && photon->isoChargedHadronsEA < 2.67
-      && photon->isoNeutralHadronsEA < 7.23 + exp(0.0028*photon->p.Pt()+0.5408)
-      && photon->isoPhotonsEA < 2.11 + 0.0014*photon->p.Pt()
-    )
-    eff["h_g_hOverE__"+s].FillWeighted( photon->isTrue, selW, photon->hOverE );
-
-  */
+    if( photon->p.Pt() > 100 && abs(photon->p.Eta()) < 1.4442 ) {
+      if(
+        looseCutFlowPhoton.check( *photon )
+        ) eff["eff_g_r9__"+s].FillWeighted( photon->isTrue, selW, photon->r9 );
+      if(
+        looseCutFlowPhoton.passHoe()
+        && looseCutFlowPhoton.passSie()
+        && looseCutFlowPhoton.passNIso()
+        && looseCutFlowPhoton.passPIso()
+        ) eff["eff_g_cIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoChargedHadronsEA );
+      if(
+        looseCutFlowPhoton.passHoe()
+        && looseCutFlowPhoton.passSie()
+        && looseCutFlowPhoton.passCIso()
+        && looseCutFlowPhoton.passPIso()
+        ) eff["eff_g_nIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoNeutralHadronsEA );
+      if(
+        looseCutFlowPhoton.passHoe()
+        && looseCutFlowPhoton.passSie()
+        && looseCutFlowPhoton.passCIso()
+        && looseCutFlowPhoton.passNIso()
+        ) eff["eff_g_nIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoPhotonsEA );
+      if(
+        looseCutFlowPhoton.passHoe()
+        && looseCutFlowPhoton.passIso()
+      ) eff["eff_g_sigmaIetaIeta__"+s].FillWeighted( photon->isTrue, selW, photon->sigmaIetaIeta );
+      if(
+        looseCutFlowPhoton.passSie()
+        && looseCutFlowPhoton.passIso()
+      ) eff["eff_g_hOverE__"+s].FillWeighted( photon->isTrue, selW, photon->hOverE );
+    }
   }
 
   // trigger efficiencies
@@ -436,13 +437,15 @@ void HistogramProducer::fillObjects( string const& s ) {
       }
     }
 
-    if( *crossTriggerHt && ht > 650 ) {
+    if( *crossTriggerHt ) {
       eff["eff_hlt_pt__"+s].Fill( *signalTrigger, thisPhoton->p.Pt() );
+      if( ht > 650 ) eff["eff_hlt_pt__offlineHT650__"+s].Fill( *signalTrigger, thisPhoton->p.Pt() );
     }
-    if( *crossTriggerPhoton && thisPhoton->p.Pt() > 100 ) {
+    if( *crossTriggerPhoton ) {
       eff["eff_hlt_ht__"+s].Fill( *signalTrigger, ht );
+      if( thisPhoton->p.Pt() > 100 ) eff["eff_hlt_ht__offlinePT100__"+s].Fill( *signalTrigger, ht );
     }
-    if( thisPhoton->p.Pt()>100 && ht>600 && *crossTriggerHt ) {
+    if( thisPhoton->p.Pt()>100 && *crossTriggerHt ) {
       eff["eff_hlt_nVertex__"+s].Fill( *signalTrigger, *nGoodVertices );
       eff["eff_hlt_hoe__"+s].Fill( *signalTrigger, thisPhoton->hOverE );
       eff["eff_hlt_sie__"+s].Fill( *signalTrigger, thisPhoton->sigmaIetaIeta );
@@ -471,7 +474,10 @@ HistogramProducer::HistogramProducer():
   dR_recoGenJet( fReader, "dR_recoGenJet" ),
   signalTrigger( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
   crossTriggerPhoton( fReader, "HLT_Photon90_v" ),
-  crossTriggerHt( fReader, "HLT_PFHT600_v" )
+  crossTriggerHt( fReader, "HLT_PFHT600_v" ),
+  nVertexWeighter( "../plotter/weights_unweighted.root", "weight_n_vertex__tr"),
+  nJetWeighter( "../plotter/weights_unweighted.root", "weight_n_jet__tr"),
+  looseCutFlowPhoton( 0.0103, 2.44, 2.57, 0.0044, 0.5809, 1.92, 0.0043, 0.0277, 1.84, 4.00, 0.0040, 0.9402, 2.15, 0.0041 )
 {
 }
 
@@ -526,9 +532,11 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   //if( entry > 3 ) return true;
   //if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
-
   // set weight
   selW = *mc_weight * *pu_weight;
+  if(!isData){
+    selW *= nVertexWeighter.getWeight( *nGoodVertices );
+  }
 
   h["h_genHt"].Fill( *genHt, selW );
 
@@ -561,12 +569,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   /////////////////////////////////////////////////////////////////////////////
   // New selection
   for( auto& photon : photons ) {
-    // todo: correct hasPixelSeed?
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && photon.hasPixelSeed && photon.isLoose ) {
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
        selPhotons.push_back( &photon );
     }
   }
   defaultSelection();
+  if(!isData){
+    selW *= nJetWeighter.getWeight( selJets.size() );
+  }
 
   // Calculate razor variables
   if( true ) { // attention: computing intensive
@@ -609,7 +619,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // electron sample
 
   for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && photon.hasPixelSeed && photon.isLoose ) {
       selPhotons.push_back( &photon );
     }
   }
