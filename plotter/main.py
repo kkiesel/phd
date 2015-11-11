@@ -16,9 +16,7 @@ import multiplot
 
 import auxiliary as aux
 
-intLumi = 1280.23 # /pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2522.html
-intLumi = 1264 # /pb only RunD
-intLumi = 594.6-16 # /pb, only okt05 file
+intLumi = 1546.908 #/pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2531.html
 
 def getHistoFromDataset( dataset, name ):
     h0 = None
@@ -150,7 +148,12 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
         hsm = m.hists[0].GetStack().Last()
         if dataHist:
             r = ratio.Ratio( "Data/SM", dataHist, hsm )
-            r.draw(0,2)
+            r.draw(0.5,1.5)
+            if name in ["h_n_vertex__tr","h_n_jet__tr","h_ht__tr","h_g_pt__tr"]:
+                f = ROOT.TFile("weights.root","update")
+                r.ratio.Write(name.replace("h_","weight_"))
+                f.Close()
+
 
         l = aux.Label()
         aux.save( "sameHistogram%s_%s"%(saveName,name) )
@@ -161,10 +164,8 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0] )
 
-    #names = ["h_met__tr"] # test plot
-    #names = ["h_g_pt__tr"] # test plot
-    #names = ["h_dphi_met_g__tr_bit"] # test plot
-    #names = [ "h_ht__tr"]
+    #names = [ "h_n_jet__tr"] # test plot
+    #names = [ "h_ht__tr" ] # test plot
 
     for name in names:
         if not name.startswith("h_"): continue
@@ -405,22 +406,25 @@ def efficiencies( dataset, savename="" ):
         ROOT.gPad.Update()
         #eff.GetPaintedGraph().GetYaxis().SetRangeUser(0.9, 1.01)
 
-        if name == "eff_hlt_ht__base":
-            cutValue = 600
-        elif name == "eff_hlt_pt__base":
+        if "_pt_" in name:
             cutValue = 100
+        elif "_ht_" in name:
+            cutValue = 600
         else:
-            cutValue = None
+            cutValue = 0
 
-        if cutValue:
+        if cutValue != None:
             bin = h_pas.FindFixBin( cutValue )
             passed = int(h_pas.Integral( bin, -1 ))
             total = int(h_tot.Integral( bin, -1 ))
+            if not total: continue
             conf = 0.682689492137
             e = 1.*passed/total
             e_up = ROOT.TEfficiency.ClopperPearson( total, passed, conf, True )
             e_dn = ROOT.TEfficiency.ClopperPearson( total, passed, conf, False )
-            print "ε = {:.1%} + {:.1%} - {:.1%}".format(e, e_up-e,e-e_dn )
+            eLabel = ROOT.TLatex( 0.7, .15, "#varepsilon = {:.1f}^{{#plus{:.1f}}}_{{#minus{:.1f}}}%".format(100*e, 100*(e_up-e),100*(e-e_dn) ) )
+            eLabel.SetNDC()
+            eLabel.Draw()
 
             # graphical representation
             l = ROOT.TLine()
@@ -438,7 +442,8 @@ def efficiencies( dataset, savename="" ):
             l.DrawLine( cutValue, ymin, cutValue, ymax )
 
 
-        l = aux.Label()
+        l = aux.Label(sim="Data" not in dataset.label)
+        l.lum.DrawLatexNDC( .1, l.lum.GetY(), dataset.label )
         aux.save( "efficiency_"+savename+name )
 
         h_tot.SetLineColor(2)
@@ -566,7 +571,7 @@ def main():
     #drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
-    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[data,t5wg_1500_125, t5gg_1000_200])
+    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[t5wg_1500_125, t5gg_1000_200])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
@@ -578,6 +583,7 @@ def main():
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
+    #efficiencies( gjets, "gjet_" )
     #efficiencies( data, "singlePhoton_" )
     #efficiencies( dataHt, "jetHt_" )
     #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
