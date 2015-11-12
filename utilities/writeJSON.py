@@ -1,20 +1,8 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import ConfigParser
 import ROOT
-import math
 import argparse
-import re
-from random import randint
-from sys import maxint
-
-# private libs
-import ratio
-import style
-import multiplot
-
-import auxiliary as aux
 
 def packLists( inList ):
     inList.sort()
@@ -27,11 +15,12 @@ def packLists( inList ):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('inputFile', default="/user/kiesel/nTuples/V03_2/SinglePhoton_nTuple.root" )
+    parser.add_argument('inputFiles', default=["/user/kiesel/nTuples/V03_2/SinglePhoton_nTuple.root"], nargs="+" )
     args = parser.parse_args()
 
     ch = ROOT.TChain("TreeWriter/eventTree")
-    ch.AddFile( args.inputFile )
+    for f in args.inputFiles:
+        ch.AddFile( f )
 
     out = {}
     for e in ch:
