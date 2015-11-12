@@ -1,15 +1,16 @@
 
 class Weighter {
   public:
+    Weighter(){}
     Weighter( const string& filename, const string& histname ) {
       TFile f( filename.c_str() );
       h = (TH1F*)f.Get( histname.c_str() );
-      if(!h) {
-        cerr << "Error in <Weighter>:  Could not find histogram "
+      if(h) {
+        h->SetDirectory(0);
+      } else {
+        cerr << "Error in <Weighter::Weighter>:  Could not find histogram "
              << histname << " in file " << filename << endl;
-        throw 5;
       }
-      h->SetDirectory(0);
     }
 
     ~Weighter(){
@@ -17,7 +18,7 @@ class Weighter {
     }
 
     float getWeight( float value ){
-      return h->GetBinContent( h->FindFixBin( value ) );
+      return h ? h->GetBinContent( h->FindFixBin( value ) ) : 1.;
     }
 
   private:
