@@ -16,12 +16,6 @@ import multiplot
 
 import auxiliary as aux
 
-def drange(start, stop, step):
-    r = start
-    while r < stop:
-        yield r
-        r += step
-
 def drange(start, stop, n):
     out = [start]
     step = 1.*(stop-start)/n
@@ -56,12 +50,11 @@ def datasetAbbr( filename ):
         return "Dataset"
 
 
-def save( name, folder="plots/", endings=[".pdf"] ):
-    for ending in endings:
-        ROOT.gPad.GetCanvas().SaveAs( folder + name+ ending )
-
 def drawSame( fullName, fastName, hname, binning=[] ):
     ds = datasetAbbr( fullName )
+
+    fullNgen = aux.getNgen(fullName)
+    fastNgen = aux.getNgen(fastName)
 
     fullh = aux.getFromFile( fullName, hname )
     fasth = aux.getFromFile( fastName, hname )
@@ -75,7 +68,8 @@ def drawSame( fullName, fastName, hname, binning=[] ):
         print "$f_\\text{{\\fullsim}}(e\\rightarrow\gamma)={:.2f}\\%$".format( fullh.GetBinContent(2)/fullh.Integral()*100. )
         print "$f_\\text{{\\fastsim}}(e\\rightarrow\gamma)={:.2f}\\%$".format( fasth.GetBinContent(2)/fasth.Integral()*100. )
 
-    fasth.Scale( fullh.GetEntries()/fasth.GetEntries() )
+    fasth.Scale( fullNgen/fastNgen )
+
     if binning:
         fullh = aux.rebin( fullh, binning )
         fasth = aux.rebin( fasth, binning )
@@ -107,14 +101,15 @@ def drawSame( fullName, fastName, hname, binning=[] ):
     r = ratio.Ratio( "#font[132]{#color[2]{F#scale[0.75]{AST}}/F#scale[0.75]{ULL}}", fasth, fullh )
     r.draw()
 
+    scale = fullh.Integral(0,-1)/fasth.Integral(0,-1) * fastNgen/fullNgen
 
-    info = ROOT.TLatex( 0.4, .95, infoText(hname)+"  "+ds )
+    info = ROOT.TLatex( 0.4, .95, infoText(hname)+"  "+ds + "    #Deltas={:.1f}%".format(100*(scale-1)) )
     info.SetNDC()
     info.Draw()
 
-    save( "fastSimStudies_"+ds+"_"+hname )
+    aux.save( "fastSimStudies_"+ds+"_"+hname )
     can.SetLogy(1)
-    save( "fastSimStudies_"+ds+"_"+hname+"_log" )
+    aux.save( "fastSimStudies_"+ds+"_"+hname+"_log" )
 
 def scaleFactors( fullName, fastName ):
     ds = datasetAbbr( fullName )
