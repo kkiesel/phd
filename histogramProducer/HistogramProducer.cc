@@ -176,6 +176,8 @@ class HistogramProducer : public TSelector {
 
   Weighter nVertexWeighter;
   Weighter nJetWeighter;
+  Weighter qcdEtaWeighter;
+  Weighter qcdPtWeighter;
 
   CutFlowPhoton looseCutFlowPhoton;
 
@@ -190,7 +192,7 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_st__"+s] = TH1F( "", ";S_{T}", 200, 0, 2500 );
 
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1500 );
-  h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 100, 0, 3 );
+  h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 1500, 0, 1.5 );
   h["h_g_phi__"+s] = TH1F( "", ";#phi", 200, -3.2, 3.2 );
 
   // jet
@@ -423,8 +425,8 @@ void HistogramProducer::fillObjects( string const& s ) {
   // trigger efficiencies
   tree::Photon* thisPhoton=0;
   for( auto& photon : selPhotons ) {
-    if( photon->p.Pt() > 15 && fabs(photon->p.Eta()) < 1.4442 && photon->isLoose ) {
-      if( !thisPhoton || thisPhoton->p.Pt() > photon->p.Pt() ) {
+    if( photon->p.Pt() > 15 && fabs(photon->p.Eta()) < 1.4442 && photon->isLoose && !photon->hasPixelSeed ) {
+      if( !thisPhoton || thisPhoton->p.Pt() < photon->p.Pt() ) {
         thisPhoton = photon;
       }
     }
@@ -478,6 +480,8 @@ HistogramProducer::HistogramProducer():
   crossTriggerHt( fReader, "HLT_PFHT600_v" ),
   nVertexWeighter( "../plotter/weights_unweighted.root", "weight_n_vertex__tr"),
   nJetWeighter( "../plotter/weights_unweighted.root", "weight_n_jet__tr"),
+  qcdEtaWeighter( "../plotter/weights.root", "weight_gqcd_g_eta__tr_jControl"),
+  qcdPtWeighter( "../plotter/weights.root", "weight_gqcd_g_pt__tr_jControl"),
   looseCutFlowPhoton( 0.0103, 2.44, 2.57, 0.0044, 0.5809, 1.92, 0.0043, 0.0277, 1.84, 4.00, 0.0040, 0.9402, 2.15, 0.0041 )
 {
 }
@@ -643,7 +647,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     }
   }
   defaultSelection();
+
   if( selPhotons.size() && selHt > 600 && (*signalTrigger || !isData) ) {
+     //selW *= qcdPtWeighter.getWeight( selPhotons[0]->p.Pt() );
      fillSelection("tr_jControl");
   }
 
