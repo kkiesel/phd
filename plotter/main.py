@@ -96,24 +96,6 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
-    """
-    if "dphi" in name:
-        m.leg = ROOT.TLegend(.5,.6,.83,.92)
-        m.leg.SetFillColor( ROOT.kWhite )
-
-    scale = 1.
-    for d in additional:
-        h_data = getHistoFromDataset( d, name )
-        if True:
-            sumBkg = None
-            for d in bkg[-1::-1]:
-                h = getHistoFromDataset( d, name )
-                if sumBkg: sumBkg.Add( h )
-                else: sumBkg = h
-            if sumBkg.Integral(): scale = h_data.Integral() / sumBkg.Integral()
-    """
-
-
     for d in bkg[-1::-1]:
         h = d.getHist( name )
         if not h.Integral(): continue
@@ -128,6 +110,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
         h = d.getHist( name )
         if not h.Integral(): continue
         if binning: h = aux.rebin( h, binning )
+        aux.appendFlowBin( h )
 
         if h.GetLineColor() == ROOT.kBlack: # data
             h.drawOption_ = "ep"
@@ -164,7 +147,6 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
 def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
     names = aux.getObjectNames( bkg[0].files[0] )
 
-    #names = [ "h_n_jet__tr"] # test plot
     #names = [ "h_ht__tr" ] # test plot
 
     for name in names:
@@ -219,8 +201,8 @@ def drawRazor( dataset ):
 def qcdClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
 
-    gSet = "tr_reco"
-    cSet = "jControl"
+    gSet = "tr"
+    cSet = "tr_jControl"
 
     for name in names:
         if cSet not in name: continue
@@ -240,7 +222,7 @@ def qcdClosure( dataset, samplename="" ):
         for h in hdir, hpre:
             h.SetYTitle( aux.getYAxisTitle( h ) )
 
-        for binningName, binning in getBinnigsFromName( name ).iteritems():
+        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             can = ROOT.TCanvas()
             m = multiplot.Multiplot()
             mod_dir = hdir
@@ -257,7 +239,15 @@ def qcdClosure( dataset, samplename="" ):
             m.add( mod_dir, "#gamma" )
             m.add( mod_pre, "#gamma-like" )
 
-            m.Draw()
+            if m.Draw():
+
+                r = ratio.Ratio( "#gamma/#gamma-like", mod_dir, mod_pre )
+                r.draw(0.5,1.5)
+                if name in ["h_g_eta__tr_jControl","h_g_pt__tr_jControl"]:
+                    f = ROOT.TFile("weights.root","update")
+                    r.ratio.Write(name.replace("h_","weight_gqcd_"), ROOT.TObject.kWriteDele   )
+                    f.Close()
+
 
             l = aux.Label()
             aux.save( "qcdClosure_"+name+samplename+binningName )
@@ -579,11 +569,13 @@ def main():
     #ewkClosure( ttjets, "_tt" )
     #ewkClosure( wjets, "_w" )
     #ewkClosure( wjets+ttjets, "_ewk" )
-    #qcdClosure( qcd+gjets, "_qcd-gjets" )
+    #qcdClosure( qcd+gjets, "_gqcd" )
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
     #efficiencies( gjets, "gjet_" )
+    #efficiencies( save_data_okt05, "singlePhoton_okt05_" )
+    #efficiencies( save_data_prompt, "singlePhoton_prompt_" )
     #efficiencies( data, "singlePhoton_" )
     #efficiencies( dataHt, "jetHt_" )
     #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
