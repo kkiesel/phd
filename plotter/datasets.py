@@ -80,16 +80,21 @@ class Dataset:
 # data
 data = Dataset( "SinglePhoton", 0, ROOT.kBlack )
 
-data_prompt = Dataset( "SinglePhoton_PromptReco-v4", 0, ROOT.kBlack )
-data_okt05 = Dataset( "SinglePhoton_RunD-05Oct2015", 0, ROOT.kBlack )
+data_2015C = Dataset( "SinglePhoton_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
+data_2015D = Dataset( "SinglePhoton_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
+data_prompt = Dataset( "SinglePhoton_Run2015D-PromptReco-v4", 0, ROOT.kBlack )
 
-data = data_prompt+data_okt05
+data = data_prompt+data_2015D+data_2015C
 data.label = "Data"
 
+jetHt_2015C = Dataset( "JetHT_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
+jetHt_2015D = Dataset( "JetHT_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
 jetHt_prompt = Dataset( "JetHT_PromptReco-v4", 0, ROOT.kBlack )
-jetHt_okt05 = Dataset( "JetHT_05Oct2015", 0, ROOT.kBlack )
 
-dataHt = jetHt_prompt+jetHt_okt05
+dataHt_2015C = Dataset( "JetHT_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
+dataHt_2015D = Dataset( "JetHT_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
+dataHt_prompt = Dataset( "JetHT_Run2015D-PromptReco-v4", 0, ROOT.kBlack )
+dataHt = dataHt_prompt+dataHt_2015D+dataHt_2015C
 dataHt.label = "Data (JetHt)"
 
 # k-factors from twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
@@ -101,7 +106,7 @@ gjets_pt15 = Dataset( "GJet_Pt-15ToInf", 364375, ROOT.kCyan-2, "GJet_Pt-15ToInf_
 gjets40 = Dataset( "GJets_HT-40To100", 20730, ROOT.kCyan-1, "GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 gjets100 = Dataset( "GJets_HT-100To200", 9226, ROOT.kCyan+4, "GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 gjets200 = Dataset( "GJets_HT-200To400", 2300, ROOT.kCyan+3, "GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-gjets400 = Dataset( "GJets_HT-400To600", 277.4, ROOT.kCyan+2, "GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+gjets400 = Dataset( "GJets_HT-400To600_part", 277.4, ROOT.kCyan+2, "GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 gjets600 = Dataset( "GJets_HT-600ToInf", 93.38, ROOT.kCyan, "GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 
 gjets = gjets600 + gjets400 + gjets200 + gjets100 + gjets40
