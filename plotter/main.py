@@ -425,11 +425,12 @@ def efficiencies( dataset, savename="" ):
             l.DrawLine( cutValue, e_up, xmax, e_up )
             l.DrawLine( cutValue, e_dn, xmax, e_dn )
 
-            # cut line
-            l.SetLineStyle(2)
-            ymin = eff.GetPaintedGraph().GetYaxis().GetXmin()
-            ymax = eff.GetPaintedGraph().GetYaxis().GetXmax()
-            l.DrawLine( cutValue, ymin, cutValue, ymax )
+            if cutValue > eff.CreateGraph().GetHistogram().GetXaxis().GetXmin():
+                # cut line
+                l.SetLineStyle(2)
+                ymin = eff.GetPaintedGraph().GetYaxis().GetXmin()
+                ymax = eff.GetPaintedGraph().GetYaxis().GetXmax()
+                l.DrawLine( cutValue, ymin, cutValue, ymax )
 
 
         l = aux.Label(sim="Data" not in dataset.label)
@@ -574,8 +575,8 @@ def main():
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
     #efficiencies( gjets, "gjet_" )
-    #efficiencies( save_data_okt05, "singlePhoton_okt05_" )
-    #efficiencies( save_data_prompt, "singlePhoton_prompt_" )
+    #efficiencies( data_2015D, "singlePhotonD_" )
+    #efficiencies( data_prompt, "singlePhotonPrompt_" )
     #efficiencies( data, "singlePhoton_" )
     #efficiencies( dataHt, "jetHt_" )
     #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
