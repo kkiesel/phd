@@ -258,8 +258,8 @@ void HistogramProducer::initObjects( string const& s ) {
   h2["h2_match_photon_genElectron__"+s] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen e}", 100, 0, 0.5, 100, 0, 4 );
   h2["h2_match_photon_genPhoton__"+s] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen #gamma}", 100, 0, 0.5, 100, 0, 4 );
 
-  eff["eff_hlt_pt__offlineHT650__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon_{H_{T}>650GeV}", 200, 0, 2000 );
-  eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 200, 0, 2000 );
+  eff["eff_hlt_pt__offlineHT650__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon_{H_{T}>650GeV}", 250, 0, 1000 );
+  eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 250, 0, 1000 );
   eff["eff_hlt_ht__offlinePT100__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon_{p_{T}>100GeV}", 200, 0, 2000 );
   eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon", 200, 0, 2000 );
   eff["eff_hlt_nVertex__"+s] = TEfficiency( "", ";Vertex multiplicity", 41, -0.5, 40.5 );
@@ -268,6 +268,7 @@ void HistogramProducer::initObjects( string const& s ) {
   eff["eff_hlt_cIso__"+s] = TEfficiency( "", ";I_{#pi} (GeV)", 100, 0, 10 );
   eff["eff_hlt_nIso__"+s] = TEfficiency( "", ";I_{n} (GeV)", 100, 0, 20 );
   eff["eff_hlt_pIso__"+s] = TEfficiency( "", ";I_{#gamma} (GeV)", 100, 0, 20 );
+  eff["eff_hlt_n_jet_uncleaned__"+s] = TEfficiency( "", ";uncleaned jet multiplicity", 15, -0.5, 14.5 );
 
 }
 
@@ -455,6 +456,7 @@ void HistogramProducer::fillObjects( string const& s ) {
       eff["eff_hlt_cIso__"+s].Fill( *signalTrigger, thisPhoton->isoChargedHadronsEA );
       eff["eff_hlt_nIso__"+s].Fill( *signalTrigger, thisPhoton->isoNeutralHadronsEA );
       eff["eff_hlt_pIso__"+s].Fill( *signalTrigger, thisPhoton->isoPhotonsEA );
+      eff["eff_hlt_n_jet_uncleaned__"+s].Fill( *signalTrigger, selJets.size() );
     }
 
   }
@@ -539,9 +541,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   fReader.SetEntry(entry);
   // set weight
   selW = *mc_weight * *pu_weight;
-  if(!isData){
-    selW *= nVertexWeighter.getWeight( *nGoodVertices );
-  }
+  //if(!isData) selW *= nVertexWeighter.getWeight( *nGoodVertices );
 
   h["h_genHt"].Fill( *genHt, selW );
 
@@ -579,9 +579,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     }
   }
   defaultSelection();
-  if(!isData){
-    selW *= nJetWeighter.getWeight( selJets.size() );
-  }
+  //if(!isData) selW *= nJetWeighter.getWeight( selJets.size() );
 
   // Calculate razor variables
   if( true ) { // attention: computing intensive
