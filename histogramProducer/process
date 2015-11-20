@@ -3,6 +3,7 @@
 infiles=(
 TTJets_nTuple.root
 GJets_HT-200To400_nTuple.root
+GJets_HT-400To600_nTuple.root
 SinglePhoton_Run2015D-PromptReco-v4_nTuple.root
 TTGJets_nTuple.root
 GJets_HT-40To100_nTuple.root
