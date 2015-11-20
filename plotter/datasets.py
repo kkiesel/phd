@@ -75,25 +75,23 @@ class Dataset:
         return h0
 
 
-
-
 # data
 data = Dataset( "SinglePhoton", 0, ROOT.kBlack )
 
 data_2015C = Dataset( "SinglePhoton_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
 data_2015D = Dataset( "SinglePhoton_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
+data_2015D.label = "05Oct2015 reco"
 data_prompt = Dataset( "SinglePhoton_Run2015D-PromptReco-v4", 0, ROOT.kBlack )
+data_prompt.label = "PromptReco-v4"
 
 data = data_prompt+data_2015D+data_2015C
 data.label = "Data"
 
-jetHt_2015C = Dataset( "JetHT_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
-jetHt_2015D = Dataset( "JetHT_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
-jetHt_prompt = Dataset( "JetHT_PromptReco-v4", 0, ROOT.kBlack )
-
 dataHt_2015C = Dataset( "JetHT_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
 dataHt_2015D = Dataset( "JetHT_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
+dataHt_2015D.label = "05Oct2015 reco"
 dataHt_prompt = Dataset( "JetHT_Run2015D-PromptReco-v4", 0, ROOT.kBlack )
+dataHt_prompt.label = "Prompt"
 dataHt = dataHt_prompt+dataHt_2015D+dataHt_2015C
 dataHt.label = "Data (JetHt)"
 
@@ -124,6 +122,18 @@ qcd2000 = Dataset( "QCD_HT2000toInf", 25.24,  ROOT.kBlue, "QCD_HT2000toInf_TuneC
 qcd = qcd2000 + qcd1500 + qcd1000 + qcd700 + qcd500 + qcd300 + qcd200 + qcd100
 qcd.label = "Multijet"
 
+emqcd15 = Dataset( "QCD_Pt-15to20_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-15to20_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd20 = Dataset( "QCD_Pt-20to30_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd30 = Dataset( "QCD_Pt-30o50_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd50 = Dataset( "QCD_Pt-50to80_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd80 = Dataset( "QCD_Pt-80to120_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-80o120_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd120 = Dataset( "QCD_Pt-120to170_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-120o170_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd170 = Dataset( "QCD_Pt-170to300_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-170o300_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd300 = Dataset( "QCD_Pt-300toInf_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-300oInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+
+emqcd = emqcd300 + emqcd170 + emqcd120 + emqcd80 + emqcd50 + emqcd30 + emqcd20 + emqcd15
+emqcd.label = "QCD EM enriched"
+
 # electroweak
 
 ttjets = Dataset( "TTJets", 670.3,  ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
@@ -151,15 +161,17 @@ wjets.label = "W#rightarrowl#nu"
 ttg = Dataset( "TTGJets", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia88" )
 ttg.label = "#gammat#bar{t}"
 
-wg = Dataset( "WGToLNuG", 405.271, ROOT.kRed-3, "" )
-wg.label = "#gammaW#rightarrow#gammal#nu"
-
+wg_mc = Dataset( "WGToLNuG-amcatnloFXFX", 489., ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+wg_mg = Dataset( "WGToLNuG-madgraphMLM", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wg_pt500 = Dataset( "WGToLNuG_PtG-500", 0.0117887, ROOT.kRed-1, "WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 
 # znunu
 znunu100 = Dataset( "ZJetsToNuNu_HT-100To200", 280.47, ROOT.kMagenta+3 , "ZJetsToNuNu_HT-100To200_13TeV-madgraph" )
 znunu200 = Dataset( "ZJetsToNuNu_HT-200To400", 78.36, ROOT.kMagenta+2 , "ZJetsToNuNu_HT-200To400_13TeV-madgraph" )
 znunu400 = Dataset( "ZJetsToNuNu_HT-400To600", 10.94, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-400To600_13TeV-madgraph" )
 znunu600 = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.20, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-600ToInf_13TeV-madgraph" )
+
+zg_130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.223, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
 
 for ds in znunu600,znunu400,znunu200,znunu100:
     # apply k-factor
@@ -173,13 +185,35 @@ znunu.label = "Z#rightarrow#nu#nu"
 dy = Dataset( "DYJetsToLL_M-50", 6025.2, ROOT.kRed+3, "DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 dy.label = "Z#rightarrowll"
 
+
 # signal samples
 
-t5wg_1500_125 = Dataset( "T5wg_1500_125", col=ROOT.kGreen+4 )
-t5wg_1500_125.label = "T5wg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=125"
+import collections
+class SampleCollection(collections.MutableMapping):
+    """Dictionary used to store signal datasets.
+    The first time a dataset is requested, it is created"""
 
-t5wg_1500_1475 = Dataset( "T5wg_1500_1475", col=ROOT.kGreen+3 )
-t5wg_1500_1475.label = "T5wg m(#tilde{g})=1500 m(#tilde{#chi}^{0}_{1})=1475"
+    def __init__(self, *args, **kwargs):
+        self.store = dict()
+        self.update(dict(*args, **kwargs))  # use the free update to set keys
 
-t5gg_1000_200 = Dataset( "SMS-T5gg_mGluino-1000_mNeutralino-200", col=ROOT.kGreen+2 )
-t5gg_1000_200.label = "T5gg m(#tilde{g})=1000 m(#tilde{#chi}^{0}_{1})=200"
+    def __getitem__(self, key):
+        if key not in self.store:
+            self.store[key] = Dataset( aux.getDatasetFromKey(key), col=ROOT.kGreen+len(self) )
+            self.store[key].label = aux.getSignalLabel( key )
+        return self.store[key]
+
+    def __setitem__(self, key, value):
+        self.store[key] = value
+
+    def __delitem__(self, key):
+        del self.store[key]
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+
+signal = SampleCollection()
+
