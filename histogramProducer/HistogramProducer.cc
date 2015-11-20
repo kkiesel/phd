@@ -477,6 +477,7 @@ HistogramProducer::HistogramProducer():
   genLeptonsFromW( fReader, "genLeptonsFromW" ),
   genHt( fReader, "genHt" ),
   dR_recoGenJet( fReader, "dR_recoGenJet" ),
+  runNo( fReader, "runNo" ),
   signalTrigger( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
   crossTriggerPhoton( fReader, "HLT_Photon90_v" ),
   crossTriggerHt( fReader, "HLT_PFHT600_v" ),
@@ -542,6 +543,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // set weight
   selW = *mc_weight * *pu_weight;
   //if(!isData) selW *= nVertexWeighter.getWeight( *nGoodVertices );
+
+  // https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2552/1/1/1.html
+  // This run has a bad beam spot, so is not to used for the signal trigger
+  if( isData && *runNo == 259637 ) return true;
 
   h["h_genHt"].Fill( *genHt, selW );
 
