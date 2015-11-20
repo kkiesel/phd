@@ -503,7 +503,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
   initObjects("base");
   h["h_genHt"] = TH1F( "", ";H_{T}^{gen} (GeV)", 6000, 0, 3000 );
 
-  vector<string> strs = { "trBit", "tr", "tr_met200", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90" };
+  vector<string> strs = { "trPhoton", "trBit", "tr", "tr_met200", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90" };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -602,6 +602,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( *signalTrigger ) {
     fillSelection("trBit");
+  }
+
+  if( selPhotons.size() && (*crossTriggerPhoton || !isData) ) {
+    fillSelection("trPhoton");
   }
 
   if( selPhotons.size() && selHt > 600 && (*signalTrigger || !isData) ) {
