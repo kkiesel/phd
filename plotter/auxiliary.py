@@ -40,6 +40,17 @@ def getXsecFromName( name ):
     print "cout not guess xsec from file name"
     return 0
 
+def getSignalLabel( dataset ):
+    m = re.match( "([^_]+)_(\d+)_(\d+)", dataset )
+    if m:
+        return "{} m(#tilde{{g}})={} m(#tilde{{#chi}}^{{0}}_{{1}})={}".format(*m.groups())
+    return dataset
+
+def getDatasetFromKey(key):
+    m = re.match( "T([^_]+)_(\d+)_(\d+)", key )
+    if m: return "SMS-T{}_mGluino-{}_mNeutralino-{}".format(*m.groups())
+    return key
+
 
 def getFromFile( filename, histoname ):
     f = ROOT.TFile( filename )
