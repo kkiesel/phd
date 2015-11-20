@@ -16,7 +16,7 @@ import multiplot
 
 import auxiliary as aux
 
-intLumi = 1546.908 #/pb https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2531.html
+intLumi = 2110.588 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2544.html
 
 def getHistoFromDataset( dataset, name ):
     h0 = None
@@ -91,14 +91,28 @@ def compareAll( saveName="test", *datasets ):
         if name.startswith("h_"):
             compare( datasets, name, saveName )
 
-def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None ):
+
+def divideDatasetIntegrals( numerator, denominator, name ):
+    numMerged = sum(numerator)
+    h_num = numMerged.getHist( name )
+    num = h_num.Integral(0,-1)
+    denMerged = sum(denominator)
+    h_den = denMerged.getHist( name )
+    den = h_den.Integral(0,-1)
+    return num/den if den else 1.
+
+def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, scaleToData=True ):
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
+    scale = 1.
+    if scaleToData: scale = divideDatasetIntegrals( [ i for i in additional if "Data" in i.label ], bkg, name )
+
     for d in bkg[-1::-1]:
         h = d.getHist( name )
         if not h.Integral(): continue
+        h.Scale(scale)
         if binning: h = aux.rebin( h, binning )
 
         aux.appendFlowBin( h )
@@ -378,69 +392,74 @@ def efficienciesDataMC( dataset_data, dataset_mc, savename="" ):
         aux.save( "efficiencyDataMC_"+savename+name )
 
 
+def efficiency( dataset, name, savename="" ):
+    c = ROOT.TCanvas()
+    c.SetLogy(0)
+    h = getHistoFromDataset( dataset, name )
+    if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
+
+    h_pas = h.GetPassedHistogram()
+    h_tot = h.GetTotalHistogram()
+    if "hlt" in name:
+        eff = ROOT.TEfficiency( h_pas, h_tot )
+    else:
+        eff = h
+
+    eff.Draw()
+    ROOT.gPad.Update()
+    #eff.GetPaintedGraph().GetYaxis().SetRangeUser(0.9, 1.01)
+
+    if "_pt_" in name:
+        cutValue = 100
+    elif "_ht_" in name:
+        cutValue = 600
+    else:
+        cutValue = 0
+
+    if cutValue != None:
+        bin = h_pas.FindFixBin( cutValue )
+        passed = int(h_pas.Integral( bin, -1 ))
+        total = int(h_tot.Integral( bin, -1 ))
+        if not total: return
+        conf = 0.682689492137
+        e = 1.*passed/total
+        e_up = ROOT.TEfficiency.ClopperPearson( total, passed, conf, True )
+        e_dn = ROOT.TEfficiency.ClopperPearson( total, passed, conf, False )
+        eLabel = ROOT.TLatex( 0.7, .15, "#varepsilon = {:.1f}^{{#plus{:.1f}}}_{{#minus{:.1f}}}%".format(100*e, 100*(e_up-e),100*(e-e_dn) ) )
+        eLabel.SetNDC()
+        eLabel.Draw()
+
+        # graphical representation
+        l = ROOT.TLine()
+        l.SetLineWidth(2)
+        l.SetLineColor( ROOT.kRed )
+        xmax = eff.CreateGraph().GetHistogram().GetXaxis().GetXmax()
+        l.DrawLine( cutValue, e, xmax, e )
+        l.DrawLine( cutValue, e_up, xmax, e_up )
+        l.DrawLine( cutValue, e_dn, xmax, e_dn )
+
+        if cutValue > eff.CreateGraph().GetHistogram().GetXaxis().GetXmin():
+            # cut line
+            l.SetLineStyle(2)
+            ymin = eff.GetPaintedGraph().GetYaxis().GetXmin()
+            ymax = eff.GetPaintedGraph().GetYaxis().GetXmax()
+            l.DrawLine( cutValue, ymin, cutValue, ymax )
+
+
+    l = aux.Label(sim="Data" not in dataset.label)
+    l.lum.DrawLatexNDC( .1, l.lum.GetY(), dataset.label )
+    aux.save( "efficiency_"+savename+name )
+
+    h_tot.SetLineColor(2)
+    h_tot.Draw("hist")
+    h_pas.Draw("same e*")
+    aux.save( "efficiency_"+savename+name+"_raw" )
+
 def efficiencies( dataset, savename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TEfficiency] )
 
     for name in names:
-        h = getHistoFromDataset( dataset, name )
-        if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
-
-        h_pas = h.GetPassedHistogram()
-        h_tot = h.GetTotalHistogram()
-        if "hlt" in name:
-            eff = ROOT.TEfficiency( h_pas, h_tot )
-        else:
-            eff = h
-
-        eff.Draw()
-        ROOT.gPad.Update()
-        #eff.GetPaintedGraph().GetYaxis().SetRangeUser(0.9, 1.01)
-
-        if "_pt_" in name:
-            cutValue = 100
-        elif "_ht_" in name:
-            cutValue = 600
-        else:
-            cutValue = 0
-
-        if cutValue != None:
-            bin = h_pas.FindFixBin( cutValue )
-            passed = int(h_pas.Integral( bin, -1 ))
-            total = int(h_tot.Integral( bin, -1 ))
-            if not total: continue
-            conf = 0.682689492137
-            e = 1.*passed/total
-            e_up = ROOT.TEfficiency.ClopperPearson( total, passed, conf, True )
-            e_dn = ROOT.TEfficiency.ClopperPearson( total, passed, conf, False )
-            eLabel = ROOT.TLatex( 0.7, .15, "#varepsilon = {:.1f}^{{#plus{:.1f}}}_{{#minus{:.1f}}}%".format(100*e, 100*(e_up-e),100*(e-e_dn) ) )
-            eLabel.SetNDC()
-            eLabel.Draw()
-
-            # graphical representation
-            l = ROOT.TLine()
-            l.SetLineWidth(2)
-            l.SetLineColor( ROOT.kRed )
-            xmax = eff.CreateGraph().GetHistogram().GetXaxis().GetXmax()
-            l.DrawLine( cutValue, e, xmax, e )
-            l.DrawLine( cutValue, e_up, xmax, e_up )
-            l.DrawLine( cutValue, e_dn, xmax, e_dn )
-
-            if cutValue > eff.CreateGraph().GetHistogram().GetXaxis().GetXmin():
-                # cut line
-                l.SetLineStyle(2)
-                ymin = eff.GetPaintedGraph().GetYaxis().GetXmin()
-                ymax = eff.GetPaintedGraph().GetYaxis().GetXmax()
-                l.DrawLine( cutValue, ymin, cutValue, ymax )
-
-
-        l = aux.Label(sim="Data" not in dataset.label)
-        l.lum.DrawLatexNDC( .1, l.lum.GetY(), dataset.label )
-        aux.save( "efficiency_"+savename+name )
-
-        h_tot.SetLineColor(2)
-        h_tot.Draw("hist")
-        h_pas.Draw("same e*")
-        aux.save( "efficiency_"+savename+name+"_raw" )
+        efficiency( dataset, name, savename )
 
 def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
     names = aux.getObjectNames( dataset.files[0] )
@@ -561,9 +580,9 @@ def main():
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
     #drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
-    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,t5wg_1500_125, t5wg_1500_1475 ])
+    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
-    #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[t5wg_1500_125, t5gg_1000_200])
+    #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[signal["T5gg_1400_1200"], signal["T5gg_1000_200"]])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( ttjets )
 
@@ -580,6 +599,13 @@ def main():
     #efficiencies( data, "singlePhoton_" )
     #efficiencies( dataHt, "jetHt_" )
     #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
+    #efficiency( data_2015D, "eff_hlt_ht__offlinePT100__base", "singlePhotonD_" )
+    #efficiency( data_prompt, "eff_hlt_ht__offlinePT100__base", "singlePhotonPrompt_" )
+    #efficiency( data_prompt, "eff_hlt_ht__offlinePT100__extra__base", "singlePhotonPrompt_" )
+    #efficiency( data, "eff_hlt_ht__base", "singlePhoton_" )
+    #efficiency( dataHt_2015D, "eff_hlt_pt__offlineHT650__base", "dataHtD_" )
+    #efficiency( dataHt_prompt, "eff_hlt_pt__offlineHT650__base", "dataHtPrompt_" )
+    #efficiency( dataHt_prompt, "eff_hlt_pt__offlineHT650__extra__base", "dataHtPrompt_" )
 
     #drawROCs()
     #ewkIsrSamplesSplitting( ttjets, ttg, "tt" )
