@@ -17,7 +17,8 @@ class Dataset:
     color = None
     label = ""
 
-    def __add__( self, dset ):
+    def __radd__( self, dset ):
+        if not dset: return self
 
         out = copy.deepcopy(self)
 
@@ -104,10 +105,10 @@ gjets_pt15 = Dataset( "GJet_Pt-15ToInf", 364375, ROOT.kCyan-2, "GJet_Pt-15ToInf_
 gjets40 = Dataset( "GJets_HT-40To100", 20730, ROOT.kCyan-1, "GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 gjets100 = Dataset( "GJets_HT-100To200", 9226, ROOT.kCyan+4, "GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 gjets200 = Dataset( "GJets_HT-200To400", 2300, ROOT.kCyan+3, "GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-gjets400 = Dataset( "GJets_HT-400To600_part", 277.4, ROOT.kCyan+2, "GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+gjets400 = Dataset( "GJets_HT-400To600", 277.4, ROOT.kCyan+2, "GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 gjets600 = Dataset( "GJets_HT-600ToInf", 93.38, ROOT.kCyan, "GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 
-gjets = gjets600 + gjets400 + gjets200 + gjets100 + gjets40
+gjets = gjets40 + gjets100 + gjets200 + gjets400 + gjets600
 gjets.label = "#gamma+Jet"
 
 qcd100 = Dataset( "QCD_HT100to200", 27850000, ROOT.kBlue+1, "QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
@@ -119,7 +120,7 @@ qcd1000 = Dataset( "QCD_HT1000to1500", 1206, ROOT.kBlue+2, "QCD_HT1000to1500_Tun
 qcd1500 = Dataset( "QCD_HT1500to2000", 120.4, ROOT.kBlue+1, "QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 qcd2000 = Dataset( "QCD_HT2000toInf", 25.24,  ROOT.kBlue, "QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 
-qcd = qcd2000 + qcd1500 + qcd1000 + qcd700 + qcd500 + qcd300 + qcd200 + qcd100
+qcd = qcd100 + qcd200 + qcd300 + qcd500 + qcd700 + qcd1000 + qcd1500 + qcd2000
 qcd.label = "Multijet"
 
 emqcd15 = Dataset( "QCD_Pt-15to20_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-15to20_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
@@ -131,7 +132,7 @@ emqcd120 = Dataset( "QCD_Pt-120to170_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-120o1
 emqcd170 = Dataset( "QCD_Pt-170to300_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-170o300_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
 emqcd300 = Dataset( "QCD_Pt-300toInf_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-300oInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
 
-emqcd = emqcd300 + emqcd170 + emqcd120 + emqcd80 + emqcd50 + emqcd30 + emqcd20 + emqcd15
+emqcd = emqcd15 + emqcd20 + emqcd30 + emqcd50 + emqcd80 + emqcd120 + emqcd170 + emqcd300
 emqcd.label = "QCD EM enriched"
 
 # electroweak
@@ -149,12 +150,12 @@ wjets2500 = Dataset( "WJetsToLNu_HT-2500ToInf", 0.03216, ROOT.kRed, "WJetsToLNu_
 wjets600_inf = Dataset( "WJetsToLNu_HT-600ToInf", 18.77, ROOT.kRed, "WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 
 # k-factor
-wjetsSamples = [ wjets2500, wjets1200, wjets800, wjets600, wjets400, wjets200, wjets100 ]
+wjetsSamples = [ wjets100, wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500 ]
 for ds in wjetsSamples+[wjets600_inf]:
     ds.xsecs = [ ds.xsecs[0] * 1.21 ]
 
 wjets = wjets600_inf + wjets400 + wjets200 + wjets100 # no high HT samples
-wjets = wjets2500 + wjets1200 + wjets800 + wjets600 + wjets400 + wjets200 + wjets100
+wjets = sum( wjetsSamples )
 wjets.label = "W#rightarrowl#nu"
 
 # isr
@@ -173,11 +174,12 @@ znunu600 = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.20, ROOT.kMagenta+0 , "ZJetsToN
 
 zg_130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.223, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
 
-for ds in znunu600,znunu400,znunu200,znunu100:
+znunuSamples = znunu100, znunu200, znunu400, znunu600
+for ds in znunuSamples:
     # apply k-factor
     ds.xsecs = [ ds.xsecs[0] * 1.23 ]
 
-znunu = znunu600 + znunu400 + znunu200 + znunu100
+znunu = sum( znunuSamples )
 znunu.label = "Z#rightarrow#nu#nu"
 
 
