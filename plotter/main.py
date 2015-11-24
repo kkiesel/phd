@@ -130,7 +130,8 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, s
             h.drawOption_ = "ep"
             h.SetMarkerStyle(20)
             # disable errors for data, so that ErrorOption is working
-            h.Sumw2(False)
+            # TODO: kPoisson also for rebinned and scaled histograms
+            if not binning: h.Sumw2(False)
             h.SetBinErrorOption( ROOT.TH1.kPoisson )
             dataHist = h
         else:
@@ -148,11 +149,17 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, s
             r.draw(0.5,1.5)
             if name in ["h_n_vertex__tr","h_n_jet__tr","h_ht__tr","h_g_pt__tr"]:
                 f = ROOT.TFile("weights.root","update")
-                r.ratio.Write(name.replace("h_","weight_"))
+                r.ratio.Write(name.replace("h_","weight_"), ROOT.TObject.kWriteDelete )
                 f.Close()
 
 
-        l = aux.Label()
+        info = ""
+        if name.endswith("__trPhoton90_ht550"): info = "HLT_P90,H_{T}>550"
+        if name.endswith("__trPhoton90_ht300"): info = "HLT_P90,H_{T}>300"
+        if name.endswith("__trPhoton90"): info = "HLT_P90"
+        if name.endswith("__trBit"): info = "HLT_P90_HT500"
+        if name.endswith("__tr"): info = "HLT_P90_HT500,H_{T}>600"
+        l = aux.Label(info="#scale[0.7]{%s}"%info)
         aux.save( "sameHistogram%s_%s"%(saveName,name) )
         can.SetLogy()
         aux.save( "sameHistogram%s_%s_log"%(saveName,name) )
@@ -192,7 +199,7 @@ def getProjections( h2, alongX=True ):
 
 
 def drawRazor( dataset ):
-    h2 = getHistoFromDataset( dataset, "h2_razorPlane" )
+    h2 = getHistoFromDataset( dataset, "h2_razorPlane__tr" )
     h2.Rebin2D( 1, 20 )
     razorFit = ROOT.TF2("razorFitFunc", "[0]*( [1]*(x[0]-[2])*(x[1]-[3]) - 1 ) * exp( -[1]*(x[0]-[2])*(x[1]-[3]) )", 0, 2000, 0, 0.5 )
     razorFit.SetParameters( h2.GetEntries(), 0.0005, 170, 0.00001 )
@@ -259,7 +266,7 @@ def qcdClosure( dataset, samplename="" ):
                 r.draw(0.5,1.5)
                 if name in ["h_g_eta__tr_jControl","h_g_pt__tr_jControl"]:
                     f = ROOT.TFile("weights.root","update")
-                    r.ratio.Write(name.replace("h_","weight_gqcd_"), ROOT.TObject.kWriteDele   )
+                    r.ratio.Write(name.replace("h_","weight_gqcd_"), ROOT.TObject.kWriteDelete )
                     f.Close()
 
 
@@ -570,6 +577,8 @@ def transitions():
     drawSameHistogram( "_wjets_trans6", "h_genHt", [], [wjets1200,wjets2500], binning=range(1190,3000,2) )
     drawSameHistogram( "_wjets_trans6", "h_genHt", [], [wjets1200,wjets2500], binning=range(1200,3000,20) )
     drawSameHistogram( "_wjets_trans45", "h_genHt", [], [wjets600,wjets800,wjets1200], binning=range(590,1510,5) )
+    drawSameHistogram( "_wg_500", "h_g_pt__tr", None, [wg_pt500], [wg_mg], scaleToData=False )
+    drawSameHistogram( "_zg", "h_g_pt__tr", None, [zg_130], [znunu], scaleToData=False )
 
 
 def main():
@@ -578,13 +587,13 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    #drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
+    drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[signal["T5gg_1400_1200"], signal["T5gg_1000_200"]])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
-    #drawRazor( ttjets )
+    #drawRazor( data )
 
     #ewkClosure( ttjets, "_tt" )
     #ewkClosure( wjets, "_w" )
@@ -609,6 +618,9 @@ def main():
 
     #drawROCs()
     #ewkIsrSamplesSplitting( ttjets, ttg, "tt" )
+    #ewkIsrSamplesSplitting( wjets, wg_mc, "w_mc" )
+    #ewkIsrSamplesSplitting( wjets, wg_mg, "w_mg" )
+    #ewkIsrSamplesSplitting( znunu, zg_130, "zg" )
 
     """
     for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]):
