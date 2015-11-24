@@ -85,7 +85,7 @@ data_2015D.label = "05Oct2015 reco"
 data_prompt = Dataset( "SinglePhoton_Run2015D-PromptReco-v4", 0, ROOT.kBlack )
 data_prompt.label = "PromptReco-v4"
 
-data = data_prompt+data_2015D+data_2015C
+data = data_prompt+data_2015D # +data_2015C
 data.label = "Data"
 
 dataHt_2015C = Dataset( "JetHT_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
@@ -93,7 +93,7 @@ dataHt_2015D = Dataset( "JetHT_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
 dataHt_2015D.label = "05Oct2015 reco"
 dataHt_prompt = Dataset( "JetHT_Run2015D-PromptReco-v4", 0, ROOT.kBlack )
 dataHt_prompt.label = "Prompt"
-dataHt = dataHt_prompt+dataHt_2015D+dataHt_2015C
+dataHt = dataHt_prompt+dataHt_2015D #+dataHt_2015C
 dataHt.label = "Data (JetHt)"
 
 # k-factors from twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
