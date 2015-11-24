@@ -92,14 +92,13 @@ string getOutputFilename( string inputFileName ) {
 
 template <typename VectorClass>
 int indexOfMatchedParticle( const tree::Particle& tag, const std::vector<VectorClass>& particles, float deltaR=.1, float relPt=-1 ) {
-  int match=-1;
   for( int i=0; i<(int)particles.size(); ++i ) {
     if(    ( deltaR<0 || particles.at(i)->p.DeltaR( tag.p ) < deltaR )
         && ( relPt<0  || fabs(particles.at(i)->p.Pt()-tag.p.Pt())/tag.p.Pt() < relPt ) ) {
-      return match;
+      return i;
     }
   }
-  return match;
+  return -1;
 }
 
 
@@ -174,10 +173,8 @@ class HistogramProducer : public TSelector {
 
   bool isData;
 
-  Weighter nVertexWeighter;
+  Weighter htWeighter;
   Weighter nJetWeighter;
-  Weighter qcdEtaWeighter;
-  Weighter qcdPtWeighter;
 
   CutFlowPhoton looseCutFlowPhoton;
 
@@ -191,7 +188,7 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_ht_g__"+s] = TH1F( "", ";HE_{T}", 200, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T}", 200, 0, 2500 );
 
-  h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 100, 0, 1500 );
+  h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 150, 0, 1500 );
   h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 1500, 0, 1.5 );
   h["h_g_phi__"+s] = TH1F( "", ";#phi", 200, -3.2, 3.2 );
 
@@ -218,6 +215,8 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_dphi_met_j3__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},3.jet)|", 100, 0, 3.5 );
   h["h_dphi_met_j13_min__"+s] = TH1F( "", ";min_{i}|#Delta#phi(E_{T}^{miss},i.jet)|", 100, 0, 3.5 );
   h["h_dphi_met_recoil__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#Sigma jet)|", 100, 0, 3.5 );
+  h["h_dphi_g_j1__"+s] = TH1F( "", ";|#Delta#phi(#gamma,1.jet)|", 100, 0, 3.5 );
+  h["h_dphi_g_j2__"+s] = TH1F( "", ";|#Delta#phi(#gamma,2.jet)|", 100, 0, 3.5 );
 
   // multiplicities
   h["h_n_vertex__"+s] = TH1F( "", ";Vertex multiplicity", 61, -0.5, 60.5 );
@@ -331,11 +330,13 @@ void HistogramProducer::fillSelection( string const& s ) {
   if( selJets.size() > 0 ) {
     float dphi = fabs(met->p.DeltaPhi( selJets[0]->p ));
     h["h_dphi_met_j1__"+s].Fill( dphi, selW );
+    if( selPhotons.size() > 0 ) h["h_dphi_g_j1__"+s].Fill( fabs(selPhotons[0]->p.DeltaPhi(selJets[0]->p)), selW );
     minDeltaPhiMetJet.push_back( dphi );
   }
   if( selJets.size() > 1 ) {
     float dphi = fabs(met->p.DeltaPhi( selJets[1]->p ));
     h["h_dphi_met_j2__"+s].Fill( dphi, selW );
+    if( selPhotons.size() > 0 ) h["h_dphi_g_j2__"+s].Fill( fabs(selPhotons[0]->p.DeltaPhi(selJets[1]->p)), selW );
     minDeltaPhiMetJet.push_back( dphi );
   }
   if( selJets.size() > 2 ) {
@@ -481,10 +482,8 @@ HistogramProducer::HistogramProducer():
   signalTrigger( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
   crossTriggerPhoton( fReader, "HLT_Photon90_v" ),
   crossTriggerHt( fReader, "HLT_PFHT600_v" ),
-  nVertexWeighter( "../plotter/weights_unweighted.root", "weight_n_vertex__tr"),
+  htWeighter( "../plotter/weights_unweighted.root", "weight_ht__tr"),
   nJetWeighter( "../plotter/weights_unweighted.root", "weight_n_jet__tr"),
-  qcdEtaWeighter( "../plotter/weights.root", "weight_gqcd_g_eta__tr_jControl"),
-  qcdPtWeighter( "../plotter/weights.root", "weight_gqcd_g_pt__tr_jControl"),
   looseCutFlowPhoton( 0.0103, 2.44, 2.57, 0.0044, 0.5809, 1.92, 0.0043, 0.0277, 1.84, 4.00, 0.0040, 0.9402, 2.15, 0.0041 )
 {
 }
@@ -503,7 +502,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
   initObjects("base");
   h["h_genHt"] = TH1F( "", ";H_{T}^{gen} (GeV)", 6000, 0, 3000 );
 
-  vector<string> strs = { "trPhoton", "trBit", "tr", "tr_met200", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90" };
+  vector<string> strs = { "trPhoton", "trBit", "tr", "tr_met200", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht550" };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -527,11 +526,11 @@ void HistogramProducer::defaultSelection()
     if( indexOfMatchedParticle<tree::Photon*>( jet, selPhotons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Electron*>( jet, selElectrons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Muon*>( jet, selMuons, .3 ) >= 0 ) continue;
-
     selJets.push_back( &jet );
     if( jet.bDiscriminator > bTaggingWorkingPoints["CSVv2M"] )
       selBJets.push_back( &jet );
   }
+
 }
 
 Bool_t HistogramProducer::Process(Long64_t entry)
@@ -542,7 +541,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   fReader.SetEntry(entry);
   // set weight
   selW = *mc_weight * *pu_weight;
-  //if(!isData) selW *= nVertexWeighter.getWeight( *nGoodVertices );
 
   // https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2552/1/1/1.html
   // This run has a bad beam spot, so is not to used for the signal trigger
@@ -556,6 +554,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
       selHt += jet.p.Pt();
     }
   }
+  //if(!isData) selW *= htWeighter.getWeight( selHt );
 
   /////////////////////////////////////////////////////////////////////////////
   // Base selection, without cuts
@@ -598,6 +597,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( *crossTriggerPhoton && selPhotons.size() ) {
     fillSelection("trPhoton90");
+    if( selHt > 300 ) fillSelection("trPhoton90_ht300");
+    if( selHt > 550 ) fillSelection("trPhoton90_ht550");
   }
 
   if( *signalTrigger ) {
@@ -656,7 +657,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   defaultSelection();
 
   if( selPhotons.size() && selHt > 600 && (*signalTrigger || !isData) ) {
-     //selW *= qcdPtWeighter.getWeight( selPhotons[0]->p.Pt() );
      fillSelection("tr_jControl");
   }
 
