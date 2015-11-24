@@ -5,13 +5,13 @@
 
 // start with root -l -q run.C
 
-void run( string infile="/user/kiesel/nTuples/V02/SinglePhoton_V02_nTuple.root") {
+int run( string infile="/user/kiesel/nTuples/V02/SinglePhoton_V02_nTuple.root") {
 
   ifstream f(infile.c_str());
   if(!f.good()) {
     cout << "No file found, just compile." << endl;
-    TSelector::GetSelector("HistogramProducer.cc+");
-    return;
+    auto out = TSelector::GetSelector("HistogramProducer.cc+");
+    if(!out) return 1;
   }
 
   gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
@@ -23,4 +23,5 @@ void run( string infile="/user/kiesel/nTuples/V02/SinglePhoton_V02_nTuple.root")
   ch.Process( "HistogramProducer.cc+" );
   cout << " in " << 1.*( time(NULL) - start_time)/60 << " min" << endl;
 
+  return 0;
 }
