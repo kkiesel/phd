@@ -293,7 +293,7 @@ class Label:
                 obj.SetNDC()
                 obj.Draw()
 
-    def __init__( self, drawAll=True, sim=False, status="Private Work" ):
+    def __init__( self, drawAll=True, sim=False, status="Private Work", info="" ):
         # todo: include margins, etc
         if sim:
             self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}" )
@@ -301,6 +301,7 @@ class Label:
             self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}" )
         self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status )
         self.lum = ROOT.TLatex( .63, .95, "%.2f fb^{-1} (%s TeV)"%(self.intLumi/1000., self.cmsEnergy) )
+        if info: self.info = ROOT.TLatex( .2, .95, info )
 
         if drawAll:
             self.draw()
