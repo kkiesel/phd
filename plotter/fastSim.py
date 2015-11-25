@@ -16,13 +16,6 @@ import multiplot
 
 import auxiliary as aux
 
-def drange(start, stop, n):
-    out = [start]
-    step = 1.*(stop-start)/n
-    while out[-1] < stop:
-        out.append( out[-1] + step )
-    return out
-
 def infoText( name ):
     infoReplacements = {
         "_noSel":"no photon id",
@@ -136,9 +129,9 @@ def main():
 
         names = aux.getObjectNames( fullName )
         for name in names: drawSame( fullName, fastName, name )
-        drawSame( fullName, fastName, "cIso_loose", drange(0, 3, 10 ) )
-        drawSame( fullName, fastName, "nIso_loose", drange(0, 8, 10 ) )
-        drawSame( fullName, fastName, "pIso_loose", drange(0, 5, 10 ) )
+        drawSame( fullName, fastName, "cIso_loose", aux.drange(0, 3, 10 ) )
+        drawSame( fullName, fastName, "nIso_loose", aux.drange(0, 8, 10 ) )
+        drawSame( fullName, fastName, "pIso_loose", aux.drange(0, 5, 10 ) )
 
         scaleFactors( fullName, fastName )
 
