@@ -81,7 +81,41 @@ def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
 
     return outList
 
+def checkRebinningConsistence( axis, newBinning ):
+    oldBinning = []
+    for i in range(axis.GetNbins()+1):
+        oldBinning.append( axis.GetBinUpEdge(i) )
+
+    for i in newBinning:
+        if i not in oldBinning: print "New bin edge is not compatible with old binning", i
+
+def rebin2d( h, binEdgesX, binEdgesY ):
+    # Check consistency with old binning
+    checkRebinningConsistence( h.GetXaxis(), binEdgesX )
+    checkRebinningConsistence( h.GetYaxis(), binEdgesY )
+
+    # Create
+    import array
+    binEdgesXArr = array.array( 'd', binEdgesX )
+    binEdgesYArr = array.array( 'd', binEdgesY )
+    hnew = ROOT.TH2F(h.GetName(),h.GetTitle(), len(binEdgesX)-1, binEdgesXArr, len(binEdgesY)-1, binEdgesYArr )
+
+    # GetProperties
+    try: hnew.drawOption_ = h.drawOption_
+    except: pass
+    hnew.SetTitle("{};{};{}".format(h.GetTitle(),h.GetXaxis().GetTitle(),h.GetYaxis().GetTitle()))
+
+    # Fill
+    for xbin in range(h.GetNbinsX()+2):
+        x = h.GetXaxis().GetBinCenter(xbin)
+        for ybin in range(h.GetNbinsY()+2):
+            y = h.GetYaxis().GetBinCenter(ybin)
+            hnew.Fill(x,y,h.GetBinContent(xbin,ybin));
+    return hnew
+
+
 def rebin( h, binEdges ):
+    checkRebinningConsistence( h.GetXaxis(), binEdges )
     import array
     binEdgesArr = array.array( 'd', binEdges )
     hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
@@ -275,6 +309,12 @@ def getBinnigsFromName( name ):
                 out[binningName] = binning
     return out
 
+def drange(start, stop, n):
+    out = [start]
+    step = 1.*(stop-start)/n
+    while out[-1] < stop:
+        out.append( out[-1] + step )
+    return out
 
 
 class Label:
