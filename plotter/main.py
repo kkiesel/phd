@@ -487,43 +487,54 @@ def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
     #names = [ "h_g_pt__tr_genPhoton" ]
 
     for name in names:
-        can = ROOT.TCanvas()
-        m = multiplot.Multiplot()
+        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+            can = ROOT.TCanvas()
+            m = multiplot.Multiplot()
 
-        h_tot = dataset.getHist( name.replace("_genPhoton","" ) )
-        h_g = dataset.getHist( name )
-        h_e = dataset.getHist( name.replace("_genPhoton","_genElectron" ) )
+            h_tot = dataset.getHist( name.replace("_genPhoton","" ) )
+            h_g = dataset.getHist( name )
+            h_e = dataset.getHist( name.replace("_genPhoton","_genElectron" ) )
 
-        h_isr_tot = isrDataset.getHist( name.replace("_genPhoton","" ) )
-        h_isr_g = isrDataset.getHist( name )
-        h_isr_e = isrDataset.getHist( name.replace("_genPhoton","_genElectron" ) )
+            h_isr_tot = isrDataset.getHist( name.replace("_genPhoton","" ) )
+            h_isr_g = isrDataset.getHist( name )
+            h_isr_e = isrDataset.getHist( name.replace("_genPhoton","_genElectron" ) )
 
-        for h in h_tot, h_isr_tot:
-            h.SetMarkerStyle(20)
-            h.SetMarkerSize(0.5)
-            h.drawOption_="ep"
+            if binning:
+                h_tot =aux.rebin(h_tot, binning)
+                h_g =aux.rebin(h_g, binning)
+                h_e =aux.rebin(h_e, binning)
 
-        for h in h_g, h_isr_g:
-            h.SetLineStyle(2)
-            h.drawOption_="hist"
+                h_isr_tot =aux.rebin(h_isr_tot, binning)
+                h_isr_g =aux.rebin(h_isr_g, binning)
+                h_isr_e =aux.rebin(h_isr_e, binning)
 
-        for h in h_e, h_isr_e:
-            h.SetLineStyle(3)
-            h.drawOption_="hist"
 
-        m.add( h_tot, dataset.label )
-        m.add( h_g, "#gamma" )
-        m.add( h_e, "e" )
-        m.add( h_isr_tot, isrDataset.label )
-        m.add( h_isr_g, "#gamma" )
-        m.add( h_isr_e, "e" )
+            for h in h_tot, h_isr_tot:
+                h.SetMarkerStyle(20)
+                h.SetMarkerSize(0.5)
+                h.drawOption_="ep"
 
-        if m.Draw():
+            for h in h_g, h_isr_g:
+                h.SetLineStyle(2)
+                h.drawOption_="hist"
 
-            l = aux.Label()
-            aux.save( "ewkIsrSampleSplitting_%s_%s"%(saveName,name) )
-            can.SetLogy()
-            aux.save( "ewkIsrSampleSplitting_%s_%s_log"%(saveName,name) )
+            for h in h_e, h_isr_e:
+                h.SetLineStyle(3)
+                h.drawOption_="hist"
+
+            m.add( h_tot, dataset.label )
+            m.add( h_g, "#gamma" )
+            m.add( h_e, "e" )
+            m.add( h_isr_tot, isrDataset.label )
+            m.add( h_isr_g, "#gamma" )
+            m.add( h_isr_e, "e" )
+
+            if m.Draw():
+
+                l = aux.Label()
+                aux.save( "ewkIsrSampleSplitting_%s_%s_%s"%(saveName,name,binningName) )
+                can.SetLogy()
+                aux.save( "ewkIsrSampleSplitting_%s_%s_%s_log"%(saveName,name,binningName) )
 
 
 
@@ -600,7 +611,7 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
+    #drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
