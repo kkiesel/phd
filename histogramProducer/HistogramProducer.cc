@@ -199,6 +199,8 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_j2_eta__"+s] = TH1F( "", ";|#eta^{2.jet}|", 100, 0, 3 );
   h["h_j3_pt__"+s] = TH1F( "", ";p_{T}^{3.jet} (GeV)", 100, 0, 1500 );
   h["h_j3_eta__"+s] = TH1F( "", ";|#eta^{3.jet}|", 100, 0, 3 );
+  h["h_j1_eb_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 100, 0, 1500 );
+  h["h_j1_ee_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 100, 0, 1500 );
 
   // b-jets
   h["h_bj1_pt__"+s] = TH1F( "", ";p_{T}^{1.b-jet} (GeV)", 100, 0, 1500 );
@@ -222,6 +224,8 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_n_vertex__"+s] = TH1F( "", ";Vertex multiplicity", 61, -0.5, 60.5 );
   h["h_n_photon__"+s] = TH1F( "", ";Photon multiplicity", 6, -0.5, 5.5 );
   h["h_n_jet__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
+  h["h_n_jet_eb__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
+  h["h_n_jet_ee__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
   h["h_n_bjet__"+s] = TH1F( "", ";b-jet multiplicity", 21, -0.5, 20.5 );
   h["h_n_electron__"+s] = TH1F( "", ";electron multiplicity", 4, -0.5, 3.5 );
   h["h_n_muon__"+s] = TH1F( "", ";muon multiplicity", 4, -0.5, 3.5 );
@@ -308,6 +312,8 @@ void HistogramProducer::fillSelection( string const& s ) {
   if( selJets.size() > 0 ) {
     h["h_j1_pt__"+s].Fill( selJets[0]->p.Pt(), selW );
     h["h_j1_eta__"+s].Fill( fabs(selJets[0]->p.Eta()), selW );
+    if( fabs(selJets[0]->p.Eta())<1.45 ) h["h_j1_eb_pt__"+s].Fill( selJets[0]->p.Pt(), selW );
+    else                                 h["h_j1_ee_pt__"+s].Fill( selJets[0]->p.Pt(), selW );
   }
 
   if( selBJets.size() > 2 ) {
@@ -356,6 +362,13 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_n_bjet__"+s].Fill( selBJets.size(), selW );
   h["h_n_electron__"+s].Fill( selElectrons.size(), selW );
   h["h_n_muon__"+s].Fill( selMuons.size(), selW );
+  int nJetEB=0, nJetEE=0;
+  for( auto& j: selJets ) {
+    if( fabs(j->p.Eta())<1.45 ) nJetEB++;
+    else nJetEE++;
+  }
+  h["h_n_jet_eb__"+s].Fill( nJetEB, selW );
+  h["h_n_jet_ee__"+s].Fill( nJetEE, selW );
 
   if( mrr2.first > 1e-7 ) {
     h2["h2_razorPlane__"+s].Fill( mrr2.first, mrr2.second, selW );
@@ -550,7 +563,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   selHt = 0;
   for( auto& jet : jets ){
-    if( jet.p.Pt()>40 && fabs(jet.p.Eta())<3) {
+    if( jet.p.Pt()>40 && fabs(jet.p.Eta())<3 && jet.isLoose ) {
       selHt += jet.p.Pt();
     }
   }
