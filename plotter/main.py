@@ -108,6 +108,11 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, s
 
     scale = 1.
     if scaleToData: scale = divideDatasetIntegrals( [ i for i in additional if "Data" in i.label ], bkg, name )
+    if name.endswith("__trPhoton90_ht550"): scale = 0.0152
+    if name.endswith("__trPhoton90_ht300"): scale = 0.0152
+    if name.endswith("__trPhoton90"): scale = 0.0152
+    if name.endswith("__trBit"): scale = 1.
+    if name.endswith("__tr"): scale = 1.
 
     for d in bkg[-1::-1]:
         h = d.getHist( name )
@@ -199,7 +204,14 @@ def getProjections( h2, alongX=True ):
 
 
 def drawRazor( dataset ):
+    x = style.style2d()
+    c = ROOT.TCanvas()
     h2 = getHistoFromDataset( dataset, "h2_razorPlane__tr" )
+    h2 = aux.rebin2d( h2, range(0, 1000,80), aux.drange(0,0.5, 10) )
+    h2.Draw("colz")
+    aux.save("razorPlane")
+    style.defaultStyle()
+    """
     h2.Rebin2D( 1, 20 )
     razorFit = ROOT.TF2("razorFitFunc", "[0]*( [1]*(x[0]-[2])*(x[1]-[3]) - 1 ) * exp( -[1]*(x[0]-[2])*(x[1]-[3]) )", 0, 2000, 0, 0.5 )
     razorFit.SetParameters( h2.GetEntries(), 0.0005, 170, 0.00001 )
@@ -218,6 +230,7 @@ def drawRazor( dataset ):
     leg.Draw()
 
     aux.save( "razorAlongX" )
+    """
 
 def qcdClosure( dataset, samplename="" ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
