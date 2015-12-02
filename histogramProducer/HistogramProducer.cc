@@ -515,7 +515,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
   initObjects("base");
   h["h_genHt"] = TH1F( "", ";H_{T}^{gen} (GeV)", 6000, 0, 3000 );
 
-  vector<string> strs = { "trPhoton", "trBit", "tr", "tr_met200", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht550" };
+  vector<string> strs = { "no", "no_genElectron", "no_genPhoton", "trPhoton", "trBit", "tr", "tr_met200", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht550" };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -563,7 +563,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   selHt = 0;
   for( auto& jet : jets ){
-    if( jet.p.Pt()>40 && fabs(jet.p.Eta())<3 && jet.isLoose ) {
+    if( jet.p.Pt()>40 && fabs(jet.p.Eta())<3 ) {
       selHt += jet.p.Pt();
     }
   }
@@ -597,6 +597,18 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
   defaultSelection();
   //if(!isData) selW *= nJetWeighter.getWeight( selJets.size() );
+  if( selPhotons.size() ){
+    fillSelection("no");
+    for( auto& p : genParticles ) {
+        if( abs(p.pdgId) == 11 && p.p.DeltaR( selPhotons[0]->p ) < 0.1 ) {
+          fillSelection("no_genElectron");
+          break;
+        }
+    }
+    if( selPhotons[0]->isTrueAlternative ) {
+      fillSelection("no_genPhoton");
+    }
+  }
 
   // Calculate razor variables
   if( true ) { // attention: computing intensive
