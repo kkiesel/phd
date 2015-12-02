@@ -159,7 +159,7 @@ wjets = sum( wjetsSamples )
 wjets.label = "W#rightarrowl#nu"
 
 # isr
-ttg = Dataset( "TTGJets", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia88" )
+ttg = Dataset( "TTGJets", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8" )
 ttg.label = "#gammat#bar{t}"
 
 wg_mc = Dataset( "WGToLNuG-amcatnloFXFX", 489., ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
