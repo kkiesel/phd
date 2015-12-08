@@ -173,8 +173,7 @@ class HistogramProducer : public TSelector {
 
   bool isData;
 
-  Weighter htWeighter;
-  Weighter nJetWeighter;
+  Weighter qcdWeighter;
 
   CutFlowPhoton looseCutFlowPhoton;
 
@@ -512,8 +511,7 @@ HistogramProducer::HistogramProducer():
   signalTrigger( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
   crossTriggerPhoton( fReader, "HLT_Photon90_v" ),
   crossTriggerHt( fReader, "HLT_PFHT600_v" ),
-  htWeighter( "../plotter/weights_unweighted.root", "weight_ht__tr"),
-  nJetWeighter( "../plotter/weights_unweighted.root", "weight_n_jet__tr"),
+  qcdWeighter( "../plotter/weights_unweighted.root", "weight__data_g_pt__tr_jControl"),
   looseCutFlowPhoton( 0.0102, 3.32, 1.92, 0.014, 0.000019, 0.81, 0.0053, 0.0274, 1.97, 11.86, 0.0139, 0.000025, 0.83, 0.0034 )
 {
 }
@@ -567,7 +565,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
   //if( entry > 3 ) return true;
-  //if(!( entry%10000 )) printf( "\r%lli / %lli", entry, fReader.GetEntries(false) );
   fReader.SetEntry(entry);
   // set weight
   selW = *mc_weight * *pu_weight;
@@ -584,7 +581,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
       selHt += jet.p.Pt();
     }
   }
-  //if(!isData) selW *= htWeighter.getWeight( selHt );
 
   /////////////////////////////////////////////////////////////////////////////
   // Base selection, without cuts
@@ -612,7 +608,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     }
   }
   defaultSelection();
-  //if(!isData) selW *= nJetWeighter.getWeight( selJets.size() );
   if( selPhotons.size() ){
     fillSelection("no");
     for( auto& p : genParticles ) {
@@ -710,7 +705,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     }
   }
   defaultSelection();
-
   if( selPhotons.size() && selHt > 600 && (*signalTrigger || !isData) ) {
      fillSelection("tr_jControl");
   }
