@@ -52,6 +52,12 @@ def getDatasetFromKey(key):
     return key
 
 
+def write2File( obj, name, fname ):
+    f = ROOT.TFile( fname,"update")
+    obj.Write( name, ROOT.TObject.kWriteDelete )
+    f.Close()
+
+
 def getFromFile( filename, histoname ):
     f = ROOT.TFile( filename )
     h = f.Get( histoname )
