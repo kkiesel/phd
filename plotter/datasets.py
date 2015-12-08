@@ -125,7 +125,7 @@ qcd.label = "Multijet"
 
 emqcd15 = Dataset( "QCD_Pt-15to20_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-15to20_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
 emqcd20 = Dataset( "QCD_Pt-20to30_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
-emqcd30 = Dataset( "QCD_Pt-30o50_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd30 = Dataset( "QCD_Pt-30to50_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
 emqcd50 = Dataset( "QCD_Pt-50to80_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
 emqcd80 = Dataset( "QCD_Pt-80to120_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-80o120_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
 emqcd120 = Dataset( "QCD_Pt-120to170_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-120o170_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
