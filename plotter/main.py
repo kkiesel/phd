@@ -101,18 +101,13 @@ def divideDatasetIntegrals( numerator, denominator, name ):
     den = h_den.Integral(0,-1)
     return num/den if den else 1.
 
-def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, scaleToData=True ):
+def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, scaleToData=False ):
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
     scale = 1.
     if scaleToData: scale = divideDatasetIntegrals( [ i for i in additional if "Data" in i.label ], bkg, name )
-    if name.endswith("__trPhoton90_ht550"): scale = 0.0152
-    if name.endswith("__trPhoton90_ht300"): scale = 0.0152
-    if name.endswith("__trPhoton90"): scale = 0.0152
-    if name.endswith("__trBit"): scale = 1.
-    if name.endswith("__tr"): scale = 1.
 
     for d in bkg[-1::-1]:
         h = d.getHist( name )
@@ -242,13 +237,13 @@ def qcdClosure( dataset, samplename="" ):
         if cSet not in name: continue
 
 
-        hdir = getHistoFromDataset( dataset, name )
+        hdir = getHistoFromDataset( dataset, name.replace( cSet, gSet ) )
         hdir.SetLineColor(1)
         hdir.SetMarkerColor(1)
         hdir.SetMarkerStyle(20)
         hdir.drawOption_ = "p"
 
-        hpre = getHistoFromDataset( dataset, name.replace( cSet, gSet ) )
+        hpre = getHistoFromDataset( dataset, name )
         scale = hdir.Integral() / hpre.Integral()
         hpre.Scale( scale )
         hpre.drawOption_ = "hist"
@@ -267,22 +262,15 @@ def qcdClosure( dataset, samplename="" ):
                 mod_pre = aux.rebin(mod_pre, binning)
 
 
-            if name == "h_g_eta__jControl":
-                m.maximum = 7000
-                m.minimum = 2000
-            m.add( mod_dir, "#gamma" )
+                m.add( mod_dir, "#gamma" )
             m.add( mod_pre, "#gamma-like" )
 
             if m.Draw():
 
                 r = ratio.Ratio( "#gamma/#gamma-like", mod_dir, mod_pre )
                 r.draw(0.5,1.5)
-                if name in ["h_g_eta__tr_jControl","h_g_pt__tr_jControl"]:
-                    f = ROOT.TFile("weights.root","update")
-                    r.ratio.Write(name.replace("h_","weight_gqcd_"), ROOT.TObject.kWriteDelete )
-                    f.Close()
-
-
+                if name in ["h_g_eta__tr_jControl","h_g_pt__tr_jControl"] and not binning:
+                    aux.write2File( r.ratio.Clone(), name.replace("h_","weight_{}_".format(samplename)), "weights.root" )
             l = aux.Label()
             aux.save( "qcdClosure_"+name+samplename+binningName )
             can.SetLogy()
@@ -523,11 +511,11 @@ def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
                 h.drawOption_="hist"
 
             m.add( h_tot, dataset.label )
-            m.add( h_g, "#gamma" )
-            m.add( h_e, "e" )
+            m.add( h_g, "#gamma^{gen} match" )
+            m.add( h_e, "e^{gen} match" )
             m.add( h_isr_tot, isrDataset.label )
-            m.add( h_isr_g, "#gamma" )
-            m.add( h_isr_e, "e" )
+            m.add( h_isr_g, "#gamma^{gen} match" )
+            m.add( h_isr_e, "e^{gen} match" )
 
             if m.Draw():
 
@@ -605,6 +593,25 @@ def transitions():
     drawSameHistogram( "_zg", "h_g_pt__tr", None, [zg_130], [znunu], scaleToData=False )
 
 
+def drawH2s():
+    for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]):
+        break
+        drawH2( data, h2name, "data" )
+        drawH2( qcd+gjets, h2name, "gqcd" )
+        subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
+
+def drawISRsplitting():
+    for d in ttjets,wjets,znunu:
+        d.color=ROOT.kBlack
+    for d in ttg,wg_mc,wg_mg,zg_130:
+        d.color=ROOT.kRed
+
+    ewkIsrSamplesSplitting( ttjets, ttg, "tt" )
+    ewkIsrSamplesSplitting( wjets, wg_mc, "w_mc" )
+    ewkIsrSamplesSplitting( wjets, wg_mg, "w_mg" )
+    ewkIsrSamplesSplitting( znunu, zg_130, "zg" )
+
+
 def main():
     pass
     #transitions()
@@ -613,7 +620,8 @@ def main():
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
     #drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
-    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
+    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data])
+    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[signal["T5gg_1400_1200"], signal["T5gg_1000_200"]])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
@@ -623,6 +631,7 @@ def main():
     #ewkClosure( wjets, "_w" )
     #ewkClosure( wjets+ttjets, "_ewk" )
     #qcdClosure( qcd+gjets, "_gqcd" )
+    #qcdClosure( data, "_data" )
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
@@ -641,19 +650,8 @@ def main():
     #efficiency( dataHt_prompt, "eff_hlt_pt__offlineHT650__extra__base", "dataHtPrompt_" )
 
     #drawROCs()
-    #ewkIsrSamplesSplitting( ttjets, ttg, "tt" )
-    #ewkIsrSamplesSplitting( wjets, wg_mc, "w_mc" )
-    #ewkIsrSamplesSplitting( wjets, wg_mg, "w_mg" )
-    #ewkIsrSamplesSplitting( znunu, zg_130, "zg" )
-
-    """
-    for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]):
-        break
-        drawH2( data, h2name, "data" )
-        drawH2( qcd+gjets, h2name, "gqcd" )
-        subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
-    """
-
+    #drawH2s()
+    #drawISRsplitting()
     #razorStudies()
 
 if __name__ == "__main__":
