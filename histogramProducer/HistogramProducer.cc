@@ -281,6 +281,8 @@ void HistogramProducer::initObjects( string const& s ) {
   eff["eff_hlt_pIso__"+s] = TEfficiency( "", ";I_{#gamma} (GeV)", 100, 0, 20 );
   eff["eff_hlt_n_jet_uncleaned__"+s] = TEfficiency( "", ";uncleaned jet multiplicity", 15, -0.5, 14.5 );
 
+  h["h_genHt"] = TH1F( "", ";H_{T}^{gen} (GeV)", 6000, 0, 3000 );
+
 }
 
 void HistogramProducer::fillSelection( string const& s ) {
@@ -528,7 +530,6 @@ void HistogramProducer::Init(TTree *tree)
 void HistogramProducer::SlaveBegin(TTree *tree)
 {
   initObjects("base");
-  h["h_genHt"] = TH1F( "", ";H_{T}^{gen} (GeV)", 6000, 0, 3000 );
 
   vector<string> strs = { "no", "no_genElectron", "no_genPhoton", "trPhoton", "trBit", "tr", "tr_met200", "tr_met200_dphi", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht550" };
   for( auto& v : strs ) initSelection(v);
