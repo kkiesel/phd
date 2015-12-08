@@ -514,7 +514,7 @@ HistogramProducer::HistogramProducer():
   crossTriggerHt( fReader, "HLT_PFHT600_v" ),
   htWeighter( "../plotter/weights_unweighted.root", "weight_ht__tr"),
   nJetWeighter( "../plotter/weights_unweighted.root", "weight_n_jet__tr"),
-  looseCutFlowPhoton( 0.0103, 2.44, 2.57, 0.0044, 0.5809, 1.92, 0.0043, 0.0277, 1.84, 4.00, 0.0040, 0.9402, 2.15, 0.0041 )
+  looseCutFlowPhoton( 0.0102, 3.32, 1.92, 0.014, 0.000019, 0.81, 0.0053, 0.0274, 1.97, 11.86, 0.0139, 0.000025, 0.83, 0.0034 )
 {
 }
 

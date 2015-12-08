@@ -56,12 +56,12 @@ class CutFlowPhoton {
       if( pass_EB ) {
         pass_sie = photon.sigmaIetaIeta < cut_sigmaIetaIeta_eb;
         pass_cIso = photon.isoChargedHadronsEA < cut_cIso_eb;
-        pass_nIso = photon.isoNeutralHadronsEA < cut_nIso1_eb + exp( cut_nIso2_eb * pt+ cut_nIso3_eb );
+        pass_nIso = photon.isoNeutralHadronsEA < cut_nIso1_eb + cut_nIso2_eb * pt + cut_nIso3_eb * pow(pt,2);
         pass_pIso = photon.isoPhotonsEA < cut_pIso1_eb + cut_pIso2_eb * pt;
       } else if( pass_EE ) {
         pass_sie = photon.sigmaIetaIeta < cut_sigmaIetaIeta_ee;
         pass_cIso = photon.isoChargedHadronsEA < cut_cIso_ee;
-        pass_nIso = photon.isoNeutralHadronsEA < cut_nIso1_ee + exp( cut_nIso2_ee * pt+ cut_nIso3_ee );
+        pass_nIso = photon.isoNeutralHadronsEA < cut_nIso1_ee + cut_nIso2_ee * pt + cut_nIso3_ee * pow(pt,2);
         pass_pIso = photon.isoPhotonsEA < cut_pIso1_ee + cut_pIso2_ee * pt;
       }
 
