@@ -151,9 +151,9 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
 
-  TTreeReaderValue<Bool_t> signalTrigger;
-  TTreeReaderValue<Bool_t> crossTriggerPhoton;
-  TTreeReaderValue<Bool_t> crossTriggerHt;
+  TTreeReaderValue<Bool_t> hlt_photon90_ht500;
+  TTreeReaderValue<Bool_t> hlt_photon90;
+  TTreeReaderValue<Bool_t> hlt_ht600;
 
   vector<tree::Photon*> selPhotons;
   vector<tree::Jet*> selJets;
@@ -282,7 +282,6 @@ void HistogramProducer::initObjects( string const& s ) {
   eff["eff_hlt_n_jet_uncleaned__"+s] = TEfficiency( "", ";uncleaned jet multiplicity", 15, -0.5, 14.5 );
 
   h["h_genHt"] = TH1F( "", ";H_{T}^{gen} (GeV)", 6000, 0, 3000 );
-
 }
 
 void HistogramProducer::fillSelection( string const& s ) {
@@ -395,6 +394,7 @@ void HistogramProducer::fillSelection( string const& s ) {
 } // end fill
 
 void HistogramProducer::fillObjects( string const& s ) {
+  h["h_genHt"].Fill( *genHt, selW );
 
   // matching
   for( auto& jet : selJets ) {
@@ -473,22 +473,22 @@ void HistogramProducer::fillObjects( string const& s ) {
       }
     }
 
-    if( *crossTriggerHt ) {
-      eff["eff_hlt_pt__"+s].Fill( *signalTrigger, thisPhoton->p.Pt() );
-      if( ht > 650 ) eff["eff_hlt_pt__offlineHT650__"+s].Fill( *signalTrigger, thisPhoton->p.Pt() );
+    if( *hlt_ht600 ) {
+      eff["eff_hlt_pt__"+s].Fill( *hlt_photon90_ht500, thisPhoton->p.Pt() );
+      if( ht > 650 ) eff["eff_hlt_pt__offlineHT650__"+s].Fill( *hlt_photon90_ht500, thisPhoton->p.Pt() );
     }
-    if( *crossTriggerPhoton ) {
-      eff["eff_hlt_ht__"+s].Fill( *signalTrigger, ht );
-      if( thisPhoton->p.Pt() > 100 ) eff["eff_hlt_ht__offlinePT100__"+s].Fill( *signalTrigger, ht );
+    if( *hlt_photon90 ) {
+      eff["eff_hlt_ht__"+s].Fill( *hlt_photon90_ht500, ht );
+      if( thisPhoton->p.Pt() > 100 ) eff["eff_hlt_ht__offlinePT100__"+s].Fill( *hlt_photon90_ht500, ht );
     }
-    if( thisPhoton->p.Pt()>100 && *crossTriggerHt ) {
-      eff["eff_hlt_nVertex__"+s].Fill( *signalTrigger, *nGoodVertices );
-      eff["eff_hlt_hoe__"+s].Fill( *signalTrigger, thisPhoton->hOverE );
-      eff["eff_hlt_sie__"+s].Fill( *signalTrigger, thisPhoton->sigmaIetaIeta );
-      eff["eff_hlt_cIso__"+s].Fill( *signalTrigger, thisPhoton->isoChargedHadronsEA );
-      eff["eff_hlt_nIso__"+s].Fill( *signalTrigger, thisPhoton->isoNeutralHadronsEA );
-      eff["eff_hlt_pIso__"+s].Fill( *signalTrigger, thisPhoton->isoPhotonsEA );
-      eff["eff_hlt_n_jet_uncleaned__"+s].Fill( *signalTrigger, selJets.size() );
+    if( thisPhoton->p.Pt()>100 && *hlt_ht600 ) {
+      eff["eff_hlt_nVertex__"+s].Fill( *hlt_photon90_ht500, *nGoodVertices );
+      eff["eff_hlt_hoe__"+s].Fill( *hlt_photon90_ht500, thisPhoton->hOverE );
+      eff["eff_hlt_sie__"+s].Fill( *hlt_photon90_ht500, thisPhoton->sigmaIetaIeta );
+      eff["eff_hlt_cIso__"+s].Fill( *hlt_photon90_ht500, thisPhoton->isoChargedHadronsEA );
+      eff["eff_hlt_nIso__"+s].Fill( *hlt_photon90_ht500, thisPhoton->isoNeutralHadronsEA );
+      eff["eff_hlt_pIso__"+s].Fill( *hlt_photon90_ht500, thisPhoton->isoPhotonsEA );
+      eff["eff_hlt_n_jet_uncleaned__"+s].Fill( *hlt_photon90_ht500, selJets.size() );
     }
 
   }
@@ -510,9 +510,9 @@ HistogramProducer::HistogramProducer():
   genHt( fReader, "genHt" ),
   dR_recoGenJet( fReader, "dR_recoGenJet" ),
   runNo( fReader, "runNo" ),
-  signalTrigger( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
-  crossTriggerPhoton( fReader, "HLT_Photon90_v" ),
-  crossTriggerHt( fReader, "HLT_PFHT600_v" ),
+  hlt_photon90_ht500( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
+  hlt_photon90( fReader, "HLT_Photon90_v" ),
+  hlt_ht600( fReader, "HLT_PFHT600_v" ),
   qcdWeighter( "../plotter/weights_unweighted.root", "weight__data_g_pt__tr_jControl"),
   looseCutFlowPhoton( 0.0102, 3.32, 1.92, 0.014, 0.000019, 0.81, 0.0053, 0.0274, 1.97, 11.86, 0.0139, 0.000025, 0.83, 0.0034 )
 {
@@ -531,7 +531,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
 {
   initObjects("base");
 
-  vector<string> strs = { "no", "no_genElectron", "no_genPhoton", "trPhoton", "trBit", "tr", "tr_met200", "tr_met200_dphi", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht550" };
+  vector<string> strs = { "no", "no_genElectron", "no_genPhoton", "trBit", "tr", "tr_met200", "tr_met200_dphi", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht600" };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -565,7 +565,6 @@ void HistogramProducer::defaultSelection()
 Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
-  //if( entry > 3 ) return true;
   fReader.SetEntry(entry);
   // set weight
   selW = *mc_weight * *pu_weight;
@@ -573,8 +572,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2552/1/1/1.html
   // This run has a bad beam spot, so is not to used for the signal trigger
   if( isData && *runNo == 259637 ) return true;
-
-  h["h_genHt"].Fill( *genHt, selW );
 
   selHt = 0;
   for( auto& jet : jets ){
@@ -602,30 +599,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   resetSelection();
   /////////////////////////////////////////////////////////////////////////////
-  // New selection
-  for( auto& photon : photons ) {
-    if( photon.p.Pt() > 20 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
-       selPhotons.push_back( &photon );
-    }
-  }
-  defaultSelection();
-  if( selPhotons.size() ){
-    fillSelection("no");
-    for( auto& p : genParticles ) {
-        if( abs(p.pdgId) == 11 && p.p.DeltaR( selPhotons[0]->p ) < 0.1 ) {
-          fillSelection("no_genElectron");
-          break;
-        }
-    }
-    if( selPhotons[0]->isTrueAlternative ) {
-      fillSelection("no_genPhoton");
-    }
-  }
-
-
-  resetSelection();
-  /////////////////////////////////////////////////////////////////////////////
-  // New selection
+  // Main (signal) selection
   for( auto& photon : photons ) {
     if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
        selPhotons.push_back( &photon );
@@ -643,22 +617,19 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     mrr2 = razorVariables( megajets( js ), met->p );
   }
 
-  if( *crossTriggerPhoton && selPhotons.size() ) {
+  if( (*hlt_photon90 || !isData) && selPhotons.size() ) {
     fillSelection("trPhoton90");
     if( selHt > 300 ) fillSelection("trPhoton90_ht300");
-    if( selHt > 550 ) fillSelection("trPhoton90_ht550");
+    if( selHt > 600 ) fillSelection("trPhoton90_ht600");
   }
 
-  if( *signalTrigger ) {
+  if( *hlt_photon90_ht500 ) {
     fillSelection("trBit");
   }
 
-  if( selPhotons.size() && (*crossTriggerPhoton || !isData) ) {
-    fillSelection("trPhoton");
-  }
-
-  if( selPhotons.size() && selHt > 600 && (*signalTrigger || !isData) ) {
+  if( selPhotons.size() && selHt > 600 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
+    /*
     for( auto& p : genParticles ) {
         if( abs(p.pdgId) == 11 && p.p.DeltaR( selPhotons[0]->p ) < 0.1 ) {
           fillSelection("tr_genElectron");
@@ -674,10 +645,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
         fillSelection("tr_met200_dphi");
       }
     }
-
+    */
   }
 
-
+/*
   resetSelection();
   /////////////////////////////////////////////////////////////////////////////
   // electron sample
@@ -689,7 +660,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
   defaultSelection();
 
-  if( selPhotons.size() && selHt > 600 && (*signalTrigger || !isData) ) {
+  if( selPhotons.size() && selHt > 600 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr_eControl");
   }
 
@@ -706,10 +677,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     }
   }
   defaultSelection();
-  if( selPhotons.size() && selHt > 600 && (*signalTrigger || !isData) ) {
+  if( selPhotons.size() && selHt > 600 && (*hlt_photon90_ht500 || !isData) ) {
      fillSelection("tr_jControl");
   }
-
+*/
   return kTRUE;
 }
 
