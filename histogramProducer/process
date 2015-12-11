@@ -52,7 +52,7 @@ ZJetsToNuNu_HT-400To600_nTuple.root
 JetHT_Run2015C_25ns-05Oct2015-v1_nTuple.root
 )
 
-infilesQCD=(
+infiles=(
 GJets_HT-200To400_nTuple.root
 GJets_HT-400To600_nTuple.root
 SinglePhoton_Run2015D-PromptReco-v4_nTuple.root
@@ -86,7 +86,7 @@ while [ ${#infiles[@]} -ne 0 ]; do
   # find out how many root processer are running
   nProcRunning=$(ps hu -C "root -b -l -q run.C"|wc -l)
   if [ "$nProcRunning" -lt "$nCores" ]; then
-    root -b -l -q run.C\(\"/user/kiesel/nTuples/V07/${infiles[0]}\"\) &
+    root -b -l -q run.C\(\"/user/kiesel/nTuples/V06/${infiles[0]}\"\) &
     infiles=( ${infiles[@]:1:99} )
   fi
 

@@ -123,14 +123,14 @@ qcd2000 = Dataset( "QCD_HT2000toInf", 25.24,  ROOT.kBlue, "QCD_HT2000toInf_TuneC
 qcd = qcd100 + qcd200 + qcd300 + qcd500 + qcd700 + qcd1000 + qcd1500 + qcd2000
 qcd.label = "Multijet"
 
-emqcd15 = Dataset( "QCD_Pt-15to20_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-15to20_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
-emqcd20 = Dataset( "QCD_Pt-20to30_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
-emqcd30 = Dataset( "QCD_Pt-30to50_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
-emqcd50 = Dataset( "QCD_Pt-50to80_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
-emqcd80 = Dataset( "QCD_Pt-80to120_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-80o120_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
-emqcd120 = Dataset( "QCD_Pt-120to170_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-120o170_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
-emqcd170 = Dataset( "QCD_Pt-170to300_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-170o300_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
-emqcd300 = Dataset( "QCD_Pt-300toInf_EMEnriched", 0, ROOT.kBlue+0, "QCD_Pt-300oInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd15 = Dataset( "QCD_Pt-15to20_EMEnriched", 1273000000, ROOT.kBlue+0, "QCD_Pt-15to20_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd20 = Dataset( "QCD_Pt-20to30_EMEnriched",  557600000, ROOT.kBlue+0, "QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd30 = Dataset( "QCD_Pt-30to50_EMEnriched",  136000000, ROOT.kBlue+0, "QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd50 = Dataset( "QCD_Pt-50to80_EMEnriched",   19800000, ROOT.kBlue+0, "QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd80 = Dataset( "QCD_Pt-80to120_EMEnriched",   2800000, ROOT.kBlue+0, "QCD_Pt-80o120_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd120 = Dataset( "QCD_Pt-120to170_EMEnriched",  477000, ROOT.kBlue+0, "QCD_Pt-120o170_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd170 = Dataset( "QCD_Pt-170to300_EMEnriched",  114000, ROOT.kBlue+0, "QCD_Pt-170o300_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
+emqcd300 = Dataset( "QCD_Pt-300toInf_EMEnriched",    9000, ROOT.kBlue+0, "QCD_Pt-300oInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
 
 emqcd = emqcd15 + emqcd20 + emqcd30 + emqcd50 + emqcd80 + emqcd120 + emqcd170 + emqcd300
 emqcd.label = "QCD EM enriched"

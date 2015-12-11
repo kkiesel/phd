@@ -153,6 +153,7 @@ class HistogramProducer : public TSelector {
 
   TTreeReaderValue<Bool_t> hlt_photon90_ht500;
   TTreeReaderValue<Bool_t> hlt_photon90;
+  TTreeReaderValue<Bool_t> hlt_photon175;
   TTreeReaderValue<Bool_t> hlt_ht600;
 
   vector<tree::Photon*> selPhotons;
@@ -192,6 +193,11 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 150, 0, 1500 );
   h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 1500, 0, 1.5 );
   h["h_g_phi__"+s] = TH1F( "", ";#phi", 200, -3.2, 3.2 );
+  h["h_g_sie__"+s] = TH1F( "", ";#sigma_{i#etai#eta}", 400, 0, 0.02 );
+  h["h_g_hoe__"+s] = TH1F( "", ";H/E", 100, 0, 0.15 );
+  h["h_g_cIso__"+s] = TH1F( "", ";I_{#pi} (GeV)", 100, 0, 10 );
+  h["h_g_nIso__"+s] = TH1F( "", ";I_{n} (GeV)", 100, 0, 20 );
+  h["h_g_pIso__"+s] = TH1F( "", ";I_{#gamma} (GeV)", 100, 0, 20 );
 
   // jet
   h["h_j1_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 100, 0, 1500 );
@@ -309,6 +315,11 @@ void HistogramProducer::fillSelection( string const& s ) {
     h["h_g_pt__"+s].Fill( selPhotons[0]->p.Pt(), selW );
     h["h_g_eta__"+s].Fill( fabs(selPhotons[0]->p.Eta()), selW );
     h["h_g_phi__"+s].Fill( selPhotons[0]->p.Phi(), selW );
+    h["h_g_sie__"+s].Fill( selPhotons[0]->sigmaIetaIeta );
+    h["h_g_hoe__"+s].Fill( selPhotons[0]->hOverE );
+    h["h_g_cIso__"+s].Fill( selPhotons[0]->isoChargedHadronsEA );
+    h["h_g_nIso__"+s].Fill( selPhotons[0]->isoNeutralHadronsEA );
+    h["h_g_pIso__"+s].Fill( selPhotons[0]->isoPhotonsEA );
     h2["h2_g_pt_ht__"+s].Fill( selPhotons[0]->p.Pt(), selHt, selW );
   }
 
@@ -512,6 +523,7 @@ HistogramProducer::HistogramProducer():
   runNo( fReader, "runNo" ),
   hlt_photon90_ht500( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
   hlt_photon90( fReader, "HLT_Photon90_v" ),
+  hlt_photon175( fReader, "HLT_Photon175_v" ),
   hlt_ht600( fReader, "HLT_PFHT600_v" ),
   qcdWeighter( "../plotter/weights_unweighted.root", "weight__data_g_pt__tr_jControl"),
   looseCutFlowPhoton( 0.0102, 3.32, 1.92, 0.014, 0.000019, 0.81, 0.0053, 0.0274, 1.97, 11.86, 0.0139, 0.000025, 0.83, 0.0034 )
@@ -531,7 +543,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
 {
   initObjects("base");
 
-  vector<string> strs = { "no", "no_genElectron", "no_genPhoton", "trBit", "tr", "tr_met200", "tr_met200_dphi", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht600" };
+  vector<string> strs = { "no", "no_genElectron", "no_genPhoton", "trBit", "tr", "tr_met200", "tr_met200_dphi", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht600", "trPhoton175" };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -621,6 +633,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     fillSelection("trPhoton90");
     if( selHt > 300 ) fillSelection("trPhoton90_ht300");
     if( selHt > 600 ) fillSelection("trPhoton90_ht600");
+  }
+  if( (*hlt_photon175 || !isData) && selPhotons.size() && selPhotons[0]->p.Pt() > 190 ) {
+    fillSelection("trPhoton175");
   }
 
   if( *hlt_photon90_ht500 ) {

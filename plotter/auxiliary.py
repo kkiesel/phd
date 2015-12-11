@@ -52,7 +52,12 @@ def getDatasetFromKey(key):
     return key
 
 
-def write2File( obj, name, fname ):
+def write2File( obj2Write, name, fname ):
+    obj = obj2Write.Clone()
+    if isinstance( obj, ROOT.TH1 ):
+        for a in obj.GetXaxis(),obj.GetYaxis():
+           a.UnZoom()
+
     f = ROOT.TFile( fname,"update")
     obj.Write( name, ROOT.TObject.kWriteDelete )
     f.Close()

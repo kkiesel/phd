@@ -101,13 +101,14 @@ def divideDatasetIntegrals( numerator, denominator, name ):
     den = h_den.Integral(0,-1)
     return num/den if den else 1.
 
-def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, scaleToData=False ):
+def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, binningName="", scaleToData=False ):
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
     scale = 1.
     if scaleToData: scale = divideDatasetIntegrals( [ i for i in additional if "Data" in i.label ], bkg, name )
+    if "__trPhoton90" in name: scale = 1/90.
 
     for d in bkg[-1::-1]:
         h = d.getHist( name )
@@ -135,7 +136,7 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, s
             h.SetBinErrorOption( ROOT.TH1.kPoisson )
             dataHist = h
         else:
-            h.drawOption_ = "hist"
+            h.drawOption_ = "hist e"
             h.SetLineWidth(3)
 
         m.add( h, d.label )
@@ -154,19 +155,24 @@ def drawSameHistogram( saveName, name, data, bkg, additional=[], binning=None, s
 
 
         info = ""
-        if name.endswith("__trPhoton90_ht550"): info = "HLT_P90,H_{T}>550"
-        if name.endswith("__trPhoton90_ht300"): info = "HLT_P90,H_{T}>300"
-        if name.endswith("__trPhoton90"): info = "HLT_P90"
-        if name.endswith("__trBit"): info = "HLT_P90_HT500"
-        if name.endswith("__tr"): info = "HLT_P90_HT500,H_{T}>600"
+        if name.endswith("__trPhoton90_ht550"): info = "HLT_#gamma90,H_{T}>550"
+        if name.endswith("__trPhoton90_ht300"): info = "HLT_#gamma90,H_{T}>300"
+        if name.endswith("__trPhoton90"): info = "HLT_#gamma90, #scale[0.7]{scaled by 1/90 (prescale)}"
+        if name.endswith("__trPhoton175"): info = "HLT_#gamma175"
+        if name.endswith("__trBit"): info = "HLT_#gamma90_H_{T}>500"
+        if name.endswith("__tr"): info = "HLT_#gamma90_HT500,H_{T}>600"
         l = aux.Label(info="#scale[0.7]{%s}"%info)
-        aux.save( "sameHistogram%s_%s"%(saveName,name) )
+
+        if binningName: binningName = "_"+binningName
+        saveName = "sameHistograms_{}_{}{}".format(sampleNames, name, binningName )
+        aux.save( saveName )
         can.SetLogy()
-        aux.save( "sameHistogram%s_%s_log"%(saveName,name) )
+        aux.save( saveName+"_log" )
 
 
-def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
-    names = aux.getObjectNames( bkg[0].files[0] )
+def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
+    file = stack[0].files[0] if stack else additional[0].files[0]
+    names = aux.getObjectNames( file )
 
     #names = [ "h_ht__tr" ] # test plot
 
@@ -174,7 +180,7 @@ def drawSameHistograms( saveName="test", data=None, bkg=[], additional=[] ):
         if not name.startswith("h_"): continue
 
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
-            drawSameHistogram( saveName+"_bin"+binningName, name, data, bkg, additional, binning )
+            drawSameHistogram( sampleNames, name, stack, additional, binning, binningName )
 
 def getProjections( h2, alongX=True ):
     hs = []
@@ -261,15 +267,14 @@ def qcdClosure( dataset, samplename="" ):
                 mod_dir = aux.rebin(mod_dir, binning)
                 mod_pre = aux.rebin(mod_pre, binning)
 
-
-                m.add( mod_dir, "#gamma" )
+            m.add( mod_dir, "#gamma" )
             m.add( mod_pre, "#gamma-like" )
 
             if m.Draw():
 
                 r = ratio.Ratio( "#gamma/#gamma-like", mod_dir, mod_pre )
                 r.draw(0.5,1.5)
-                if name in ["h_g_eta__tr_jControl","h_g_pt__tr_jControl"] and not binning:
+                if name  == "h_g_pt__tr_jControl" and binningName == "2":
                     aux.write2File( r.ratio.Clone(), name.replace("h_","weight_{}_".format(samplename)), "weights.root" )
             l = aux.Label()
             aux.save( "qcdClosure_"+name+samplename+binningName )
@@ -618,7 +623,8 @@ def main():
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
-    #drawSameHistograms( "_gqcd_data", bkg=[ gjets, qcd], additional=[data])
+    drawSameHistograms( "gqcd_emqcd_data", [gjets, qcd], [data,emqcd,gjets_pt15])
+    #drawSameHistograms( "emqcd_data", [emqcd], [data])
     #drawSameHistograms( "_gjet15_data", bkg=[gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
