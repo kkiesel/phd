@@ -181,6 +181,8 @@ class HistogramProducer : public TSelector {
 };
 
 void HistogramProducer::initSelection( string const& s ) {
+
+  // event
   h["h_met__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
   h["h_met_up__"+s] = TH1F( "", ";up-shifted E^{miss}_{T} (GeV)", 100, 0, 1000 );
   h["h_met_dn__"+s] = TH1F( "", ";down-shifted E^{miss}_{T} (GeV)", 100, 0, 1000 );
@@ -189,7 +191,9 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_ht__"+s] = TH1F( "", ";H_{T}", 200, 0, 2500 );
   h["h_ht_g__"+s] = TH1F( "", ";HE_{T}", 200, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T}", 200, 0, 2500 );
+  h["h_meg__"+s] = TH1F( "", ";m_{ee}", 200, 0, 200 );
 
+  // photon
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 150, 0, 1500 );
   h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 1500, 0, 1.5 );
   h["h_g_phi__"+s] = TH1F( "", ";#phi", 200, -3.2, 3.2 );
@@ -309,6 +313,10 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_ht__"+s].Fill( selHt, selW );
   h["h_ht_g__"+s].Fill( ht_g, selW );
   h["h_st__"+s].Fill( st, selW );
+
+  if( selElectrons.size() && selPhotons.size() ){
+    h["h_meg__"+s].Fill( (selPhotons[0]->p+selElectrons[0]->p).Mag() );
+  }
 
   if( selPhotons.size() > 0 ) {
     h["h_mt_g_met__"+s].Fill( (selPhotons[0]->p + met->p).Pt(), selW );
