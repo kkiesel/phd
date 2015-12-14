@@ -77,7 +77,7 @@ def getFromFile( filename, histoname ):
 
 def getNgen( filename ):
     h = getFromFile( filename, "hCutFlow" )
-    return h.GetBinContent(1)
+    return h.GetBinContent(2)
 
 def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
     f = ROOT.TFile( filename )
