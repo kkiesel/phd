@@ -188,30 +188,30 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_met_dn__"+s] = TH1F( "", ";down-shifted E^{miss}_{T} (GeV)", 100, 0, 1000 );
   h["h_mt_g_met__"+s] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 100, 0, 1000 );
 
-  h["h_ht__"+s] = TH1F( "", ";H_{T}", 200, 0, 2500 );
-  h["h_ht_g__"+s] = TH1F( "", ";HE_{T}", 200, 0, 2500 );
-  h["h_st__"+s] = TH1F( "", ";S_{T}", 200, 0, 2500 );
-  h["h_meg__"+s] = TH1F( "", ";m_{ee}", 200, 0, 200 );
+  h["h_ht__"+s] = TH1F( "", ";H_{T}", 250, 0, 2500 );
+  h["h_ht_g__"+s] = TH1F( "", ";HE_{T}", 250, 0, 2500 );
+  h["h_st__"+s] = TH1F( "", ";S_{T}", 250, 0, 2500 );
+  h["h_meg__"+s] = TH1F( "", ";m_{ee}", 250, 0, 200 );
 
   // photon
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 150, 0, 1500 );
   h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 1500, 0, 1.5 );
   h["h_g_phi__"+s] = TH1F( "", ";#phi", 200, -3.2, 3.2 );
   h["h_g_sie__"+s] = TH1F( "", ";#sigma_{i#etai#eta}", 400, 0, 0.02 );
-  h["h_g_hoe__"+s] = TH1F( "", ";H/E", 100, 0, 0.15 );
+  h["h_g_hoe__"+s] = TH1F( "", ";H/E", 150, 0, 0.15 );
   h["h_g_cIso__"+s] = TH1F( "", ";I_{#pi} (GeV)", 100, 0, 10 );
   h["h_g_nIso__"+s] = TH1F( "", ";I_{n} (GeV)", 100, 0, 20 );
   h["h_g_pIso__"+s] = TH1F( "", ";I_{#gamma} (GeV)", 100, 0, 20 );
 
   // jet
-  h["h_j1_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 100, 0, 1500 );
-  h["h_j1_eta__"+s] = TH1F( "", ";|#eta^{1.jet}|", 100, 0, 3 );
-  h["h_j2_pt__"+s] = TH1F( "", ";p_{T}^{2.jet} (GeV)", 100, 0, 1500 );
-  h["h_j2_eta__"+s] = TH1F( "", ";|#eta^{2.jet}|", 100, 0, 3 );
-  h["h_j3_pt__"+s] = TH1F( "", ";p_{T}^{3.jet} (GeV)", 100, 0, 1500 );
-  h["h_j3_eta__"+s] = TH1F( "", ";|#eta^{3.jet}|", 100, 0, 3 );
-  h["h_j1_eb_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 100, 0, 1500 );
-  h["h_j1_ee_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 100, 0, 1500 );
+  h["h_j1_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 150, 0, 1500 );
+  h["h_j1_eta__"+s] = TH1F( "", ";|#eta^{1.jet}|", 150, 0, 3 );
+  h["h_j2_pt__"+s] = TH1F( "", ";p_{T}^{2.jet} (GeV)", 150, 0, 1500 );
+  h["h_j2_eta__"+s] = TH1F( "", ";|#eta^{2.jet}|", 150, 0, 3 );
+  h["h_j3_pt__"+s] = TH1F( "", ";p_{T}^{3.jet} (GeV)", 150, 0, 1500 );
+  h["h_j3_eta__"+s] = TH1F( "", ";|#eta^{3.jet}|", 150, 0, 3 );
+  h["h_j1_eb_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 150, 0, 1500 );
+  h["h_j1_ee_pt__"+s] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 150, 0, 1500 );
 
   h["h_j1_chf__"+s] = TH1F( "", ";1.jet charged hadron fraction", 100, 0, 1 );
   h["h_j1_nhf__"+s] = TH1F( "", ";1.jet neutral hadron fraction", 100, 0, 1 );
@@ -221,22 +221,22 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_j1_nconstituents__"+s] = TH1F( "", ";1.jet constituent multiplicity", 71, -0.5, 70.5 );
 
   // b-jets
-  h["h_bj1_pt__"+s] = TH1F( "", ";p_{T}^{1.b-jet} (GeV)", 100, 0, 1500 );
-  h["h_bj1_eta__"+s] = TH1F( "", ";|#eta^{1.b-jet}|", 100, 0, 3 );
-  h["h_bj2_pt__"+s] = TH1F( "", ";p_{T}^{2.b-jet} (GeV)", 100, 0, 1500 );
-  h["h_bj2_eta__"+s] = TH1F( "", ";|#eta^{2.b-jet}|", 100, 0, 3 );
-  h["h_bj3_pt__"+s] = TH1F( "", ";p_{T}^{3.b-jet} (GeV)", 100, 0, 1500 );
-  h["h_bj3_eta__"+s] = TH1F( "", ";|#eta^{3.b-jet}|", 100, 0, 3 );
+  h["h_bj1_pt__"+s] = TH1F( "", ";p_{T}^{1.b-jet} (GeV)", 150, 0, 1500 );
+  h["h_bj1_eta__"+s] = TH1F( "", ";|#eta^{1.b-jet}|", 150, 0, 3 );
+  h["h_bj2_pt__"+s] = TH1F( "", ";p_{T}^{2.b-jet} (GeV)", 150, 0, 1500 );
+  h["h_bj2_eta__"+s] = TH1F( "", ";|#eta^{2.b-jet}|", 150, 0, 3 );
+  h["h_bj3_pt__"+s] = TH1F( "", ";p_{T}^{3.b-jet} (GeV)", 150, 0, 1500 );
+  h["h_bj3_eta__"+s] = TH1F( "", ";|#eta^{3.b-jet}|", 150, 0, 3 );
 
   // angles
-  h["h_dphi_met_g__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#gamma)|", 100, 0, 3.5 );
-  h["h_dphi_met_j1__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},1.jet)|", 100, 0, 3.5 );
-  h["h_dphi_met_j2__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},2.jet)|", 100, 0, 3.5 );
-  h["h_dphi_met_j3__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},3.jet)|", 100, 0, 3.5 );
-  h["h_dphi_met_j13_min__"+s] = TH1F( "", ";min_{i}|#Delta#phi(E_{T}^{miss},i.jet)|", 100, 0, 3.5 );
-  h["h_dphi_met_recoil__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#Sigma jet)|", 100, 0, 3.5 );
-  h["h_dphi_g_j1__"+s] = TH1F( "", ";|#Delta#phi(#gamma,1.jet)|", 100, 0, 3.5 );
-  h["h_dphi_g_j2__"+s] = TH1F( "", ";|#Delta#phi(#gamma,2.jet)|", 100, 0, 3.5 );
+  h["h_dphi_met_g__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#gamma)|", 70, 0, 3.5 );
+  h["h_dphi_met_j1__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},1.jet)|", 70, 0, 3.5 );
+  h["h_dphi_met_j2__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},2.jet)|", 70, 0, 3.5 );
+  h["h_dphi_met_j3__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},3.jet)|", 70, 0, 3.5 );
+  h["h_dphi_met_j13_min__"+s] = TH1F( "", ";min_{i}|#Delta#phi(E_{T}^{miss},i.jet)|", 70, 0, 3.5 );
+  h["h_dphi_met_recoil__"+s] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#Sigma jet)|", 70, 0, 3.5 );
+  h["h_dphi_g_j1__"+s] = TH1F( "", ";|#Delta#phi(#gamma,1.jet)|", 70, 0, 3.5 );
+  h["h_dphi_g_j2__"+s] = TH1F( "", ";|#Delta#phi(#gamma,2.jet)|", 70, 0, 3.5 );
 
   // multiplicities
   h["h_n_vertex__"+s] = TH1F( "", ";Vertex multiplicity", 61, -0.5, 60.5 );
