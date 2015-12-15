@@ -1,3 +1,5 @@
+#include<regex>
+
 #include "TROOT.h"
 #include "TChain.h"
 #include "TFile.h"
@@ -101,6 +103,19 @@ int indexOfMatchedParticle( const tree::Particle& tag, const std::vector<VectorC
   return -1;
 }
 
+vector<int> getRunList( const string& filename="/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt" ) {
+  ifstream t(filename);
+  string s((std::istreambuf_iterator<char>(t)),std::istreambuf_iterator<char>());
+  smatch m;
+  regex e ("\"([\\d]+)\"");
+  vector<int> runList;
+  while (regex_search (s,m,e)) {
+    runList.push_back( stoi( m[1] ) );
+    s = m.suffix().str();
+  }
+  return runList;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // End User Functions
@@ -172,6 +187,8 @@ class HistogramProducer : public TSelector {
   map<string,TProfile> prof;
   map<string,TEfficiency> eff;
 
+  map<int,pair<int,int>> rawEff_vs_run;
+
   bool isData;
 
   Weighter qcdWeighter;
@@ -189,6 +206,7 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_mt_g_met__"+s] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 100, 0, 1000 );
 
   h["h_ht__"+s] = TH1F( "", ";H_{T}", 250, 0, 2500 );
+  h["h_ht_parton__"+s] = TH1F( "", ";parton H_{T}", 250, 0, 2500 );
   h["h_ht_g__"+s] = TH1F( "", ";HE_{T}", 250, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T}", 250, 0, 2500 );
   h["h_meg__"+s] = TH1F( "", ";m_{ee}", 250, 0, 200 );
@@ -311,6 +329,9 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_met_dn__"+s].Fill( met->p.Pt()-met->uncertainty, selW );
 
   h["h_ht__"+s].Fill( selHt, selW );
+  float partonHt = 0;
+  for( auto& j: selJets ) partonHt += j->p.Pt();
+  h["h_ht_parton__"+s].Fill( partonHt, selW );
   h["h_ht_g__"+s].Fill( ht_g, selW );
   h["h_st__"+s].Fill( st, selW );
 
@@ -508,6 +529,9 @@ void HistogramProducer::fillObjects( string const& s ) {
       eff["eff_hlt_nIso__"+s].Fill( *hlt_photon90_ht500, thisPhoton->isoNeutralHadronsEA );
       eff["eff_hlt_pIso__"+s].Fill( *hlt_photon90_ht500, thisPhoton->isoPhotonsEA );
       eff["eff_hlt_n_jet_uncleaned__"+s].Fill( *hlt_photon90_ht500, selJets.size() );
+      if( !rawEff_vs_run.count( *runNo ) ) rawEff_vs_run[*runNo] = make_pair(0,0);
+      if( *hlt_photon90_ht500 ) rawEff_vs_run[*runNo].first += 1;
+      rawEff_vs_run[*runNo].second += 1;
     }
 
   }
@@ -725,6 +749,7 @@ void HistogramProducer::Terminate()
   for( auto& mapIt : eff )
     mapIt.second.Write( mapIt.first.c_str(), TObject::kWriteDelete );
 
+  file.WriteObject( &rawEff_vs_run, "rawEff_vs_run" );
 
   fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write();
 
