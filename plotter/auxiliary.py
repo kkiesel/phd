@@ -56,12 +56,15 @@ def write2File( obj2Write, name, fname ):
     obj = obj2Write.Clone()
     if isinstance( obj, ROOT.TH1 ):
         for a in obj.GetXaxis(),obj.GetYaxis():
-           a.UnZoom()
+            pass
+            #a.UnZoom() #TODO: find out why this affects original histogram as well
 
     f = ROOT.TFile( fname,"update")
     obj.Write( name, ROOT.TObject.kWriteDelete )
     f.Close()
 
+def writeWeight( obj, name, sampleName ):
+    write2File( obj, name.replace("h_","weight_{}_".format(sampleName)), "weights.root" )
 
 def getFromFile( filename, histoname ):
     f = ROOT.TFile( filename )
@@ -85,6 +88,7 @@ def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
 
     outList = []
     for element in tmpDir.GetListOfKeys():
+        if element.GetName() == "rawEff_vs_run": continue
         obj = element.ReadObj()
 
         if any( [ isinstance( obj, o ) for o in objects ] ):
