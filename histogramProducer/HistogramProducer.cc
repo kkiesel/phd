@@ -191,7 +191,9 @@ class HistogramProducer : public TSelector {
 
   bool isData;
 
-  Weighter qcdWeighter;
+  //Weighter qcdWeighter;
+  Weighter htWeighter;
+  Weighter htPartonWeighter;
 
   CutFlowPhoton looseCutFlowPhoton;
 
@@ -557,7 +559,9 @@ HistogramProducer::HistogramProducer():
   hlt_photon90( fReader, "HLT_Photon90_v" ),
   hlt_photon175( fReader, "HLT_Photon175_v" ),
   hlt_ht600( fReader, "HLT_PFHT600_v" ),
-  qcdWeighter( "../plotter/weights_unweighted.root", "weight__data_g_pt__tr_jControl"),
+  //qcdWeighter( "../plotter/weights_unweighted.root", "weight__data_g_pt__tr_jControl"),
+  htWeighter( "../plotter/weights_unweighted.root", "weight_gqcd_data_ht__tr"),
+  htPartonWeighter( "../plotter/weights_unweighted.root", "weight_gqcd_data_ht_parton__tr"),
   looseCutFlowPhoton( 0.0102, 3.32, 1.92, 0.014, 0.000019, 0.81, 0.0053, 0.0274, 1.97, 11.86, 0.0139, 0.000025, 0.83, 0.0034 )
 {
 }
@@ -575,7 +579,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
 {
   initObjects("base");
 
-  vector<string> strs = { "no", "no_genElectron", "no_genPhoton", "trBit", "tr", "tr_met200", "tr_met200_dphi", "tr_genElectron", "tr_genPhoton", "tr_eControl", "tr_jControl", "trPhoton90", "trPhoton90_ht300", "trPhoton90_ht600", "trPhoton175" };
+  vector<string> strs = { "tr", "tr_eControl", "tr_jControl", "tr_jControl1", "tr_jControl2", "tr_htWeighted", "tr_htPartonWeighted" };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -610,8 +614,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
   fReader.SetEntry(entry);
+
   // set weight
   selW = *mc_weight * *pu_weight;
+  float originalW = selW;
 
   // https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2552/1/1/1.html
   // This run has a bad beam spot, so is not to used for the signal trigger
@@ -661,41 +667,18 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     mrr2 = razorVariables( megajets( js ), met->p );
   }
 
-  if( (*hlt_photon90 || !isData) && selPhotons.size() ) {
-    fillSelection("trPhoton90");
-    if( selHt > 300 ) fillSelection("trPhoton90_ht300");
-    if( selHt > 600 ) fillSelection("trPhoton90_ht600");
-  }
-  if( (*hlt_photon175 || !isData) && selPhotons.size() && selPhotons[0]->p.Pt() > 190 ) {
-    fillSelection("trPhoton175");
-  }
-
-  if( *hlt_photon90_ht500 ) {
-    fillSelection("trBit");
-  }
-
-  if( selPhotons.size() && selHt > 600 && (*hlt_photon90_ht500 || !isData) ) {
+  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
-    /*
-    for( auto& p : genParticles ) {
-        if( abs(p.pdgId) == 11 && p.p.DeltaR( selPhotons[0]->p ) < 0.1 ) {
-          fillSelection("tr_genElectron");
-          break;
-        }
-    }
-    if( selPhotons[0]->isTrueAlternative ) {
-      fillSelection("tr_genPhoton");
-    }
-    if( met->p.Pt() > 200 ) {
-      fillSelection("tr_met200");
-      if( !((selJets.size() && fabs(met->p.DeltaPhi( selJets[0]->p )) < 0.3) || (selJets.size()>1 && fabs(met->p.DeltaPhi( selJets[1]->p )) < 0.3 )) ) {
-        fillSelection("tr_met200_dphi");
-      }
-    }
-    */
+    if(!isData) selW = originalW*htWeighter.getWeight( selHt );
+    fillSelection("tr_htWeighted");
+    float partonHt=0;
+    for( auto& j: selJets ) partonHt += j->p.Pt();
+    if(!isData) selW = originalW*htPartonWeighter.getWeight( partonHt );
+    fillSelection("tr_htPartonWeighted");
+    selW = originalW;
   }
 
-/*
+
   resetSelection();
   /////////////////////////////////////////////////////////////////////////////
   // electron sample
@@ -707,8 +690,47 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
   defaultSelection();
 
-  if( selPhotons.size() && selHt > 600 && (*hlt_photon90_ht500 || !isData) ) {
+  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr_eControl");
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // jet sample
+  for( auto& photon : photons ) {
+    looseCutFlowPhoton.check(photon);
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
+        && !photon.isLoose
+        && looseCutFlowPhoton.passHoe()
+        && looseCutFlowPhoton.passSie()
+    ) {
+      selPhotons.push_back( &photon );
+    }
+  }
+  defaultSelection();
+  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
+     fillSelection("tr_jControl");
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // jet sample
+  for( auto& photon : photons ) {
+    looseCutFlowPhoton.check(photon);
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
+        && !photon.isLoose
+        && looseCutFlowPhoton.passHoe()
+        && looseCutFlowPhoton.passNIso()
+        && looseCutFlowPhoton.passPIso()
+        && photon.isoChargedHadronsEA < 10
+        && (looseCutFlowPhoton.passCIso() || looseCutFlowPhoton.passSie() )
+    ) {
+      selPhotons.push_back( &photon );
+    }
+  }
+  defaultSelection();
+  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
+     fillSelection("tr_jControl1");
   }
 
   resetSelection();
@@ -717,17 +739,17 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for( auto& photon : photons ) {
     if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
         && !photon.isLoose
-        && photon.hOverE < 0.05
-        //&& photon.sigmaIetaIeta < 0.0103
     ) {
       selPhotons.push_back( &photon );
     }
   }
   defaultSelection();
-  if( selPhotons.size() && selHt > 600 && (*hlt_photon90_ht500 || !isData) ) {
-     fillSelection("tr_jControl");
+  if( selPhotons.size() && selHt > 700 && (*hlt_ht600 || !isData) ) {
+     fillSelection("tr_jControl2");
   }
-*/
+
+
+
   return kTRUE;
 }
 
