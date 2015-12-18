@@ -1,6 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+import sys
+if sys.version_info[:2] == (2,6):
+    print "Initialize correct python version first!"
+    sys.exit()
+
 import ConfigParser
 import ROOT
 import math
@@ -109,6 +114,7 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
     scale = 1.
     if scaleToData: scale = divideDatasetIntegrals( [ i for i in additional if "Data" in i.label ], bkg, name )
     if "__trPhoton90" in name: scale = 1/90.
+    if "__tr_jControl2" in name: scale = 1/6.
 
     for d in bkg[-1::-1]:
         h = d.getHist( name )
@@ -141,6 +147,9 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
 
         m.add( h, d.label )
 
+    if name == "h_met__tr_eControl":
+        m.minimum = 0.1
+
     if m.Draw():
 
         # ratio
@@ -148,11 +157,11 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
         if dataHist:
             r = ratio.Ratio( "Data/SM", dataHist, hsm )
             r.draw(0.5,1.5)
-            if name in ["h_n_vertex__tr","h_n_jet__tr","h_ht__tr","h_g_pt__tr"]:
-                f = ROOT.TFile("weights.root","update")
-                r.ratio.Write(name.replace("h_","weight_"), ROOT.TObject.kWriteDelete )
-                f.Close()
 
+            if name  == "h_ht__tr" and binningName == "4":
+                aux.writeWeight( r.ratio, name, sampleNames )
+            if name  == "h_ht_parton__tr" and binningName == "1":
+                aux.writeWeight( r.ratio, name, sampleNames )
 
         info = ""
         if name.endswith("__trPhoton90_ht550"): info = "HLT_#gamma90,H_{T}>550"
@@ -174,7 +183,7 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     file = stack[0].files[0] if stack else additional[0].files[0]
     names = aux.getObjectNames( file )
 
-    #names = [ "h_ht__tr" ] # test plot
+    #names = [ "h_met__tr_jControl2" ] # test plot
 
     for name in names:
         if not name.startswith("h_"): continue
@@ -233,15 +242,66 @@ def drawRazor( dataset ):
     aux.save( "razorAlongX" )
     """
 
-def qcdClosure( dataset, samplename="" ):
-    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
+def multiQcdClosure( dataset, name, samplename, binning, binningName ):
+    can = ROOT.TCanvas()
+    m = multiplot.Multiplot()
 
-    gSet = "tr"
-    cSet = "tr_jControl"
+    hdir = dataset.getHist( name )
+    if not hdir.Integral(): return
+    if binning: hdir = aux.rebin( hdir, binning )
+    aux.appendFlowBin( hdir )
+    hdir.SetYTitle( aux.getYAxisTitle( hdir ) )
+    hdir.SetLineColor(1)
+    hdir.SetMarkerColor(1)
+    hdir.SetMarkerStyle(20)
+    hdir.drawOption_ = "pe"
+    m.add( hdir, "#gamma" )
+
+    settings = {
+        "tr_jControl": ("no Iso", ROOT.kRed),
+        "tr_jControl1": ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kBlue),
+        "tr_jControl2": ("no #gamma", ROOT.kGreen+4)
+    }
+
+    for cutName, (legend, col) in settings.iteritems():
+
+        h = dataset.getHist( name.replace("__tr","__"+cutName) )
+        if not h.Integral(): continue
+        if binning: h = aux.rebin( h, binning )
+        aux.appendFlowBin( h )
+        h.Scale( hdir.Integral()/h.Integral() )
+        h.SetYTitle( aux.getYAxisTitle( h ) )
+        h.SetLineColor(col)
+        h.drawOption_ = "hist e"
+        m.add( h, legend )
+    m.Draw()
+    l = aux.Label()
+
+    if binningName: binningName = "_"+binningName
+    saveName = "multiQcdClosure_{}_{}{}".format(samplename, name, binningName )
+    aux.save( saveName )
+    can.SetLogy()
+    aux.save( saveName+"_log" )
+
+
+
+def multiQcdClosures( dataset, samplename ):
+    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
+    names = [ x for x in names if x.endswith("tr") ]
 
     for name in names:
-        if cSet not in name: continue
+        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+            multiQcdClosure( dataset, name, samplename, binning, binningName )
 
+
+
+
+
+def qcdClosure( dataset, samplename="", gSet="tr_ht700", cSet="tr_jControl2" ):
+    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
+
+    for name in names:
+        if not name.endswith(cSet): continue
 
         hdir = getHistoFromDataset( dataset, name.replace( cSet, gSet ) )
         hdir.SetLineColor(1)
@@ -250,6 +310,7 @@ def qcdClosure( dataset, samplename="" ):
         hdir.drawOption_ = "p"
 
         hpre = getHistoFromDataset( dataset, name )
+        if cSet=="tr_jControl2" and dataset==data: hpre = getHistoFromDataset( dataHt, name ) # temporary fix
         scale = hdir.Integral() / hpre.Integral()
         hpre.Scale( scale )
         hpre.drawOption_ = "hist"
@@ -616,9 +677,21 @@ def drawISRsplitting():
     ewkIsrSamplesSplitting( wjets, wg_mg, "w_mg" )
     ewkIsrSamplesSplitting( znunu, zg_130, "zg" )
 
+def efficiencyFromMap( sampleName, sample ):
+    f = ROOT.TFile( sample.files[0] )
+    m = ROOT.std.map('int, pair<int,int>')()
+    f.GetObject( "rawEff_vs_run", m )
+
+    print m.size()
+    print len(m)
+    for a,b in m.iteritems():
+        print a,b
+
+
 
 def main():
     pass
+    #efficiencyFromMap( "singlePhoton", data )
     #transitions()
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
@@ -626,7 +699,8 @@ def main():
     #drawSameHistograms( "gqcd_data", [gjets600,gjets400,gjets200, gjets100,gjets40,qcd], [data])
     #drawSameHistograms( "emqcd_data", [emqcd], [data])
     #drawSameHistograms( "_gjet15_data", [gjets_pt15, qcd], additional=[data])
-    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[data])
+    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu,dy], additional=[data])
+    #drawSameHistograms( "mc_dataHt", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu,dy], additional=[dataHt])
     #drawSameHistograms( "_mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[signal["T5gg_1400_1200"], signal["T5gg_1000_200"]])
@@ -638,6 +712,7 @@ def main():
     #ewkClosure( wjets+ttjets, "_ewk" )
     #qcdClosure( qcd+gjets, "_gqcd" )
     #qcdClosure( data, "_data" )
+    #multiQcdClosures( qcd+gjets, "gqcd" )
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
