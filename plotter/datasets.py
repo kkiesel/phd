@@ -75,6 +75,13 @@ class Dataset:
             else: h0 = h
         return h0
 
+    def getLatexTableLine( self ):
+        # full samplename & xsec [pb] & effective Luminosity [/fb]i
+        out = ""
+        for lname, xsec, ngen in zip(self.lname,self.xsecs,self.ngens):
+            out += "{} & {} & {:.3g} \\\\\n".format( lname.replace("_","\\_"),xsec,0.001*ngen/xsec )
+        return out
+
 
 # data
 data = Dataset( "SinglePhoton", 0, ROOT.kBlack )
@@ -219,3 +226,8 @@ class SampleCollection(collections.MutableMapping):
 
 signal = SampleCollection()
 
+if __name__ == "__main__":
+    # print information
+    for i in gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu,zg_130:
+        print i.getLatexTableLine(),
+    print
