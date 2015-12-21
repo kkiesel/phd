@@ -22,10 +22,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation74X
-map<string,float> bTaggingWorkingPoints = {
-  { "CSVv2L", 0.605 },
-  { "CSVv2M", 0.89 },
-  { "CSVv2T", 0.97}
+enum bTaggingEnum { CSVv2L, CSVv2M, CSVv2T };
+map<bTaggingEnum,float> bTaggingWorkingPoints = {
+  { CSVv2L, 0.605 },
+  { CSVv2M, 0.89 },
+  { CSVv2T, 0.97}
 };
 
 pair<TVector3,TVector3> megajets( const vector<TVector3>& jets ) {
@@ -604,7 +605,7 @@ void HistogramProducer::defaultSelection()
     if( indexOfMatchedParticle<tree::Electron*>( jet, selElectrons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Muon*>( jet, selMuons, .3 ) >= 0 ) continue;
     selJets.push_back( &jet );
-    if( jet.bDiscriminator > bTaggingWorkingPoints["CSVv2M"] )
+    if( jet.bDiscriminator > bTaggingWorkingPoints[CSVv2M] )
       selBJets.push_back( &jet );
   }
 
