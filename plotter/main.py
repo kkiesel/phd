@@ -260,7 +260,8 @@ def multiQcdClosure( dataset, name, samplename, binning, binningName ):
     settings = {
         "tr_jControl": ("no Iso", ROOT.kRed),
         "tr_jControl1": ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kBlue),
-        "tr_jControl2": ("no #gamma", ROOT.kGreen+4)
+        "tr_jControl2": ("no #gamma", ROOT.kGreen+4),
+        "tr_jControlJet": ("loose jet", ROOT.kCyan),
     }
 
     for cutName, (legend, col) in settings.iteritems():
@@ -712,7 +713,7 @@ def main():
     #ewkClosure( wjets+ttjets, "_ewk" )
     #qcdClosure( qcd+gjets, "_gqcd" )
     #qcdClosure( data, "_data" )
-    #multiQcdClosures( qcd+gjets, "gqcd" )
+    multiQcdClosures( qcd+gjets, "gqcd" )
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
