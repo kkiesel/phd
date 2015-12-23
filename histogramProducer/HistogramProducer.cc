@@ -208,11 +208,10 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_met_dn__"+s] = TH1F( "", ";down-shifted E^{miss}_{T} (GeV)", 100, 0, 1000 );
   h["h_mt_g_met__"+s] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 100, 0, 1000 );
 
-  h["h_ht__"+s] = TH1F( "", ";H_{T}", 250, 0, 2500 );
-  h["h_ht_parton__"+s] = TH1F( "", ";parton H_{T}", 250, 0, 2500 );
-  h["h_ht_g__"+s] = TH1F( "", ";HE_{T}", 250, 0, 2500 );
+  h["h_ht__"+s] = TH1F( "", ";HE_{T}", 250, 0, 2500 );
+  h["h_ht_parton__"+s] = TH1F( "", ";jet H_{T}", 250, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T}", 250, 0, 2500 );
-  h["h_meg__"+s] = TH1F( "", ";m_{ee}", 250, 0, 200 );
+  h["h_meg__"+s] = TH1F( "", ";m_{ee}", 600, 0, 600 );
 
   // photon
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 150, 0, 1500 );
@@ -335,7 +334,6 @@ void HistogramProducer::fillSelection( string const& s ) {
   float partonHt = 0;
   for( auto& j: selJets ) partonHt += j->p.Pt();
   h["h_ht_parton__"+s].Fill( partonHt, selW );
-  h["h_ht_g__"+s].Fill( ht_g, selW );
   h["h_st__"+s].Fill( st, selW );
 
   if( selElectrons.size() && selPhotons.size() ){
@@ -453,9 +451,9 @@ void HistogramProducer::fillObjects( string const& s ) {
 
   for( auto& photon : selPhotons ) {
     for( auto& p : genParticles ) {
-      if( abs(p.pdgId) == 22 )
+      if( fabs(p.pdgId) == 22 )
         h2["h2_match_photon_genPhoton__"+s].Fill( photon->p.DeltaR( p.p ), photon->p.Pt()/p.p.Pt(), selW );
-      if( abs(p.pdgId) == 11 )
+      if( fabs(p.pdgId) == 11 )
         h2["h2_match_photon_genElectron__"+s].Fill( photon->p.DeltaR( p.p ), photon->p.Pt()/p.p.Pt(), selW );
     }
 
@@ -465,7 +463,7 @@ void HistogramProducer::fillObjects( string const& s ) {
     eff["eff_gCol_cIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoChargedHadronsEA );
     eff["eff_gCol_mva__"+s].FillWeighted( photon->isTrue, selW, photon->mvaValue );
 
-    if( photon->p.Pt() > 100 && abs(photon->p.Eta()) < 1.4442 ) {
+    if( photon->p.Pt() > 100 && fabs(photon->p.Eta()) < 1.4442 ) {
       if(
         looseCutFlowPhoton.check( *photon )
         ) eff["eff_g_r9__"+s].FillWeighted( photon->isTrue, selW, photon->r9 );
@@ -580,7 +578,7 @@ void HistogramProducer::SlaveBegin(TTree *tree)
 {
   initObjects("base");
 
-  vector<string> strs = { "tr", "tr_eControl", "tr_jControl", "tr_jControl1", "tr_jControl2", "tr_htWeighted", "tr_htPartonWeighted" };
+  vector<string> strs = { "tr", "tr_eControl", "tr_jControl", "tr_jControl1", "tr_jControl2", "tr_jControlJet", "tr_htWeighted", "tr_htPartonWeighted" };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -600,7 +598,7 @@ void HistogramProducer::defaultSelection()
     selElectrons.push_back( &el );
   }
   for( auto& jet : jets ) {
-    if( !jet.isLoose || jet.p.Pt() < 40 || abs(jet.p.Eta()) > 3 ) continue;
+    if( !jet.isLoose || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3 ) continue;
     if( indexOfMatchedParticle<tree::Photon*>( jet, selPhotons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Electron*>( jet, selElectrons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Muon*>( jet, selMuons, .3 ) >= 0 ) continue;
@@ -749,6 +747,20 @@ Bool_t HistogramProducer::Process(Long64_t entry)
      fillSelection("tr_jControl2");
   }
 
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // jet sample
+  for( auto& jet : jets ) {
+    if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < 1.4442  && jet.isLoose ) {
+      tree::Photon photon;
+      photon.p = jet.p;
+      selPhotons.push_back( &photon );
+    }
+  }
+  defaultSelection();
+  if( selPhotons.size() && selHt > 700 && (*hlt_ht600 || !isData) ) {
+     fillSelection("tr_jControlJet");
+  }
 
 
   return kTRUE;
