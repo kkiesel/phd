@@ -714,6 +714,8 @@ def main():
     #qcdClosure( qcd+gjets, "_gqcd" )
     #qcdClosure( data, "_data" )
     multiQcdClosures( qcd+gjets, "gqcd" )
+    gjets.label = "GJets Data"
+    drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
