@@ -242,7 +242,8 @@ def drawRazor( dataset ):
     aux.save( "razorAlongX" )
     """
 
-def multiQcdClosure( dataset, name, samplename, binning, binningName ):
+def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName ):
+    if not controlDataset: controlDataset = dataset
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
@@ -258,15 +259,15 @@ def multiQcdClosure( dataset, name, samplename, binning, binningName ):
     m.add( hdir, "#gamma" )
 
     settings = {
-        "tr_jControl": ("no Iso", ROOT.kRed),
+        "tr_jControl": ("no Iso", ROOT.kCyan),
         "tr_jControl1": ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kBlue),
         "tr_jControl2": ("no #gamma", ROOT.kGreen+4),
-        "tr_jControlJet": ("loose jet", ROOT.kCyan),
+        "tr_jControlJet": ("loose jet", ROOT.kRed),
     }
 
     for cutName, (legend, col) in settings.iteritems():
 
-        h = dataset.getHist( name.replace("__tr","__"+cutName) )
+        h = controlDataset.getHist( name.replace("__tr","__"+cutName) )
         if not h.Integral(): continue
         if binning: h = aux.rebin( h, binning )
         aux.appendFlowBin( h )
@@ -286,13 +287,13 @@ def multiQcdClosure( dataset, name, samplename, binning, binningName ):
 
 
 
-def multiQcdClosures( dataset, samplename ):
+def multiQcdClosures( dataset, samplename, controlDataset=None ):
     names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
     names = [ x for x in names if x.endswith("tr") ]
 
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
-            multiQcdClosure( dataset, name, samplename, binning, binningName )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
 
 
 
@@ -713,9 +714,10 @@ def main():
     #ewkClosure( wjets+ttjets, "_ewk" )
     #qcdClosure( qcd+gjets, "_gqcd" )
     #qcdClosure( data, "_data" )
-    multiQcdClosures( qcd+gjets, "gqcd" )
-    gjets.label = "GJets Data"
-    drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
+    #multiQcdClosures( qcd+gjets, "gqcd" )
+    #multiQcdClosures( data, "data", dataHt )
+    #gjets.label = "GJets Data"
+    #drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
