@@ -210,7 +210,7 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_emht__"+s] = TH1F( "", ";EMH_{T}", 250, 0, 2500 );
   h["h_ht__"+s] = TH1F( "", ";H_{T}", 250, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T}", 250, 0, 2500 );
-  h["h_recoilt__"+s] = TH1F( "", ";#vec{H}_{T}", 250, 0, 2500 );
+  h["h_recoilt__"+s] = TH1F( "", ";#vec{H}_{T}", 150, 0, 1500 );
   h["h_meg__"+s] = TH1F( "", ";m_{ee}", 600, 0, 600 );
 
   // photon
@@ -617,7 +617,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   float originalW = selW;
 
   // https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2552/1/1/1.html
-  // This run has a bad beam spot, so is not to used for the signal trigger
+  // The signal trigger effiency in this run is low.
+  // Perhaps this has something to do with the bad beam spot in this and other runs
   if( isData && *runNo == 259637 ) return true;
 
   selHt = 0;
