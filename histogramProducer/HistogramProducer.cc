@@ -206,12 +206,12 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_met__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
   h["h_mt_g_met__"+s] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 100, 0, 1000 );
 
-  h["h_tremht__"+s] = TH1F( "", ";EMH_{T}^{trigger-like}", 250, 0, 2500 );
-  h["h_emht__"+s] = TH1F( "", ";EMH_{T}", 250, 0, 2500 );
-  h["h_ht__"+s] = TH1F( "", ";H_{T}", 250, 0, 2500 );
-  h["h_st__"+s] = TH1F( "", ";S_{T}", 250, 0, 2500 );
-  h["h_recoilt__"+s] = TH1F( "", ";#vec{H}_{T}", 150, 0, 1500 );
-  h["h_meg__"+s] = TH1F( "", ";m_{ee}", 600, 0, 600 );
+  h["h_tremht__"+s] = TH1F( "", ";EMH_{T}^{trigger-like} (GeV)", 250, 0, 2500 );
+  h["h_emht__"+s] = TH1F( "", ";EMH_{T} (GeV)", 250, 0, 2500 );
+  h["h_ht__"+s] = TH1F( "", ";H_{T} (GeV)", 250, 0, 2500 );
+  h["h_st__"+s] = TH1F( "", ";S_{T} (GeV)", 250, 0, 2500 );
+  h["h_recoilt__"+s] = TH1F( "", ";#vec{H}_{T} (GeV)", 150, 0, 1500 );
+  h["h_meg__"+s] = TH1F( "", ";m_{ee} (GeV)", 600, 0, 600 );
 
   // photon
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 150, 0, 1500 );
