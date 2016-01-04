@@ -204,12 +204,11 @@ void HistogramProducer::initSelection( string const& s ) {
 
   // event
   h["h_met__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
-  h["h_met_up__"+s] = TH1F( "", ";up-shifted E^{miss}_{T} (GeV)", 100, 0, 1000 );
-  h["h_met_dn__"+s] = TH1F( "", ";down-shifted E^{miss}_{T} (GeV)", 100, 0, 1000 );
   h["h_mt_g_met__"+s] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 100, 0, 1000 );
 
-  h["h_ht__"+s] = TH1F( "", ";HE_{T}", 250, 0, 2500 );
-  h["h_ht_parton__"+s] = TH1F( "", ";jet H_{T}", 250, 0, 2500 );
+  h["h_tremht__"+s] = TH1F( "", ";EMH_{T}^{trigger-like}", 250, 0, 2500 );
+  h["h_emht__"+s] = TH1F( "", ";EMH_{T}", 250, 0, 2500 );
+  h["h_ht__"+s] = TH1F( "", ";H_{T}", 250, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T}", 250, 0, 2500 );
   h["h_meg__"+s] = TH1F( "", ";m_{ee}", 600, 0, 600 );
 
@@ -316,25 +315,22 @@ void HistogramProducer::initObjects( string const& s ) {
 
 void HistogramProducer::fillSelection( string const& s ) {
 
-  float ht_g = selHt;
-  for( auto& p : selPhotons )
-    ht_g += p->p.Pt();
-
+  float ht = 0;
+  for( auto& j: selJets ) ht += j->p.Pt();
+  float ht_g = ht;
+  for( auto& p : selPhotons ) ht_g += p->p.Pt();
   float st = ht_g + met->p.Pt();
 
   TVector3 recoil(0,0,0);
   for( auto& p : selJets )
     recoil += p->p;
 
-  h["h_met__"+s].Fill( met->p.Pt(), selW );
-  h["h_met_up__"+s].Fill( met->p.Pt()+met->uncertainty, selW );
-  h["h_met_dn__"+s].Fill( met->p.Pt()-met->uncertainty, selW );
-
-  h["h_ht__"+s].Fill( selHt, selW );
-  float partonHt = 0;
-  for( auto& j: selJets ) partonHt += j->p.Pt();
-  h["h_ht_parton__"+s].Fill( partonHt, selW );
+  h["h_tremht__"+s].Fill( selHt, selW );
+  h["h_emht__"+s].Fill( ht_g, selW );
+  h["h_ht__"+s].Fill( ht, selW );
   h["h_st__"+s].Fill( st, selW );
+
+  h["h_met__"+s].Fill( met->p.Pt(), selW );
 
   if( selElectrons.size() && selPhotons.size() ){
     h["h_meg__"+s].Fill( (selPhotons[0]->p+selElectrons[0]->p).Mag() );
@@ -350,7 +346,7 @@ void HistogramProducer::fillSelection( string const& s ) {
     h["h_g_cIso__"+s].Fill( selPhotons[0]->isoChargedHadronsEA );
     h["h_g_nIso__"+s].Fill( selPhotons[0]->isoNeutralHadronsEA );
     h["h_g_pIso__"+s].Fill( selPhotons[0]->isoPhotonsEA );
-    h2["h2_g_pt_ht__"+s].Fill( selPhotons[0]->p.Pt(), selHt, selW );
+    h2["h2_g_pt_emht__"+s].Fill( selPhotons[0]->p.Pt(), selHt, selW );
   }
 
   if( selJets.size() > 2 ) {
