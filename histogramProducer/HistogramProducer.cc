@@ -117,6 +117,9 @@ vector<int> getRunList( const string& filename="/afs/cern.ch/cms/CAF/CMSCOMM/COM
   return runList;
 }
 
+std::ostream &operator<<(std::ostream &os, TVector3 &p) {
+      return os << p.Pt() << "\t" << p.Eta() << "\t" << p.Phi();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // End User Functions
@@ -749,17 +752,21 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   resetSelection();
   /////////////////////////////////////////////////////////////////////////////
   // jet sample
+  vector<tree::Photon> photonVectorCopy;
   for( auto& jet : jets ) {
     if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < 1.4442  && jet.isLoose ) {
       tree::Photon photon;
       photon.p = jet.p;
-      selPhotons.push_back( &photon );
+      photonVectorCopy.push_back( photon );
+      selPhotons.push_back( &photonVectorCopy.at(photonVectorCopy.size()-1) );
+      //break;
     }
   }
   defaultSelection();
   if( selPhotons.size() && selHt > 700 && (*hlt_ht600 || !isData) ) {
      fillSelection("tr_jControlJet");
   }
+  photonVectorCopy.clear();
 
 
   return kTRUE;
