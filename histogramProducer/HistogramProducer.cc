@@ -210,6 +210,7 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_emht__"+s] = TH1F( "", ";EMH_{T}", 250, 0, 2500 );
   h["h_ht__"+s] = TH1F( "", ";H_{T}", 250, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T}", 250, 0, 2500 );
+  h["h_recoilt__"+s] = TH1F( "", ";#vec{H}_{T}", 250, 0, 2500 );
   h["h_meg__"+s] = TH1F( "", ";m_{ee}", 600, 0, 600 );
 
   // photon
@@ -316,19 +317,20 @@ void HistogramProducer::initObjects( string const& s ) {
 void HistogramProducer::fillSelection( string const& s ) {
 
   float ht = 0;
-  for( auto& j: selJets ) ht += j->p.Pt();
+  TVector3 recoil(0,0,0);
+  for( auto& j: selJets ){
+    ht += j->p.Pt();
+    recoil += j->p;
+  }
   float ht_g = ht;
   for( auto& p : selPhotons ) ht_g += p->p.Pt();
   float st = ht_g + met->p.Pt();
-
-  TVector3 recoil(0,0,0);
-  for( auto& p : selJets )
-    recoil += p->p;
 
   h["h_tremht__"+s].Fill( selHt, selW );
   h["h_emht__"+s].Fill( ht_g, selW );
   h["h_ht__"+s].Fill( ht, selW );
   h["h_st__"+s].Fill( st, selW );
+  h["h_recoilt__"+s].Fill( recoil.Pt(), selW );
 
   h["h_met__"+s].Fill( met->p.Pt(), selW );
 
