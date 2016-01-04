@@ -67,6 +67,10 @@ QCD_HT100to200_nTuple.root
 QCD_HT200to300_nTuple.root
 GJets_HT-100To200_nTuple.root
 GJets_HT-40To100_nTuple.root
+SinglePhoton_Run2015D-PromptReco-v4_nTuple.root
+SinglePhoton_Run2015D-05Oct2015-v1_nTuple.root
+JetHT_Run2015D-PromptReco-v4_nTuple.root
+JetHT_Run2015D-05Oct2015-v1_nTuple.root
 )
 # run with no input file first, to compile all versions
 root -b -l -q run.C\(\"0\"\)
