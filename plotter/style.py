@@ -54,7 +54,8 @@ def defaultStyle():
 
 def style2d():
     st = defaultStyle()
-    st.SetPadRightMargin(0.16)
+    st.SetPadRightMargin(0.19)
+    st.SetTitleOffset( 1.35, "z" )
     return st
 
 defaultStyle()
