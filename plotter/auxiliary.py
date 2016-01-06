@@ -116,8 +116,7 @@ def rebin2d( h, binEdgesX, binEdgesY ):
     hnew = ROOT.TH2F(h.GetName(),h.GetTitle(), len(binEdgesX)-1, binEdgesXArr, len(binEdgesY)-1, binEdgesYArr )
 
     # GetProperties
-    try: hnew.drawOption_ = h.drawOption_
-    except: pass
+    hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
     hnew.SetTitle("{};{};{}".format(h.GetTitle(),h.GetXaxis().GetTitle(),h.GetYaxis().GetTitle()))
 
     # Fill
@@ -134,8 +133,7 @@ def rebin( h, binEdges ):
     import array
     binEdgesArr = array.array( 'd', binEdges )
     hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
-    try: hnew.drawOption_ = h.drawOption_
-    except: pass
+    hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
     hnew.Scale( 1., "width" )
     return hnew
 
