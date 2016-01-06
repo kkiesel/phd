@@ -331,6 +331,23 @@ def drange(start, stop, n):
         out.append( out[-1] + step )
     return out
 
+def interpolate2D( h ):
+    for xbin in range(1,h.GetNbinsX()+1):
+        x = h.GetXaxis().GetBinCenter(xbin)
+        for ybin in range(1,h.GetNbinsY()+1):
+            y = h.GetYaxis().GetBinCenter(ybin)
+            c = h.GetBinContent(xbin,ybin)
+            if c: continue
+            ctop = h.GetBinContent(xbin,ybin+1)
+            cbot = h.GetBinContent(xbin,ybin-1)
+            crig = h.GetBinContent(xbin+1,ybin)
+            clef = h.GetBinContent(xbin-1,ybin)
+            intPoints = []
+            if cbot and ctop: intPoints.extend( [cbot, ctop])
+            if crig and clef: intPoints.extend( [crig, clef])
+            newC = sum(intPoints)/len(intPoints) if len(intPoints) else 0
+            h.SetBinContent(xbin,ybin, newC )
+    return h
 
 class Label:
     # Create labels
