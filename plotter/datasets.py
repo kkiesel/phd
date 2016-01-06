@@ -109,22 +109,22 @@ dataHt.label = "Data (JetHt)"
 
 gjets_pt15 = Dataset( "GJet_Pt-15ToInf", 364375, ROOT.kCyan-2, "GJet_Pt-15ToInf_TuneCUETP8M1_13TeV-pythia8" )
 
-gjets40 = Dataset( "GJets_HT-40To100", 20730, ROOT.kCyan-1, "GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-gjets100 = Dataset( "GJets_HT-100To200", 9226, ROOT.kCyan+4, "GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-gjets200 = Dataset( "GJets_HT-200To400", 2300, ROOT.kCyan+3, "GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-gjets400 = Dataset( "GJets_HT-400To600", 277.4, ROOT.kCyan+2, "GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-gjets600 = Dataset( "GJets_HT-600ToInf", 93.38, ROOT.kCyan, "GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+gjets40 = Dataset( "GJets_HT-40To100", 20790, ROOT.kCyan-1, "GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+gjets100 = Dataset( "GJets_HT-100To200", 9238, ROOT.kCyan+4, "GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+gjets200 = Dataset( "GJets_HT-200To400", 2305, ROOT.kCyan+3, "GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+gjets400 = Dataset( "GJets_HT-400To600", 274.4, ROOT.kCyan+2, "GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+gjets600 = Dataset( "GJets_HT-600ToInf", 93.46, ROOT.kCyan, "GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 
 gjets = gjets40 + gjets100 + gjets200 + gjets400 + gjets600
 gjets.label = "#gamma+Jet"
 
-qcd100 = Dataset( "QCD_HT100to200", 27850000, ROOT.kBlue+1, "QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-qcd200 = Dataset( "QCD_HT200to300", 1717000, ROOT.kBlue+2, "QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-qcd300 = Dataset( "QCD_HT300to500", 361300, ROOT.kBlue+3, "QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-qcd500 = Dataset( "QCD_HT500to700", 31630, ROOT.kBlue+4, "QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-qcd700 = Dataset( "QCD_HT700to1000", 6802, ROOT.kBlue+3, "QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-qcd1000 = Dataset( "QCD_HT1000to1500", 1206, ROOT.kBlue+2, "QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-qcd1500 = Dataset( "QCD_HT1500to2000", 120.4, ROOT.kBlue+1, "QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+qcd100 = Dataset( "QCD_HT100to200", 27990000, ROOT.kBlue+1, "QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+qcd200 = Dataset( "QCD_HT200to300", 1712000, ROOT.kBlue+2, "QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+qcd300 = Dataset( "QCD_HT300to500", 347700, ROOT.kBlue+3, "QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+qcd500 = Dataset( "QCD_HT500to700", 32100, ROOT.kBlue+4, "QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+qcd700 = Dataset( "QCD_HT700to1000", 6831, ROOT.kBlue+3, "QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+qcd1000 = Dataset( "QCD_HT1000to1500", 1207, ROOT.kBlue+2, "QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+qcd1500 = Dataset( "QCD_HT1500to2000", 119.9, ROOT.kBlue+1, "QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 qcd2000 = Dataset( "QCD_HT2000toInf", 25.24,  ROOT.kBlue, "QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 
 qcd = qcd100 + qcd200 + qcd300 + qcd500 + qcd700 + qcd1000 + qcd1500 + qcd2000
