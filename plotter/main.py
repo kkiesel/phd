@@ -277,7 +277,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
         h.drawOption_ = "hist e"
         m.add( h, legend )
     m.Draw()
-    l = aux.Label()
+    l = aux.Label(info=dataset.label)
 
     if binningName: binningName = "_"+binningName
     saveName = "multiQcdClosure_{}_{}{}".format(samplename, name, binningName )
