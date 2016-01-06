@@ -67,6 +67,7 @@ class Multiplot:
         # Data first
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
+            if not hasattr( h, "drawOption_" ): h.drawOption_ = ""
             if "Data" in h.GetName():
                 self.leg.AddEntry( h, h.GetName(), "pe" )
 
