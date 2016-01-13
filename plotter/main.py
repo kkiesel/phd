@@ -57,7 +57,15 @@ def drawH2( dataset, name, savename="test" ):
     h = getHistoFromDataset( dataset, name )
     h.Draw("colz")
     l = aux.Label(sim=savename!="data")
+
+    # draw linear fit
+    if name in ["h2_match_photon_pt_jet_pt_base"]:
+        h.Fit("pol1")
+
     aux.save( "h2_%s_%s"%(savename,name) )
+    c.SetLogz()
+    aux.save( "h2_%s_%s_log"%(savename,name) )
+
     style.defaultStyle()
 
 def subtractH2( dataset_num, dataset_den, name, savename="test" ):
