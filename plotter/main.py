@@ -704,21 +704,9 @@ def drawISRsplitting():
     ewkIsrSamplesSplitting( wjets, wg_mg, "w_mg" )
     ewkIsrSamplesSplitting( znunu, zg_130, "zg" )
 
-def efficiencyFromMap( sampleName, sample ):
-    f = ROOT.TFile( sample.files[0] )
-    m = ROOT.std.map('int, pair<int,int>')()
-    f.GetObject( "rawEff_vs_run", m )
-
-    print m.size()
-    print len(m)
-    for a,b in m.iteritems():
-        print a,b
-
-
 
 def main():
     pass
-    #efficiencyFromMap( "singlePhoton", data )
     #transitions()
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
