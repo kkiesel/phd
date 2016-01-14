@@ -264,26 +264,44 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     hdir.SetMarkerColor(1)
     hdir.SetMarkerStyle(20)
     hdir.drawOption_ = "pe"
-    m.add( hdir, "#gamma" )
+    m.add( hdir, "#gamma {:.1e}".format(hdir.Integral()) )
 
     settings = {
-        "tr_jControl": ("no Iso", ROOT.kCyan),
-        "tr_jControl1": ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kBlue),
-        "tr_jControl2": ("no #gamma", ROOT.kGreen+4),
-        "tr_jControlJet": ("loose jet", ROOT.kRed),
+        "tr_jControl": ("no Iso", ROOT.kRed),
+        "tr_jControl1": ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kMagenta),
+        "tr_jControl2": ("no #gamma", ROOT.kOrange-1),
+        "tr_jControlJet": ("leading jet", ROOT.kBlue),
+        "tr_jControlJetTrail": ("weakest jet", ROOT.kBlue+4),
+        "tr_jControlSingleJet": ("single jet", ROOT.kCyan),
+        "tr_jControlRandomJet": ("random jets", ROOT.kMagenta),
+        "tr_jControlAllJet": ("mixed jets", ROOT.kGray),
+        "tr_noPhotonJet": ("single #gamma", ROOT.kBlack),
     }
+    selSettings = [
+        "tr_jControl",
+        "tr_jControl1",
+        "tr_jControl2",
+        "tr_jControlJet",
+        "tr_jControlJetTrail",
+        "tr_jControlAllJet",
+        "tr_jControlRandomJet",
+        "tr_jControlSingleJet",
+#        "tr_noPhotonJet",
+    ]
 
-    for cutName, (legend, col) in settings.iteritems():
+    for cutName in selSettings:
+        legend, col = settings[cutName]
 
         h = controlDataset.getHist( name.replace("__tr","__"+cutName) )
         if not h.Integral(): continue
+        integral = h.Integral()
         if binning: h = aux.rebin( h, binning )
         aux.appendFlowBin( h )
         h.Scale( hdir.Integral()/h.Integral() )
         h.SetYTitle( aux.getYAxisTitle( h ) )
         h.SetLineColor(col)
         h.drawOption_ = "hist e"
-        m.add( h, legend )
+        m.add( h, legend+" {:.1e}".format(integral) )
     m.Draw()
     l = aux.Label(info=dataset.label)
 
@@ -671,7 +689,6 @@ def transitions():
 
 def drawH2s():
     for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]):
-        break
         drawH2( data, h2name, "data" )
         drawH2( qcd+gjets, h2name, "gqcd" )
         subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
