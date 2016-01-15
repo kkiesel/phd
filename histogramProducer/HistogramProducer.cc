@@ -124,13 +124,14 @@ std::ostream &operator<<(std::ostream &os, TVector3 &p) {
 
 inline int pseudoRandom( float f ) {
   // Interprets float as int
-  return *(int*)&f1;
+  return *(int*)&f;
 }
 
 inline bool PseudoRandomSort(const tree::Particle p1, const tree::Particle p2) {
   return pseudoRandom(p1.p.Phi()) > pseudoRandom(p2.p.Phi());
 }
 
+const float photonsEtaMaxBarrel = 1.4442;
 
 ///////////////////////////////////////////////////////////////////////////////
 // End User Functions
@@ -192,7 +193,7 @@ class HistogramProducer : public TSelector {
   vector<tree::Electron*> selElectrons;
   vector<tree::Muon*> selMuons;
 
-  vector<tree::Jet> fakeJets;
+  vector<tree::Photon> fakeJets;
 
   float selW=1.; // weight
   float selHt=0;
@@ -447,7 +448,7 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_n_muon__"+s].Fill( selMuons.size(), selW );
 
   h["h_n_fakeJet__"+s].Fill( fakeJets.size(), selW );
-  h["h_n_photonAndfakeJet__"+s].Fill( fakeJets+selPhotons.size(), selW );
+  h["h_n_photonAndfakeJet__"+s].Fill( fakeJets.size()+selPhotons.size(), selW );
 
   if( mrr2.first > 1e-7 ) {
     h2["h2_razorPlane__"+s].Fill( mrr2.first, mrr2.second, selW );
@@ -462,7 +463,7 @@ void HistogramProducer::fillObjects( string const& s ) {
   for( auto& jet : selJets ) {
     for( auto& p : selPhotons ) {
       h2["h2_match_jet_photon__"+s].Fill( jet->p.DeltaR( p->p ), jet->p.Pt()/p->p.Pt(), selW );
-      if( p->isLoose && p->p.Pt()>100 && fabs(p->p.Eta())<1.4442 && jet->p.DeltaR(p->p)<.3 ) h2["h2_match_photon_pt_jet_pt_"+s].Fill( p->p.Pt(), jet->p.Pt(), selW );
+      if( p->isLoose && p->p.Pt()>100 && fabs(p->p.Eta())<photonsEtaMaxBarrel && jet->p.DeltaR(p->p)<.3 ) h2["h2_match_photon_pt_jet_pt_"+s].Fill( p->p.Pt(), jet->p.Pt(), selW );
     }
     for( auto& p : selElectrons )
       h2["h2_match_jet_electron__"+s].Fill( jet->p.DeltaR( p->p ), jet->p.Pt()/p->p.Pt(), selW );
@@ -486,7 +487,7 @@ void HistogramProducer::fillObjects( string const& s ) {
     eff["eff_gCol_cIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoChargedHadronsEA );
     eff["eff_gCol_mva__"+s].FillWeighted( photon->isTrue, selW, photon->mvaValue );
 
-    if( photon->p.Pt() > 100 && fabs(photon->p.Eta()) < 1.4442 ) {
+    if( photon->p.Pt() > 100 && fabs(photon->p.Eta()) < photonsEtaMaxBarrel ) {
       if(
         looseCutFlowPhoton.check( *photon )
         ) eff["eff_g_r9__"+s].FillWeighted( photon->isTrue, selW, photon->r9 );
@@ -522,7 +523,7 @@ void HistogramProducer::fillObjects( string const& s ) {
   // trigger efficiencies
   tree::Photon* thisPhoton=0;
   for( auto& photon : selPhotons ) {
-    if( photon->p.Pt() > 15 && fabs(photon->p.Eta()) < 1.4442 && photon->isLoose && !photon->hasPixelSeed ) {
+    if( photon->p.Pt() > 15 && fabs(photon->p.Eta()) < photonsEtaMaxBarrel && photon->isLoose && !photon->hasPixelSeed ) {
       if( !thisPhoton || thisPhoton->p.Pt() < photon->p.Pt() ) {
         thisPhoton = photon;
       }
@@ -625,6 +626,11 @@ void HistogramProducer::defaultSelection()
     if( indexOfMatchedParticle<tree::Photon*>( jet, selPhotons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Electron*>( jet, selElectrons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Muon*>( jet, selMuons, .3 ) >= 0 ) continue;
+    if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < photonsEtaMaxBarrel ) {
+      tree::Photon photon;
+      photon.p = jet.p;
+      fakeJets.push_back( photon );
+    }
     selJets.push_back( &jet );
     if( jet.bDiscriminator > bTaggingWorkingPoints[CSVv2M] )
       selBJets.push_back( &jet );
@@ -681,7 +687,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   /////////////////////////////////////////////////////////////////////////////
   // Main (signal) selection
   for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel  && !photon.hasPixelSeed && photon.isLoose ) {
        selPhotons.push_back( &photon );
     }
   }
@@ -714,7 +720,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // electron sample
 
   for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && photon.hasPixelSeed && photon.isLoose ) {
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel  && photon.hasPixelSeed && photon.isLoose ) {
       selPhotons.push_back( &photon );
     }
   }
@@ -729,7 +735,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // jet sample
   for( auto& photon : photons ) {
     looseCutFlowPhoton.check(photon);
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel  && !photon.hasPixelSeed
         && !photon.isLoose
         && looseCutFlowPhoton.passHoe()
         && looseCutFlowPhoton.passSie()
@@ -747,7 +753,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // jet sample
   for( auto& photon : photons ) {
     looseCutFlowPhoton.check(photon);
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel  && !photon.hasPixelSeed
         && !photon.isLoose
         && looseCutFlowPhoton.passHoe()
         && looseCutFlowPhoton.passNIso()
@@ -767,7 +773,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   /////////////////////////////////////////////////////////////////////////////
   // jet sample
   for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel  && !photon.hasPixelSeed
         && !photon.isLoose
     ) {
       selPhotons.push_back( &photon );
@@ -783,7 +789,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // jet sample
   vector<tree::Photon> photonVectorCopy; // as selPhotons save references only, the original objects have to be stored somewhere
   for( auto& jet : jets ) {
-    if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < 1.4442  && jet.isLoose ) {
+    if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < photonsEtaMaxBarrel  && jet.isLoose ) {
       bool photonMatch=false;
       for( auto& ph : photons ) { if( ph.isLoose && ph.p.DeltaR(jet.p) < 0.3 ) { photonMatch=true;break;} }
       if(photonMatch) continue;
