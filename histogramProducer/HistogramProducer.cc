@@ -122,10 +122,19 @@ std::ostream &operator<<(std::ostream &os, TVector3 &p) {
       return os << p.Pt() << "\t" << p.Eta() << "\t" << p.Phi();
 }
 
+inline int pseudoRandom( float f ) {
+  // Interprets float as int
+  return *(int*)&f1;
+}
+
+inline bool PseudoRandomSort(const tree::Particle p1, const tree::Particle p2) {
+  return pseudoRandom(p1.p.Phi()) > pseudoRandom(p2.p.Phi());
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // End User Functions
 ///////////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -182,6 +191,8 @@ class HistogramProducer : public TSelector {
   vector<tree::Jet*> selBJets;
   vector<tree::Electron*> selElectrons;
   vector<tree::Muon*> selMuons;
+
+  vector<tree::Jet> fakeJets;
 
   float selW=1.; // weight
   float selHt=0;
@@ -269,11 +280,12 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_n_vertex__"+s] = TH1F( "", ";vertex multiplicity", 61, -0.5, 60.5 );
   h["h_n_photon__"+s] = TH1F( "", ";photon multiplicity", 6, -0.5, 5.5 );
   h["h_n_jet__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
-  h["h_n_jet_eb__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
-  h["h_n_jet_ee__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
   h["h_n_bjet__"+s] = TH1F( "", ";b-jet multiplicity", 21, -0.5, 20.5 );
   h["h_n_electron__"+s] = TH1F( "", ";electron multiplicity", 4, -0.5, 3.5 );
   h["h_n_muon__"+s] = TH1F( "", ";muon multiplicity", 4, -0.5, 3.5 );
+
+  h["h_n_fakeJet__"+s] = TH1F( "", ";surrogate photon jet multiplicity", 21, -0.5, 20.5 );
+  h["h_n_photonAndfakeJet__"+s] = TH1F( "", ";combined photon and surrogate photon jet multiplicity", 21, -0.5, 20.5 );
 
   h2["h2_razorPlane__"+s] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
   h2["h2_g_pt_emht__"+s] = TH2F( "", ";p_{T} (GeV); H_{T} (GeV)", 100, 0, 1000, 150, 500, 2000 );
@@ -433,13 +445,9 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_n_bjet__"+s].Fill( selBJets.size(), selW );
   h["h_n_electron__"+s].Fill( selElectrons.size(), selW );
   h["h_n_muon__"+s].Fill( selMuons.size(), selW );
-  int nJetEB=0, nJetEE=0;
-  for( auto& j: selJets ) {
-    if( fabs(j->p.Eta())<1.45 ) nJetEB++;
-    else nJetEE++;
-  }
-  h["h_n_jet_eb__"+s].Fill( nJetEB, selW );
-  h["h_n_jet_ee__"+s].Fill( nJetEE, selW );
+
+  h["h_n_fakeJet__"+s].Fill( fakeJets.size(), selW );
+  h["h_n_photonAndfakeJet__"+s].Fill( fakeJets+selPhotons.size(), selW );
 
   if( mrr2.first > 1e-7 ) {
     h2["h2_razorPlane__"+s].Fill( mrr2.first, mrr2.second, selW );
