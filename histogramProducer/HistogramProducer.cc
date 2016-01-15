@@ -592,9 +592,9 @@ void HistogramProducer::Init(TTree *tree)
 {
   fReader.SetTree(tree);
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
-  isData = inputName.find("SinglePhoton") != string::npos
-    || inputName.find("JetHT") != string::npos
-    || inputName.find("MET") != string::npos;
+  isData = inputName.find("SinglePhoton_Run") != string::npos
+    || inputName.find("JetHT_Run") != string::npos
+    || inputName.find("MET_Run") != string::npos;
 }
 
 void HistogramProducer::SlaveBegin(TTree *tree)
