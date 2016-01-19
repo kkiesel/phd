@@ -49,6 +49,29 @@ class Ratio:
         self.totalUncert = denominator.Clone( aux.randomName() )
         self.allowUnsymmetricYaxis = False
 
+        self.ratio.drawOption_ = "e0"
+
+        # Set ratio properties
+        for hist in [ self.ratio, self.ratioSys, self.ratioStat, self.totalUncert ]:
+            hist.GetYaxis().SetNdivisions(2, 5, 2)
+            hist.SetTitleOffset(1.2, "Y")
+            hist.SetYTitle( self.title )
+
+        self.ratioSys.SetFillStyle(3254)
+        self.ratioSys.SetMarkerSize(0)
+        self.ratioSys.SetFillColor(46)
+
+        self.totalUncert.SetFillStyle(3002)
+        self.totalUncert.SetMarkerSize(0)
+        self.totalUncert.SetMarkerStyle(0)
+        self.totalUncert.SetFillColor( self.denominator.GetLineColor() )
+        self.totalUncert.SetLineColor(0)
+
+        self.ratioStat.SetLineWidth(5)
+        self.ratioStat.SetMarkerStyle(0)
+        self.ratioStat.SetLineColor(ROOT.kGray)
+
+
     def calculateRatio( self ):
         self.ratio.Divide( self.denominator )
         self.ratioStat.Divide( self.denominator )
@@ -94,28 +117,9 @@ class Ratio:
         self.calculateRatio()
 
         #yMin, yMax = self.getYrange()
-
-        # Set ratio properties
         for hist in [ self.ratio, self.ratioSys, self.ratioStat, self.totalUncert ]:
-            hist.GetYaxis().SetNdivisions(2, 5, 2)
-            hist.SetTitleOffset(1.2, "Y")
-            hist.SetYTitle( self.title )
             hist.SetMinimum( yMin )
             hist.SetMaximum( yMax )
-
-        self.ratioSys.SetFillStyle(3254)
-        self.ratioSys.SetMarkerSize(0)
-        self.ratioSys.SetFillColor(46)
-
-        self.totalUncert.SetFillStyle(3002)
-        self.totalUncert.SetMarkerSize(0)
-        self.totalUncert.SetMarkerStyle(0)
-        self.totalUncert.SetFillColor( self.denominator.GetLineColor() )
-        self.totalUncert.SetLineColor(0)
-
-        self.ratioStat.SetLineWidth(5)
-        self.ratioStat.SetMarkerStyle(0)
-        self.ratioStat.SetLineColor(ROOT.kGray)
 
         clearXaxisCurrentPad()
         p = createBottomPad()
@@ -124,7 +128,7 @@ class Ratio:
         self.ratioStat.Draw("same e")
         if self.sysHisto:
             self.ratioSys.Draw("e2 same")
-        self.ratio.Draw("e0 same")
+        self.ratio.Draw("same "+self.ratio.drawOption_)
 
         if yMin < 1 and yMax > 1:
             oneLine = ROOT.TLine()
