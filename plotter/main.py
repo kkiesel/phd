@@ -60,6 +60,8 @@ def drawH2( dataset, name, savename="test" ):
 
     # draw linear fit
     if name in ["h2_match_photon_pt_jet_pt_base"]:
+        #h = aux.diagonalFlip( h )
+        #h.Draw("colz")
         h.Fit("pol1")
 
     aux.save( "h2_%s_%s"%(savename,name) )
@@ -266,33 +268,18 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     hdir.drawOption_ = "pe"
     m.add( hdir, "#gamma {:.1e}".format(hdir.Integral()) )
 
-    settings = {
-        "tr_jControl": ("no Iso", ROOT.kRed),
-        "tr_jControl1": ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kMagenta),
-        "tr_jControl2": ("no #gamma", ROOT.kOrange-1),
-        "tr_jControlJet": ("leading jet", ROOT.kBlue),
-        "tr_jControlJetTrail": ("weakest jet", ROOT.kBlue+4),
-        "tr_jControlSingleJet": ("single jet", ROOT.kCyan),
-        "tr_jControlRandomJet": ("random jets", ROOT.kMagenta),
-        "tr_jControlAllJet": ("mixed jets", ROOT.kGray),
-        "tr_noPhotonJet": ("single #gamma", ROOT.kBlack),
-    }
-    selSettings = [
-        "tr_jControl",
-        "tr_jControl1",
-        "tr_jControl2",
-        "tr_jControlJet",
-        "tr_jControlJetTrail",
-        "tr_jControlAllJet",
-        "tr_jControlRandomJet",
-        "tr_jControlSingleJet",
-#        "tr_noPhotonJet",
-    ]
+    import collections
+    settings = collections.OrderedDict()
+    settings["tr_jControlPhotonSB"] = ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kCyan)
+    settings["tr_jControlPhotonAll"] = ("all #gamma candidates", ROOT.kBlue)
+    settings["tr_jControlLeadingJet"] = ("leading fake jet", ROOT.kOrange)
+    settings["tr_jControlTrailingJet"] = ("trailing fake jet", ROOT.kMagenta)
+    settings["tr_jControlRandomJet"] = ("random fake jet", ROOT.kRed)
 
-    for cutName in selSettings:
-        legend, col = settings[cutName]
+    for cutName, (legend,col) in settings.iteritems():
 
         h = controlDataset.getHist( name.replace("__tr","__"+cutName) )
+
         if not h.Integral(): continue
         integral = h.Integral()
         if binning: h = aux.rebin( h, binning )
@@ -688,10 +675,12 @@ def transitions():
 
 
 def drawH2s():
-    for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]):
+    names = aux.getObjectNames( data.files[0], objects=[ROOT.TH2])
+
+    for h2name in names:
         drawH2( data, h2name, "data" )
-        drawH2( qcd+gjets, h2name, "gqcd" )
-        subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
+        #drawH2( qcd+gjets, h2name, "gqcd" )
+        #subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
 
 def drawISRsplitting():
     for d in ttjets,wjets,znunu:
@@ -712,6 +701,7 @@ def main():
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
     #drawSameHistograms( "gqcd_data", [gjets600,gjets400,gjets200, gjets100,gjets40,qcd], [data])
+    #drawSameHistograms( "gqcd_dataHt", [gjets600,gjets400,gjets200, gjets100,gjets40,qcd], [dataHt])
     #drawSameHistograms( "emqcd_data", [emqcd], [data])
     #drawSameHistograms( "_gjet15_data", [gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu,dy], additional=[data])
@@ -729,6 +719,7 @@ def main():
     #qcdClosure( data, "_data" )
     #multiQcdClosures( qcd+gjets, "gqcd" )
     #multiQcdClosures( data, "data", dataHt )
+    #multiQcdClosures( ttg, "tt", ttjets )
     #gjets.label = "GJets Data"
     #drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
 
