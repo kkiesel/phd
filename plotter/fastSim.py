@@ -18,14 +18,27 @@ import auxiliary as aux
 
 def infoText( name ):
     infoReplacements = {
-        "_noSel":"no photon id",
-        "_loose":"",
-        "_loose_eb":"EB",
-        "_loose_ee":"EE",
+#        "_noSel":"no photon id",
+#        "_loose":"",
+#        "_loose_eb":"EB",
+#        "_loose_ee":"EE",
+#        "_loose_eb_genPhoton":"EB,gen #gamma",
+#        "_loose_ee_genPhoton":"EE,gen #gamma",
+#        "_loose_eb_genElectron":"EB,gen e",
+#        "_loose_ee_genElectron":"EE,gen e",
+
+        "_loose_genPhoton":"gen #gamma",
         "_loose_eb_genPhoton":"EB,gen #gamma",
         "_loose_ee_genPhoton":"EE,gen #gamma",
-        "_loose_eb_genElectron":"EB,gen e",
-        "_loose_ee_genElectron":"EE,gen e"
+        "_medium_genPhoton":"mediumID,gen #gamma",
+        "_medium_eb_genPhoton":"mediumID,EB,gen #gamma",
+        "_medium_ee_genPhoton":"mediumID,EE,gen #gamma",
+        "_tight_genPhoton":"tightID,gen #gamma",
+        "_tight_eb_genPhoton":"tightID,EB,gen #gamma",
+        "_tight_ee_genPhoton":"tightID,EE,gen #gamma",
+        "_fake":"fake",
+        "_fake_eb":"EB,fake",
+        "_fake_ee":"EE,fake",
     }
     for n, repl in infoReplacements.iteritems():
         if name.endswith(n):
@@ -44,6 +57,7 @@ def datasetAbbr( filename ):
 
 
 def drawSame( fullName, fastName, hname, binning=[] ):
+#    if hname not in ["pt_loose_ee_genPhoton","pt_loose_eb_genPhoton"]: return
     ds = datasetAbbr( fullName )
 
     fullNgen = aux.getNgen(fullName)
@@ -61,7 +75,8 @@ def drawSame( fullName, fastName, hname, binning=[] ):
         print "$f_\\text{{\\fullsim}}(e\\rightarrow\gamma)={:.2f}\\%$".format( fullh.GetBinContent(2)/fullh.Integral()*100. )
         print "$f_\\text{{\\fastsim}}(e\\rightarrow\gamma)={:.2f}\\%$".format( fasth.GetBinContent(2)/fasth.Integral()*100. )
 
-    fasth.Scale( fullNgen/fastNgen )
+    fasth.Scale( 1./fastNgen )
+    fullh.Scale( 1./fullNgen )
 
     if binning:
         fullh = aux.rebin( fullh, binning )
@@ -91,12 +106,16 @@ def drawSame( fullName, fastName, hname, binning=[] ):
     m.add( fasth, "#color[2]{#font[132]{F#scale[0.75]{AST}S#scale[0.75]{IM}}}" )
 
     m.Draw()
-    r = ratio.Ratio( "#font[132]{#color[2]{F#scale[0.75]{AST}}/F#scale[0.75]{ULL}}", fasth, fullh )
+    r = ratio.Ratio( "#font[132]{F#scale[0.75]{ULL}/#color[2]{F#scale[0.75]{AST}}}", fullh, fasth )
+    r.ratioStat.SetLineColor(fasth.GetLineColor())
+    r.ratio.SetMarkerStyle(7)
     r.draw()
 
-    scale = fullh.Integral(0,-1)/fasth.Integral(0,-1) * fastNgen/fullNgen
+    scale = fullh.Integral(0,-1)/fasth.Integral(0,-1)
+    fastInt, fastErr = aux.integralAndError(fasth)
+    scaleError = scale * fastErr/fastInt
 
-    info = ROOT.TLatex( 0.4, .95, infoText(hname)+"  "+ds + "    #Deltas={:.1f}%".format(100*(scale-1)) )
+    info = ROOT.TLatex( 0.25, .95, "{}  {}  #scale[0.75]{{#Deltas=({:.2f}#pm{:.2f})%}}".format(infoText(hname),ds, 100*(scale-1),100*(scaleError)) )
     info.SetNDC()
     info.Draw()
 
@@ -129,9 +148,9 @@ def main():
 
         names = aux.getObjectNames( fullName )
         for name in names: drawSame( fullName, fastName, name )
-        drawSame( fullName, fastName, "cIso_loose", aux.drange(0, 3, 10 ) )
-        drawSame( fullName, fastName, "nIso_loose", aux.drange(0, 8, 10 ) )
-        drawSame( fullName, fastName, "pIso_loose", aux.drange(0, 5, 10 ) )
+        #drawSame( fullName, fastName, "cIso_loose", aux.drange(0, 3, 10 ) )
+        #drawSame( fullName, fastName, "nIso_loose", aux.drange(0, 8, 10 ) )
+        #drawSame( fullName, fastName, "pIso_loose", aux.drange(0, 5, 10 ) )
 
         scaleFactors( fullName, fastName )
 
