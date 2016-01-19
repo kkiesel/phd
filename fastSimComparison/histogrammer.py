@@ -32,7 +32,7 @@ if __name__ == "__main__":
     ch.AddFile( args.inputFile )
 
     baseH = {
-        "pt": ROOT.TH1F("", ";p_{T} (GeV)", 100, 15, 150 ),
+        "pt": ROOT.TH1F("", ";p_{T} (GeV)", 100, 0, 3000 ),
         "eta": ROOT.TH1F("", ";|#eta|", 100, 0, 2.6 ),
         "mvaValue": ROOT.TH1F("", ";y_{MVA}", 100, -1.01, 1.01 ),
         "r9": ROOT.TH1F("", ";r9", 100, 0, 1.01 ),
@@ -45,11 +45,15 @@ if __name__ == "__main__":
         "pIso": ROOT.TH1F("", ";I_{#gamma}", 100, 0, 5 ),
         "isLoose": ROOT.TH1F("", ";isLoose", 2, 0, 2 ),
         "isMedium": ROOT.TH1F("", ";isMedium", 2, 0, 2 ),
-        "isTight": ROOT.TH1F("", ";isTight", 2, 0, 2 )
+        "isTight": ROOT.TH1F("", ";isTight", 2, 0, 2 ),
     }
 
-    selections = "_loose", "_loose_eb", "_loose_ee", "_loose_eb_genPhoton", "_loose_ee_genPhoton", "_loose_eb_genElectron", "_loose_ee_genElectron"
-
+    selections = [
+        "_loose_genPhoton", "_loose_eb_genPhoton", "_loose_ee_genPhoton",
+        "_medium_genPhoton", "_medium_eb_genPhoton", "_medium_ee_genPhoton",
+        "_tight_genPhoton", "_tight_eb_genPhoton", "_tight_ee_genPhoton",
+        "_fake", "_fake_eb", "_fake_ee",
+    ]
     h = {}
     for s in selections:
         for name, hist in baseH.iteritems():
@@ -61,33 +65,43 @@ if __name__ == "__main__":
         #if ievent > 1000: break
 
         for photon in event.photons:
+            eta = abs(photon.p.Eta())
 
-            if photon.isLoose:
-                fill( photon, h, "_loose" )
-                eta = abs(photon.p.Eta())
-
-                # find out if generated electron
-                genElectron = False
-                for ele in event.genParticles:
-                    if abs(ele.pdgId) == 11 \
-                    and ele.p.DeltaR( photon.p ) < 0.2 \
-                    and abs( (ele.p.Pt()-photon.p.Pt())/ele.p.Pt() ) < 0.1:
-                        genElectron=True
-                        break
-
+            if photon.isLoose and photon.isTrueAlternative:
+                fill( photon, h, "_loose_genPhoton" )
                 if eta<1.4442:
-                    fill( photon, h, "_loose_eb" )
-                    if photon.isTrueAlternative:
-                        fill( photon, h, "_loose_eb_genPhoton" )
-                    if genElectron:
-                        fill( photon, h, "_loose_eb_genElectron" )
-
+                    fill( photon, h, "_loose_eb_genPhoton" )
                 elif 1.5 < eta and eta < 2.4:
-                    fill( photon, h, "_loose_ee" )
-                    if photon.isTrueAlternative:
-                        fill( photon, h, "_loose_ee_genPhoton" )
-                    if genElectron:
-                        fill( photon, h, "_loose_ee_genElectron" )
+                    fill( photon, h, "_loose_ee_genPhoton" )
+
+            if photon.isMedium and photon.isTrueAlternative:
+                fill( photon, h, "_medium_genPhoton" )
+                if eta<1.4442:
+                    fill( photon, h, "_medium_eb_genPhoton" )
+                elif 1.5 < eta and eta < 2.4:
+                    fill( photon, h, "_medium_ee_genPhoton" )
+
+            if photon.isTight and photon.isTrueAlternative:
+                fill( photon, h, "_tight_genPhoton" )
+                if eta<1.4442:
+                    fill( photon, h, "_tight_eb_genPhoton" )
+                elif 1.5 < eta and eta < 2.4:
+                    fill( photon, h, "_tight_ee_genPhoton" )
+
+            if not photon.isLoose \
+                and photon.hOverE<0.05 \
+                and photon.isoNeutralHadronsEA < 1.06+0.014*photon.p.Pt()+0.000019*(photon.p.Pt())**2 \
+                and photon.isoPhotonsEA < 0.28+0.0053*photon.p.Pt() \
+                and not photon.hasPixelSeed \
+                and ( \
+                ( 0.012 < photon.sigmaIetaIeta and photon.sigmaIetaIeta <0.015 ) \
+                != ( 1.37 < photon.isoChargedHadronsEA and photon.isoChargedHadronsEA < 15 ) ):
+
+                fill( photon, h, "_fake" )
+                if eta<1.4442:
+                    fill( photon, h, "_fake" )
+                elif 1.5 < eta and eta < 2.4:
+                    fill( photon, h, "_fake" )
 
     outFileName = "out.root"
     m = re.match( ".*/([^/]*).root", args.inputFile )
