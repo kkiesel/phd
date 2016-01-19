@@ -208,6 +208,12 @@ def appendFlowBin( h, under=True, over=True ):
     if over:
         mergeBins( h, h.GetNbinsX(), h.GetNbinsX()+1 )
 
+def integralAndError( h, binx1=0, binx2=-1 ):
+    e = ROOT.Double()
+    c = h.IntegralAndError(binx1,binx2,e)
+    return c,e
+
+
 def getValAndError( val, err, sig=2 ):
     from math import floor, log10
     digit = sig - int(floor(log10(err))) - 1
@@ -346,6 +352,22 @@ def interpolate2D( h ):
             newC = sum(intPoints)/len(intPoints) if len(intPoints) else 0
             h.SetBinContent(xbin,ybin, newC )
     return h
+
+def diagonalFlip( original ):
+    # original, flipped are both TH2
+    flipped = original.Clone(original.GetName()+"flipped")
+    flipped.SetTitle("{};{};{}".format(
+            original.GetTitle(),
+            original.GetYaxis().GetTitle(),
+            original.GetXaxis().GetTitle()
+        ))
+
+    for xbin in range(original.GetNbinsX()+2):
+        for ybin in range(original.GetNbinsY()+2):
+            flipped.SetBinContent( ybin, xbin, original.GetBinContent(xbin,ybin) )
+            flipped.SetBinError( ybin, xbin, original.GetBinError(xbin,ybin) )
+    return flipped
+
 
 class Label:
     # Create labels
