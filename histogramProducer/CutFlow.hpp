@@ -1,28 +1,26 @@
 #include "TreeParticles.hpp"
+#include <map>
 
 class CutFlowPhoton {
   public:
 
-    CutFlowPhoton(
-      float sigmaIetaIeta_eb, float cIso_eb, float nIso1_eb, float nIso2_eb, float nIso3_eb, float pIso1_eb, float pIso2_eb,
-      float sigmaIetaIeta_ee, float cIso_ee, float nIso1_ee, float nIso2_ee, float nIso3_ee, float pIso1_ee, float pIso2_ee
-    ){
-      cut_sigmaIetaIeta_eb = sigmaIetaIeta_eb;
-      cut_cIso_eb = cIso_eb;
-      cut_nIso1_eb = nIso1_eb;
-      cut_nIso2_eb = nIso2_eb;
-      cut_nIso3_eb = nIso3_eb;
-      cut_pIso1_eb = pIso1_eb;
-      cut_pIso2_eb = pIso2_eb;
+    CutFlowPhoton( std::map<std::string,float> s ) {
+      cut_sigmaIetaIeta_eb = s.at("sigmaIetaIeta_eb");
+      cut_cIso_eb = s.at("cIso_eb");
+      cut_nIso1_eb = s.at("nIso1_eb");
+      cut_nIso2_eb = s.at("nIso2_eb");
+      cut_nIso3_eb = s.at("nIso3_eb");
+      cut_pIso1_eb = s.at("pIso1_eb");
+      cut_pIso2_eb = s.at("pIso2_eb");
 
-      cut_sigmaIetaIeta_ee = sigmaIetaIeta_ee;
-      cut_cIso_ee = cIso_ee;
-      cut_nIso1_ee = nIso1_ee;
-      cut_nIso2_ee = nIso2_ee;
-      cut_nIso3_ee = nIso3_ee;
-      cut_pIso1_ee = pIso1_ee;
-      cut_pIso2_ee = pIso2_ee;
-    };
+      cut_sigmaIetaIeta_ee = s.at("sigmaIetaIeta_ee");
+      cut_cIso_ee = s.at("cIso_ee");
+      cut_nIso1_ee = s.at("nIso1_ee");
+      cut_nIso2_ee = s.at("nIso2_ee");
+      cut_nIso3_ee = s.at("nIso3_ee");
+      cut_pIso1_ee = s.at("pIso1_ee");
+      cut_pIso2_ee = s.at("pIso2_ee");
+    }
 
     bool pass(){
       return pass_pt
