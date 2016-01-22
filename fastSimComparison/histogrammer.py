@@ -21,6 +21,17 @@ def fill( p, h, appendix ):
     h["isMedium"+appendix].Fill( p.isMedium  )
     h["isTight"+appendix].Fill( p.isTight )
 
+def isFake( photon ):
+    return not photon.isLoose \
+        and photon.hOverE<0.05 \
+        and photon.isoNeutralHadronsEA < 1.06+0.014*photon.p.Pt()+0.000019*(photon.p.Pt())**2 \
+        and photon.isoPhotonsEA < 0.28+0.0053*photon.p.Pt() \
+        and not photon.hasPixelSeed \
+        and ( \
+        ( 0.012 < photon.sigmaIetaIeta and photon.sigmaIetaIeta <0.014 ) \
+        != ( 1.37 < photon.isoChargedHadronsEA and photon.isoChargedHadronsEA < 15 ) )
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -59,6 +70,12 @@ if __name__ == "__main__":
         for name, hist in baseH.iteritems():
             h[name+s] = hist.Clone()
 
+    h["h3_pt_eta_nV_gen"] = ROOT.TH3F("","p_{T} (GeV);|#eta|;vertex multiplicity", 30, 0, 3000, 100, 0, 2.6, 36, -0.5, 35.5 )
+    import copy
+    h["h3_pt_eta_nV_loose"] = copy.copy( h["h3_pt_eta_nV_gen"] )
+    h["h3_pt_eta_nV_medium"] = copy.copy( h["h3_pt_eta_nV_gen"] )
+    h["h3_pt_eta_nV_tight"] = copy.copy( h["h3_pt_eta_nV_gen"] )
+    h["h3_pt_eta_nV_fake"] = copy.copy( h["h3_pt_eta_nV_gen"] )
 
 
     for ievent, event in enumerate(ch):
@@ -102,6 +119,22 @@ if __name__ == "__main__":
                     fill( photon, h, "_fake" )
                 elif 1.5 < eta and eta < 2.4:
                     fill( photon, h, "_fake" )
+
+        for genP in event.genParticles:
+            if genP.pdgId != 22: continue
+            pt = genP.p.Pt()
+            eta = abs(genP.p.Eta())
+            nv = event.nGoodVertices
+            h["h3_pt_eta_nV_gen"].Fill( pt, eta, nv )
+            for photon in event.photons:
+                if photon.p.DeltaR( genP.p ) > 0.1 or (photon.p.Pt()-pt)/pt > 0.1: continue
+
+                if photon.isLoose: h["h3_pt_eta_nV_loose"].Fill( pt, eta, nv )
+                if photon.isMedium: h["h3_pt_eta_nV_medium"].Fill( pt, eta, nv )
+                if photon.isTight: h["h3_pt_eta_nV_tight"].Fill( pt, eta, nv )
+                if isFake(photon): h["h3_pt_eta_nV_fake"].Fill( pt, eta, nv )
+
+
 
     outFileName = "out.root"
     m = re.match( ".*/([^/]*).root", args.inputFile )
