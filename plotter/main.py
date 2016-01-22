@@ -57,7 +57,17 @@ def drawH2( dataset, name, savename="test" ):
     h = getHistoFromDataset( dataset, name )
     h.Draw("colz")
     l = aux.Label(sim=savename!="data")
+
+    # draw linear fit
+    if name in ["h2_match_photon_pt_jet_pt_base"]:
+        #h = aux.diagonalFlip( h )
+        #h.Draw("colz")
+        h.Fit("pol1")
+
     aux.save( "h2_%s_%s"%(savename,name) )
+    c.SetLogz()
+    aux.save( "h2_%s_%s_log"%(savename,name) )
+
     style.defaultStyle()
 
 def subtractH2( dataset_num, dataset_den, name, savename="test" ):
@@ -114,7 +124,7 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
     scale = 1.
     if scaleToData: scale = divideDatasetIntegrals( [ i for i in additional if "Data" in i.label ], bkg, name )
     if "__trPhoton90" in name: scale = 1/90.
-    if "__tr_jControl2" in name: scale = 1/6.
+    if "__tr_jControl" in name and "Jet" in name: scale = 1/6.
 
     for d in bkg[-1::-1]:
         h = d.getHist( name )
@@ -158,9 +168,7 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
             r = ratio.Ratio( "Data/SM", dataHist, hsm )
             r.draw(0.5,1.5)
 
-            if name  == "h_ht__tr" and binningName == "4":
-                aux.writeWeight( r.ratio, name, sampleNames )
-            if name  == "h_ht_parton__tr" and binningName == "1":
+            if name  == "h_ht__tr" and binningName == "1":
                 aux.writeWeight( r.ratio, name, sampleNames )
 
         info = ""
@@ -247,6 +255,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
+
     hdir = dataset.getHist( name )
     if not hdir.Integral(): return
     if binning: hdir = aux.rebin( hdir, binning )
@@ -256,26 +265,54 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     hdir.SetMarkerColor(1)
     hdir.SetMarkerStyle(20)
     hdir.drawOption_ = "pe"
-    m.add( hdir, "#gamma" )
+    m.add( hdir, "#gamma {:.1e}".format(hdir.Integral()) )
 
-    settings = {
-        "tr_jControl": ("no Iso", ROOT.kCyan),
-        "tr_jControl1": ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kBlue),
-        "tr_jControl2": ("no #gamma", ROOT.kGreen+4),
-        "tr_jControlJet": ("loose jet", ROOT.kRed),
-    }
+    import collections
+    settings = collections.OrderedDict()
+    settings["tr_jControlPhotonSB"] = ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kCyan)
+    settings["tr_jControlPhotonAll"] = ("all #gamma candidates", ROOT.kBlue)
+    settings["tr_jControlLeadingJet"] = ("leading fake jet", ROOT.kOrange)
+    settings["tr_jControlTrailingJet"] = ("trailing fake jet", ROOT.kMagenta)
+    settings["tr_jControlRandomJet"] = ("random fake jet", ROOT.kRed)
 
-    for cutName, (legend, col) in settings.iteritems():
+    for cutName, (legend,col) in settings.iteritems():
 
         h = controlDataset.getHist( name.replace("__tr","__"+cutName) )
+
         if not h.Integral(): continue
+        integral = h.Integral()
         if binning: h = aux.rebin( h, binning )
         aux.appendFlowBin( h )
         h.Scale( hdir.Integral()/h.Integral() )
         h.SetYTitle( aux.getYAxisTitle( h ) )
         h.SetLineColor(col)
         h.drawOption_ = "hist e"
-        m.add( h, legend )
+        m.add( h, legend+" {:.1e}".format(integral) )
+
+    if "h_met__tr" in name:
+        psettings = collections.OrderedDict()
+        psettings["h_metStar__tr"] = ("#vec{E}_{T}^{miss}*",33 )
+        #psettings["h_met_dn07__tr"] = ("#vec{E}_{T}^{miss}-7%#vec{p}_{T}^{#gamma}",33 )
+        psettings["h_met_dn08__tr"] = ("#vec{E}_{T}^{miss}-8%#vec{p}_{T}^{#gamma}",29 )
+        #psettings["h_met_dn09__tr"] = ("#vec{E}_{T}^{miss}-9%#vec{p}_{T}^{#gamma}",34 )
+
+        for cutName, (legend,col) in psettings.iteritems():
+
+            h = dataset.getHist( cutName )
+
+            if not h.Integral(): continue
+            integral = h.Integral()
+            if binning: h = aux.rebin( h, binning )
+            aux.appendFlowBin( h )
+            h.Scale( hdir.Integral()/h.Integral() )
+            h.SetYTitle( aux.getYAxisTitle( h ) )
+            h.SetLineColor(1)
+            h.SetMarkerColor(ROOT.kGray)
+            h.SetMarkerStyle(col)
+            h.drawOption_ = "pe"
+            m.add( h, legend )
+
+
     m.Draw()
     l = aux.Label(info=dataset.label)
 
@@ -379,7 +416,7 @@ def ewkClosure( dataset, samplename="" ):
 
             if name == "h_met__tr_reco_genElectron": mod_dir.SetMaximum( mod_dir.GetMaximum() *5 )
             m.add( mod_dir, "#gamma (gen e)" )
-            m.add( mod_pre, "{:.2f}% #times #gamma_{{pixel}}".format(100*scale) )
+            m.add( mod_pre, "{:.2f}% #times #gamma-like e".format(100*scale) )
 
             m.Draw()
 
@@ -477,13 +514,19 @@ def efficiency( dataset, name, savename="" ):
     h_pas = h.GetPassedHistogram()
     h_tot = h.GetTotalHistogram()
     if "hlt" in name:
+        newBins = []
+        if name == "eff_hlt_pt__base": newBins = range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000]
+        if name == "eff_hlt_ht__base": newBins = range(0,1001,40) + [1000,1500,2000]
+        if newBins:
+            h_pas = aux.rebin( h_pas, newBins, False )
+            h_tot = aux.rebin( h_tot, newBins, False )
         eff = ROOT.TEfficiency( h_pas, h_tot )
     else:
         eff = h
 
     eff.Draw()
     ROOT.gPad.Update()
-    #eff.GetPaintedGraph().GetYaxis().SetRangeUser(0.9, 1.01)
+    eff.GetPaintedGraph().GetYaxis().SetRangeUser(0., 1.1)
 
     if "_pt_" in name:
         cutValue = 100
@@ -662,11 +705,12 @@ def transitions():
 
 
 def drawH2s():
-    for h2name in aux.getObjectNames( data.files[0], objects=[ROOT.TH2]):
-        break
+    names = aux.getObjectNames( data.files[0], objects=[ROOT.TH2])
+
+    for h2name in names:
         drawH2( data, h2name, "data" )
         drawH2( qcd+gjets, h2name, "gqcd" )
-        subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
+        #subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
 
 def drawISRsplitting():
     for d in ttjets,wjets,znunu:
@@ -678,16 +722,6 @@ def drawISRsplitting():
     ewkIsrSamplesSplitting( wjets, wg_mc, "w_mc" )
     ewkIsrSamplesSplitting( wjets, wg_mg, "w_mg" )
     ewkIsrSamplesSplitting( znunu, zg_130, "zg" )
-
-def efficiencyFromMap( sampleName, sample ):
-    f = ROOT.TFile( sample.files[0] )
-    m = ROOT.std.map('int, pair<int,int>')()
-    f.GetObject( "rawEff_vs_run", m )
-
-    print m.size()
-    print len(m)
-    for a,b in m.iteritems():
-        print a,b
 
 def checkGJetsQcdNlo():
     can = ROOT.TCanvas()
@@ -731,17 +765,18 @@ def checkGJetsQcdNlo():
 
 def main():
     pass
-    #efficiencyFromMap( "singlePhoton", data )
     #transitions()
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
     #drawSameHistograms( "gqcd_data", [gjets600,gjets400,gjets200, gjets100,gjets40,qcd], [data])
+    #drawSameHistograms( "gqcd_dataHt", [gjets600,gjets400,gjets200, gjets100,gjets40,qcd], [dataHt])
     #drawSameHistograms( "emqcd_data", [emqcd], [data])
     #drawSameHistograms( "_gjet15_data", [gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu,dy], additional=[data])
-    #drawSameHistograms( "mc_dataHt", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu,dy], additional=[dataHt])
-    #drawSameHistograms( "_mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
+    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
+    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data])
+    #drawSameHistograms( "mc_dataHt", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[dataHt])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
     #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[signal["T5gg_1400_1200"], signal["T5gg_1000_200"]])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
@@ -754,6 +789,8 @@ def main():
     #qcdClosure( data, "_data" )
     #multiQcdClosures( qcd+gjets, "gqcd" )
     #multiQcdClosures( data, "data", dataHt )
+    #multiQcdClosures( ttg, "tt", ttjets )
+    #multiQcdClosures( gjets+qcd+ttjets+ttg+wjets+wg_mg+znunu+zg_130,"mc" )
     #gjets.label = "GJets Data"
     #drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
     checkGJetsQcdNlo()

@@ -122,10 +122,20 @@ std::ostream &operator<<(std::ostream &os, TVector3 &p) {
       return os << p.Pt() << "\t" << p.Eta() << "\t" << p.Phi();
 }
 
+inline int pseudoRandom( float f ) {
+  //return *(int*)&f; // Interprets float as int
+  return ((int)(f*1e6)) % 1000;
+}
+
+inline bool pseudoRandomSort(const tree::Particle p1, const tree::Particle p2) {
+  return pseudoRandom(p1.p.Phi()) > pseudoRandom(p2.p.Phi());
+}
+
+const float photonsEtaMaxBarrel = 1.4442;
+
 ///////////////////////////////////////////////////////////////////////////////
 // End User Functions
 ///////////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -183,6 +193,8 @@ class HistogramProducer : public TSelector {
   vector<tree::Electron*> selElectrons;
   vector<tree::Muon*> selMuons;
 
+  vector<tree::Photon> fakeJets;
+
   float selW=1.; // weight
   float selHt=0;
 
@@ -199,7 +211,6 @@ class HistogramProducer : public TSelector {
 
   //Weighter qcdWeighter;
   Weighter htWeighter;
-  Weighter htPartonWeighter;
 
   CutFlowPhoton looseCutFlowPhoton;
 
@@ -209,11 +220,17 @@ void HistogramProducer::initSelection( string const& s ) {
 
   // event
   h["h_met__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
+  h["h_metStar__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
+  h["h_met_dn__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
+  h["h_met_dn10__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
+  h["h_met_dn09__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
+  h["h_met_dn08__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
+  h["h_met_dn07__"+s] = TH1F( "", ";E^{miss}_{T} (GeV)", 100, 0, 1000 );
   h["h_mt_g_met__"+s] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 100, 0, 1000 );
 
   h["h_tremht__"+s] = TH1F( "", ";EMH_{T}^{trigger-like} (GeV)", 250, 0, 2500 );
   h["h_emht__"+s] = TH1F( "", ";EMH_{T} (GeV)", 250, 0, 2500 );
-  h["h_emhtStar__"+s] = TH1F( "", ";EMH^{#lower[0.4]{#scale[2.5]{*}}}_{T} (GeV)", 250, 0, 2500 );
+  h["h_emhtStar__"+s] = TH1F( "", ";EMH_{T}* (GeV)", 250, 0, 2500 );
   h["h_ht__"+s] = TH1F( "", ";H_{T} (GeV)", 250, 0, 2500 );
   h["h_st__"+s] = TH1F( "", ";S_{T} (GeV)", 250, 0, 2500 );
   h["h_recoilt__"+s] = TH1F( "", ";#vec{H}_{T} (GeV)", 150, 0, 1500 );
@@ -221,7 +238,7 @@ void HistogramProducer::initSelection( string const& s ) {
 
   // photon
   h["h_g_pt__"+s] = TH1F( "", ";p_{T} (GeV)", 150, 0, 1500 );
-  h["h_g_ptStar__"+s] = TH1F( "", ";p^{#lower[0.4]{#scale[2.5]{*}}}_{T} (GeV)", 150, 0, 1500 );
+  h["h_g_ptStar__"+s] = TH1F( "", ";p_{T}* (GeV)", 150, 0, 1500 );
   h["h_g_eta__"+s] = TH1F( "", ";|#eta|", 1500, 0, 1.5 );
   h["h_g_phi__"+s] = TH1F( "", ";#phi", 200, -3.2, 3.2 );
   h["h_g_sie__"+s] = TH1F( "", ";#sigma_{i#etai#eta}", 400, 0, 0.02 );
@@ -269,14 +286,16 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_n_vertex__"+s] = TH1F( "", ";vertex multiplicity", 61, -0.5, 60.5 );
   h["h_n_photon__"+s] = TH1F( "", ";photon multiplicity", 6, -0.5, 5.5 );
   h["h_n_jet__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
-  h["h_n_jet_eb__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
-  h["h_n_jet_ee__"+s] = TH1F( "", ";jet multiplicity", 21, -0.5, 20.5 );
   h["h_n_bjet__"+s] = TH1F( "", ";b-jet multiplicity", 21, -0.5, 20.5 );
   h["h_n_electron__"+s] = TH1F( "", ";electron multiplicity", 4, -0.5, 3.5 );
   h["h_n_muon__"+s] = TH1F( "", ";muon multiplicity", 4, -0.5, 3.5 );
 
+  h["h_n_fakeJet__"+s] = TH1F( "", ";photon-like jet multiplicity", 21, -0.5, 20.5 );
+  h["h_n_photonAndfakeJet__"+s] = TH1F( "", ";photon and photon-like jet multiplicity", 21, -0.5, 20.5 );
+
   h2["h2_razorPlane__"+s] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
-  h2["h2_g_pt_emht__"+s] = TH2F( "", ";p_{T} (GeV); H_{T} (GeV)", 100, 0, 1000, 150, 500, 2000 );
+  h2["h2_g_pt_emht__"+s] = TH2F( "", ";p_{T} (GeV); EMH_{T} (GeV)", 100, 0, 1000, 150, 500, 2000 );
+  h2["h2_n_fakeJets_photonPosition__"+s] = TH2F( "", ";jet fake multiplicity;photon position", 9, -0.5, 8.5, 9, -0.5, 8.5 );
 
 }
 
@@ -302,14 +321,15 @@ void HistogramProducer::initObjects( string const& s ) {
   h2["h2_match_jet_photon__"+s] = TH2F( "", ";#Delta R;p_{T}^{jet}/p_{T}^{#gamma}", 100, 0, 0.5, 100, 0, 4 );
   h2["h2_match_jet_electron__"+s] = TH2F( "", ";#Delta R;p_{T}^{jet}/p_{T}^{e}", 100, 0, 0.5, 100, 0, 4 );
   h2["h2_match_jet_muon__"+s] = TH2F( "", ";#Delta R;p_{T}^{jet}/p_{T}^{#mu}", 100, 0, 0.5, 100, 0, 4 );
+  h2["h2_match_photon_pt_jet_pt_"+s] = TH2F( "", ";p_{T}^{photon} (GeV);p_{T}^{jet} (GeV)", 100, 0, 1000, 100, 0, 1000 );
 
   h2["h2_match_photon_genElectron__"+s] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen e}", 100, 0, 0.5, 100, 0, 4 );
   h2["h2_match_photon_genPhoton__"+s] = TH2F( "", ";#Delta R;p_{T}/p_{T}^{gen #gamma}", 100, 0, 0.5, 100, 0, 4 );
 
-  eff["eff_hlt_pt__offlineHT650__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon_{H_{T}>650GeV}", 250, 0, 1000 );
+  eff["eff_hlt_pt__offlineHT650__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon_{EMH_{T}^{trigger-like}>650GeV}", 250, 0, 1000 );
   eff["eff_hlt_pt__"+s] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 250, 0, 1000 );
-  eff["eff_hlt_ht__offlinePT100__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon_{p_{T}>100GeV}", 200, 0, 2000 );
-  eff["eff_hlt_ht__"+s] = TEfficiency( "", ";H_{T} (GeV);#varepsilon", 200, 0, 2000 );
+  eff["eff_hlt_ht__offlinePT100__"+s] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon_{p_{T}>100GeV}", 200, 0, 2000 );
+  eff["eff_hlt_ht__"+s] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
   eff["eff_hlt_nVertex__"+s] = TEfficiency( "", ";Vertex multiplicity", 41, -0.5, 40.5 );
   eff["eff_hlt_sie__"+s] = TEfficiency( "", ";#sigma_{i#etai#eta}", 400, 0, 0.02 );
   eff["eff_hlt_hoe__"+s] = TEfficiency( "", ";H/E", 100, 0, 0.15 );
@@ -319,6 +339,7 @@ void HistogramProducer::initObjects( string const& s ) {
   eff["eff_hlt_n_jet_uncleaned__"+s] = TEfficiency( "", ";uncleaned jet multiplicity", 15, -0.5, 14.5 );
 
   h["h_genHt"] = TH1F( "", ";H_{T}^{gen} (GeV)", 6000, 0, 3000 );
+
 }
 
 void HistogramProducer::fillSelection( string const& s ) {
@@ -345,6 +366,17 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_recoilt__"+s].Fill( recoil.Pt(), selW );
 
   h["h_met__"+s].Fill( met->p.Pt(), selW );
+  h["h_metStar__"+s].Fill( (met->p-(*matchedJet(*selPhotons[0])-selPhotons[0]->p)).Pt(), selW );
+  cout << "\nmet = " << met->p << std::endl;
+  cout << "ptg = " << selPhotons[0]->p << std::endl;
+  cout << "ptj = " << *matchedJet(*selPhotons[0]) << std::endl;
+  cout << "met*= " << (met->p-(*matchedJet(*selPhotons[0])-selPhotons[0]->p)) << std::endl;
+  cout << "ptr = " << matchedJet(*selPhotons[0])->Pt()/selPhotons[0]->p.Pt()-1 << std::endl;
+  h["h_met_dn__"+s].Fill( (met->p-0.1*selPhotons[0]->p).Pt(), selW );
+  h["h_met_dn10__"+s].Fill( (met->p-0.1*selPhotons[0]->p).Pt(), selW );
+  h["h_met_dn09__"+s].Fill( (met->p-0.09*selPhotons[0]->p).Pt(), selW );
+  h["h_met_dn08__"+s].Fill( (met->p-0.08*selPhotons[0]->p).Pt(), selW );
+  h["h_met_dn07__"+s].Fill( (met->p-0.07*selPhotons[0]->p).Pt(), selW );
 
   if( selElectrons.size() && selPhotons.size() ){
     h["h_meg__"+s].Fill( (selPhotons[0]->p+selElectrons[0]->p).Mag() );
@@ -362,6 +394,9 @@ void HistogramProducer::fillSelection( string const& s ) {
     h["h_g_nIso__"+s].Fill( selPhotons[0]->isoNeutralHadronsEA );
     h["h_g_pIso__"+s].Fill( selPhotons[0]->isoPhotonsEA );
     h2["h2_g_pt_emht__"+s].Fill( selPhotons[0]->p.Pt(), selHt, selW );
+    unsigned photonPosition=0;
+    for(;photonPosition<fakeJets.size() && fakeJets.at(photonPosition).p.Pt() > selPhotons[0]->p.Pt();photonPosition++);
+    h2["h2_n_fakeJets_photonPosition__"+s].Fill( fakeJets.size(), photonPosition, selW );
   }
 
   if( selJets.size() > 2 ) {
@@ -431,13 +466,9 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_n_bjet__"+s].Fill( selBJets.size(), selW );
   h["h_n_electron__"+s].Fill( selElectrons.size(), selW );
   h["h_n_muon__"+s].Fill( selMuons.size(), selW );
-  int nJetEB=0, nJetEE=0;
-  for( auto& j: selJets ) {
-    if( fabs(j->p.Eta())<1.45 ) nJetEB++;
-    else nJetEE++;
-  }
-  h["h_n_jet_eb__"+s].Fill( nJetEB, selW );
-  h["h_n_jet_ee__"+s].Fill( nJetEE, selW );
+
+  h["h_n_fakeJet__"+s].Fill( fakeJets.size(), selW );
+  h["h_n_photonAndfakeJet__"+s].Fill( fakeJets.size()+selPhotons.size(), selW );
 
   if( mrr2.first > 1e-7 ) {
     h2["h2_razorPlane__"+s].Fill( mrr2.first, mrr2.second, selW );
@@ -450,8 +481,10 @@ void HistogramProducer::fillObjects( string const& s ) {
 
   // matching
   for( auto& jet : selJets ) {
-    for( auto& p : selPhotons )
+    for( auto& p : selPhotons ) {
       h2["h2_match_jet_photon__"+s].Fill( jet->p.DeltaR( p->p ), jet->p.Pt()/p->p.Pt(), selW );
+      if( p->isLoose && p->p.Pt()>100 && fabs(p->p.Eta())<photonsEtaMaxBarrel && jet->p.DeltaR(p->p)<.3 ) h2["h2_match_photon_pt_jet_pt_"+s].Fill( p->p.Pt(), jet->p.Pt(), selW );
+    }
     for( auto& p : selElectrons )
       h2["h2_match_jet_electron__"+s].Fill( jet->p.DeltaR( p->p ), jet->p.Pt()/p->p.Pt(), selW );
     for( auto& p : selMuons )
@@ -474,7 +507,7 @@ void HistogramProducer::fillObjects( string const& s ) {
     eff["eff_gCol_cIso__"+s].FillWeighted( photon->isTrue, selW, photon->isoChargedHadronsEA );
     eff["eff_gCol_mva__"+s].FillWeighted( photon->isTrue, selW, photon->mvaValue );
 
-    if( photon->p.Pt() > 100 && fabs(photon->p.Eta()) < 1.4442 ) {
+    if( photon->p.Pt() > 100 && fabs(photon->p.Eta()) < photonsEtaMaxBarrel ) {
       if(
         looseCutFlowPhoton.check( *photon )
         ) eff["eff_g_r9__"+s].FillWeighted( photon->isTrue, selW, photon->r9 );
@@ -510,7 +543,7 @@ void HistogramProducer::fillObjects( string const& s ) {
   // trigger efficiencies
   tree::Photon* thisPhoton=0;
   for( auto& photon : selPhotons ) {
-    if( photon->p.Pt() > 15 && fabs(photon->p.Eta()) < 1.4442 && photon->isLoose && !photon->hasPixelSeed ) {
+    if( photon->p.Pt() > 15 && fabs(photon->p.Eta()) < photonsEtaMaxBarrel && photon->isLoose && !photon->hasPixelSeed ) {
       if( !thisPhoton || thisPhoton->p.Pt() < photon->p.Pt() ) {
         thisPhoton = photon;
       }
@@ -570,9 +603,9 @@ HistogramProducer::HistogramProducer():
   hlt_photon175( fReader, "HLT_Photon175_v" ),
   hlt_ht600( fReader, "HLT_PFHT600_v" ),
   //qcdWeighter( "../plotter/weights_unweighted.root", "weight__data_g_pt__tr_jControl"),
-  htWeighter( "../plotter/weights_unweighted.root", "weight_gqcd_data_ht__tr"),
-  htPartonWeighter( "../plotter/weights_unweighted.root", "weight_gqcd_data_ht_parton__tr"),
-  looseCutFlowPhoton( 0.0102, 3.32, 1.92, 0.014, 0.000019, 0.81, 0.0053, 0.0274, 1.97, 11.86, 0.0139, 0.000025, 0.83, 0.0034 )
+  htWeighter( "../plotter/weights_unweighted.root", "weight_mc_data_ht__tr"),
+  looseCutFlowPhoton( {{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
+    {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} })
 {
 }
 
@@ -580,16 +613,28 @@ void HistogramProducer::Init(TTree *tree)
 {
   fReader.SetTree(tree);
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
-  isData = inputName.find("SinglePhoton") != string::npos
-    || inputName.find("JetHT") != string::npos
-    || inputName.find("MET") != string::npos;
+  isData = inputName.find("SinglePhoton_Run") != string::npos
+    || inputName.find("JetHT_Run") != string::npos
+    || inputName.find("MET_Run") != string::npos;
 }
 
 void HistogramProducer::SlaveBegin(TTree *tree)
 {
   initObjects("base");
 
-  vector<string> strs = { "tr", "tr_eControl", "tr_jControl", "tr_jControl1", "tr_jControl2", "tr_jControlJet", "tr_htWeighted", "tr_htPartonWeighted" };
+  vector<string> strs = {
+    "tr",
+    "tr_genElectron",
+    "tr_met100_genElectron",
+    "tr_eControl",
+    "tr_met100_eControl",
+    "tr_jControlPhotonSB",
+    "tr_jControlPhotonAll",
+    "tr_jControlLeadingJet",
+    "tr_jControlTrailingJet",
+    "tr_jControlRandomJet",
+    "tr_htWeighted",
+  };
   for( auto& v : strs ) initSelection(v);
 
   // after all initializations
@@ -613,6 +658,12 @@ void HistogramProducer::defaultSelection()
     if( indexOfMatchedParticle<tree::Photon*>( jet, selPhotons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Electron*>( jet, selElectrons, .3 ) >= 0 ) continue;
     if( indexOfMatchedParticle<tree::Muon*>( jet, selMuons, .3 ) >= 0 ) continue;
+    if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < photonsEtaMaxBarrel ) {
+      tree::Photon photon;
+      photon.p = jet.p;
+      fakeJets.push_back( photon );
+    }
+    // the jets are not cleared by the fakeJets yet
     selJets.push_back( &jet );
     if( jet.bDiscriminator > bTaggingWorkingPoints[CSVv2M] )
       selBJets.push_back( &jet );
@@ -667,16 +718,67 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   resetSelection();
   /////////////////////////////////////////////////////////////////////////////
+  // electron sample
+
+  for( auto& photon : photons ) {
+    if( photon.isLoose && photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel ) {
+      selPhotons.push_back( &photon );
+    }
+  }
+  defaultSelection();
+
+  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
+    fillSelection("tr_eControl");
+    if(met->p.Pt()>100) fillSelection("tr_met100_eControl");
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // jet sample
+  for( auto& photon : photons ) {
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel && !photon.isLoose ) {
+      selPhotons.push_back( &photon );
+    }
+  }
+  defaultSelection();
+  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
+     fillSelection("tr_jControlPhotonAll");
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // jet sample
+  for( auto& photon : photons ) {
+    looseCutFlowPhoton.check(photon);
+    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel  && !photon.hasPixelSeed
+        && !photon.isLoose
+        && looseCutFlowPhoton.passHoe()
+        && looseCutFlowPhoton.passNIso()
+        && looseCutFlowPhoton.passPIso()
+        && photon.isoChargedHadronsEA < 15
+        && photon.sigmaIetaIeta < 0.014
+        && (looseCutFlowPhoton.passCIso() ^ looseCutFlowPhoton.passSie() )
+    ) {
+      selPhotons.push_back( &photon );
+    }
+  }
+  defaultSelection();
+  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
+     fillSelection("tr_jControlPhotonSB");
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
   // Main (signal) selection
   for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed && photon.isLoose ) {
+    if( photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel ) {
        selPhotons.push_back( &photon );
     }
   }
   defaultSelection();
 
   // Calculate razor variables
-  if( true ) { // attention: computing intensive
+  if( false ) { // attention: computing intensive
     vector<TVector3> js;
     for( auto& p : selJets ) js.push_back( p->p );
     for( auto& p : selPhotons ) js.push_back( p->p );
@@ -687,110 +789,46 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
-    //if(!isData) selW = originalW*htWeighter.getWeight( selHt );
-    //fillSelection("tr_htWeighted");
-    //float partonHt=0;
-    //for( auto& j: selJets ) partonHt += j->p.Pt();
-    //if(!isData) selW = originalW*htPartonWeighter.getWeight( partonHt );
-    //fillSelection("tr_htPartonWeighted");
-    //selW = originalW;
-  }
-
-
-  resetSelection();
-  /////////////////////////////////////////////////////////////////////////////
-  // electron sample
-
-  for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && photon.hasPixelSeed && photon.isLoose ) {
-      selPhotons.push_back( &photon );
+    for( auto& p : genParticles ) {
+      if( p.pdgId==22 && selPhotons[0]->p.DeltaR(p.p)<0.1 && fabs(selPhotons[0]->p.Pt()/p.p.Pt()-1)<0.1 ) {
+        fillSelection("tr_genElectron");
+        if( met->p.Pt()>100 ) fillSelection("tr_met100_genElectron");
+        break; // fill only once
+      }
     }
-  }
-  defaultSelection();
 
-  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
-    fillSelection("tr_eControl");
+    float ht=0;
+    for( auto& j: selJets ) ht += j->p.Pt();
+    if(!isData) selW = originalW*htWeighter.getWeight( ht );
+    fillSelection("tr_htWeighted");
+    selW = originalW;
   }
 
+  if( fakeJets.size() && !selPhotons.size() && selHt > 700 && (*hlt_ht600 || !isData) ) {
+
+    auto saveSelJets = selJets;
+    selJets.clear();
+
+    selPhotons.push_back( &fakeJets.at(0) );
+    for( auto& j : saveSelJets ) { if (j->p.DeltaR(selPhotons[0]->p)>0.3) selJets.push_back( j ); }
+    fillSelection("tr_jControlLeadingJet");
+    selPhotons.clear();
+    selJets.clear();
+
+    selPhotons.push_back( &fakeJets.at(fakeJets.size()-1) );
+    for( auto& j : saveSelJets ) { if (j->p.DeltaR(selPhotons[0]->p)>0.3) selJets.push_back( j ); }
+    fillSelection("tr_jControlTrailingJet");
+    selPhotons.clear();
+    selJets.clear();
+
+    selPhotons.push_back( &fakeJets.at(rand()%fakeJets.size()) );
+    for( auto& j : saveSelJets ) { if (j->p.DeltaR(selPhotons[0]->p)>0.3) selJets.push_back( j ); }
+    fillSelection("tr_jControlRandomJet");
+    selPhotons.clear();
+    selJets.clear();
+
+  }
   resetSelection();
-  /////////////////////////////////////////////////////////////////////////////
-  // jet sample
-  for( auto& photon : photons ) {
-    looseCutFlowPhoton.check(photon);
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
-        && !photon.isLoose
-        && looseCutFlowPhoton.passHoe()
-        && looseCutFlowPhoton.passSie()
-    ) {
-      selPhotons.push_back( &photon );
-    }
-  }
-  defaultSelection();
-  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
-     fillSelection("tr_jControl");
-  }
-
-  resetSelection();
-  /////////////////////////////////////////////////////////////////////////////
-  // jet sample
-  for( auto& photon : photons ) {
-    looseCutFlowPhoton.check(photon);
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
-        && !photon.isLoose
-        && looseCutFlowPhoton.passHoe()
-        && looseCutFlowPhoton.passNIso()
-        && looseCutFlowPhoton.passPIso()
-        && photon.isoChargedHadronsEA < 10
-        && (looseCutFlowPhoton.passCIso() || looseCutFlowPhoton.passSie() )
-    ) {
-      selPhotons.push_back( &photon );
-    }
-  }
-  defaultSelection();
-  if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
-     fillSelection("tr_jControl1");
-  }
-
-  resetSelection();
-  /////////////////////////////////////////////////////////////////////////////
-  // jet sample
-  for( auto& photon : photons ) {
-    if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < 1.4442  && !photon.hasPixelSeed
-        && !photon.isLoose
-    ) {
-      selPhotons.push_back( &photon );
-    }
-  }
-  defaultSelection();
-  if( selPhotons.size() && selHt > 700 && (*hlt_ht600 || !isData) ) {
-     fillSelection("tr_jControl2");
-  }
-
-  resetSelection();
-  /////////////////////////////////////////////////////////////////////////////
-  // jet sample
-  vector<tree::Photon> photonVectorCopy; // as selPhotons save references only, the original objects have to be stored somewhere
-  for( auto& jet : jets ) {
-    if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < 1.4442  && jet.isLoose ) {
-      bool photonMatch=false;
-      for( auto& ph : photons ) { if( ph.isLoose && ph.p.DeltaR(jet.p) < 0.3 ) { photonMatch=true;break;} }
-      if(photonMatch) continue;
-      tree::Photon photon;
-      photon.p = jet.p;
-      photonVectorCopy.push_back( photon );
-//      selPhotons.push_back( &photonVectorCopy.at(photonVectorCopy.size()-1) );
-//      break; // take only leading object
-    }
-  }
-  //if( photonVectorCopy.size() ) selPhotons.push_back( &photonVectorCopy.at(photonVectorCopy.size()-1) ); // lowest pt
-  //if( photonVectorCopy.size() ) selPhotons.push_back( &photonVectorCopy.at(rand() % photonVectorCopy.size()) ); // random object
-  if( photonVectorCopy.size() ) selPhotons.push_back( &photonVectorCopy.at(0) ); // highest pt
-  defaultSelection();
-  if( selPhotons.size() && selHt > 700 && (*hlt_ht600 || !isData) ) {
-     fillSelection("tr_jControlJet");
-  }
-  photonVectorCopy.clear();
-
 
   return kTRUE;
 }
@@ -825,4 +863,5 @@ void HistogramProducer::resetSelection() {
   selBJets.clear();
   selElectrons.clear();
   selMuons.clear();
+  fakeJets.clear();
 }

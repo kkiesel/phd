@@ -64,6 +64,7 @@ def write2File( obj2Write, name, fname ):
     f.Close()
 
 def writeWeight( obj, name, sampleName ):
+    print "Info in <auxiliary::writeWeight>: {} written to file {}".format(name, "weights.root" )
     write2File( obj, name.replace("h_","weight_{}_".format(sampleName)), "weights.root" )
 
 def getFromFile( filename, histoname ):
@@ -96,11 +97,14 @@ def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
 
     return outList
 
-def checkRebinningConsistence( axis, newBinning ):
-    oldBinning = []
+def getBinning( axis ):
+    binning = []
     for i in range(axis.GetNbins()+1):
-        oldBinning.append( axis.GetBinUpEdge(i) )
+        binning.append( axis.GetBinUpEdge(i) )
+    return binning
 
+def checkRebinningConsistence( axis, newBinning ):
+    oldBinning = getBinning( axis )
     for i in newBinning:
         if i not in oldBinning: print "New bin edge is not compatible with old binning", i
 
@@ -128,13 +132,13 @@ def rebin2d( h, binEdgesX, binEdgesY ):
     return hnew
 
 
-def rebin( h, binEdges ):
+def rebin( h, binEdges, scale=True ):
     checkRebinningConsistence( h.GetXaxis(), binEdges )
     import array
     binEdgesArr = array.array( 'd', binEdges )
     hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
     hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
-    hnew.Scale( 1., "width" )
+    if scale: hnew.Scale( 1., "width" )
     return hnew
 
 def absHistWeighted( origHist ):
@@ -207,6 +211,12 @@ def appendFlowBin( h, under=True, over=True ):
         mergeBins( h, 1, 0 )
     if over:
         mergeBins( h, h.GetNbinsX(), h.GetNbinsX()+1 )
+
+def integralAndError( h, binx1=0, binx2=-1 ):
+    e = ROOT.Double()
+    c = h.IntegralAndError(binx1,binx2,e)
+    return c,e
+
 
 def getValAndError( val, err, sig=2 ):
     from math import floor, log10
@@ -346,6 +356,22 @@ def interpolate2D( h ):
             newC = sum(intPoints)/len(intPoints) if len(intPoints) else 0
             h.SetBinContent(xbin,ybin, newC )
     return h
+
+def diagonalFlip( original ):
+    # original, flipped are both TH2
+    flipped = original.Clone(original.GetName()+"flipped")
+    flipped.SetTitle("{};{};{}".format(
+            original.GetTitle(),
+            original.GetYaxis().GetTitle(),
+            original.GetXaxis().GetTitle()
+        ))
+
+    for xbin in range(original.GetNbinsX()+2):
+        for ybin in range(original.GetNbinsY()+2):
+            flipped.SetBinContent( ybin, xbin, original.GetBinContent(xbin,ybin) )
+            flipped.SetBinError( ybin, xbin, original.GetBinError(xbin,ybin) )
+    return flipped
+
 
 class Label:
     # Create labels

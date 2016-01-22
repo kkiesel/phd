@@ -18,8 +18,8 @@ def getInfoFromStr( str ):
     #return m.groups()
 
 
-str1 = "ε = 98.6% + 0.8% - 1.3%"
-str2 = "ε = 95.4% + 0.4% - 0.5%"
+str1 = "ε = 98.0% + 0.6% - 0.7%"
+str2 = "ε = 97.1% + 0.2% - 0.2%"
 
 e1, e1up, e1dn = getInfoFromStr(str1)
 e2, e2up, e2dn = getInfoFromStr(str2)

@@ -172,6 +172,7 @@ ttg.label = "#gammat#bar{t}"
 wg_mc = Dataset( "WGToLNuG-amcatnloFXFX", 489., ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 wg_mg = Dataset( "WGToLNuG-madgraphMLM", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wg_pt500 = Dataset( "WGToLNuG_PtG-500", 0.0117887, ROOT.kRed-1, "WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wg_mg.label = "#gammaW#rightarrow#gammal#nu"
 
 # znunu
 znunu100 = Dataset( "ZJetsToNuNu_HT-100To200", 280.47, ROOT.kMagenta+3 , "ZJetsToNuNu_HT-100To200_13TeV-madgraph" )
@@ -180,6 +181,7 @@ znunu400 = Dataset( "ZJetsToNuNu_HT-400To600", 10.94, ROOT.kMagenta+1 , "ZJetsTo
 znunu600 = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.20, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-600ToInf_13TeV-madgraph" )
 
 zg_130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.223, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
+zg_130.label = "#gammaZ(#nu#nu) p_{T}^{#gamma}>130"
 
 znunuSamples = znunu100, znunu200, znunu400, znunu600
 for ds in znunuSamples:
