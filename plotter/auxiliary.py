@@ -96,11 +96,14 @@ def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
 
     return outList
 
-def checkRebinningConsistence( axis, newBinning ):
-    oldBinning = []
+def getBinning( axis ):
+    binning = []
     for i in range(axis.GetNbins()+1):
-        oldBinning.append( axis.GetBinUpEdge(i) )
+        binning.append( axis.GetBinUpEdge(i) )
+    return binning
 
+def checkRebinningConsistence( axis, newBinning ):
+    oldBinning = getBinning( axis )
     for i in newBinning:
         if i not in oldBinning: print "New bin edge is not compatible with old binning", i
 
@@ -128,13 +131,13 @@ def rebin2d( h, binEdgesX, binEdgesY ):
     return hnew
 
 
-def rebin( h, binEdges ):
+def rebin( h, binEdges, scale=True ):
     checkRebinningConsistence( h.GetXaxis(), binEdges )
     import array
     binEdgesArr = array.array( 'd', binEdges )
     hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
     hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
-    hnew.Scale( 1., "width" )
+    if scale: hnew.Scale( 1., "width" )
     return hnew
 
 def absHistWeighted( origHist ):
