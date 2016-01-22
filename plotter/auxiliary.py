@@ -64,6 +64,7 @@ def write2File( obj2Write, name, fname ):
     f.Close()
 
 def writeWeight( obj, name, sampleName ):
+    print "Info in <auxiliary::writeWeight>: {} written to file {}".format(name, "weights.root" )
     write2File( obj, name.replace("h_","weight_{}_".format(sampleName)), "weights.root" )
 
 def getFromFile( filename, histoname ):
