@@ -689,6 +689,44 @@ def efficiencyFromMap( sampleName, sample ):
     for a,b in m.iteritems():
         print a,b
 
+def checkGJetsQcdNlo():
+    can = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+
+    mc = gjets+qcd
+
+    name = "h_ht__tr"
+    cutName = "tr_jControlJet"
+    binningName = "1"
+
+    h_mc_sr = mc.getHist( name )
+    h_mc_cr = mc.getHist( name.replace("__tr","__"+cutName) )
+
+    h_da_sr = data.getHist( name )
+    h_da_cr = dataHt.getHist( name.replace("__tr","__"+cutName) )
+
+    for h in h_mc_cr,h_da_cr:
+        h.SetLineColor(ROOT.kRed)
+        h.SetMarkerColor(ROOT.kRed)
+    for h in h_mc_sr,h_da_sr:
+        h.SetLineColor(ROOT.kBlack)
+        h.SetMarkerColor(ROOT.kBlack)
+
+    for h in h_mc_sr,h_mc_cr:
+        h.SetLineStyle( 2 )
+    for h in h_mc_cr,h_mc_sr,h_da_cr,h_da_sr:
+        h.drawOption_="hist"
+        h.Scale( 1./h.Integral() )
+        h = aux.rebin( h, aux.getBinnigsFromName( name )["1"] )
+
+    m.add( h_mc_sr, "MC #gamma" )
+    m.add( h_mc_cr, "MC jet" )
+    m.add( h_da_sr, "Data #gamma" )
+    m.add( h_da_cr, "Data jet" )
+
+    m.Draw()
+    can.SetLogy()
+    aux.save("checkGjetsQcdNlo")
 
 
 def main():
@@ -718,6 +756,7 @@ def main():
     #multiQcdClosures( data, "data", dataHt )
     #gjets.label = "GJets Data"
     #drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
+    checkGJetsQcdNlo()
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
