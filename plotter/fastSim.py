@@ -64,6 +64,7 @@ def drawSame( fullName, fastName, hname, binning=[] ):
     fastNgen = aux.getNgen(fastName)
 
     fullh = aux.getFromFile( fullName, hname )
+    if isinstance( fullh, ROOT.TH3 ): return
     fasth = aux.getFromFile( fastName, hname )
     if not fullh.Integral() or not fasth.Integral(): return
 
@@ -134,6 +135,99 @@ def scaleFactors( fullName, fastName ):
 
     print "full/fast", fullh.GetEntries()/fasth.GetEntries() * fastNGen/fullNGen
 
+def getYbinCenterOfShiftedBin( h3, val, shift ):
+    return h3.GetYaxis().GetBinCenter(h3.GetYaxis().FindFixBin( val ) + shift )
+
+def h3analyser( fullName, fastName ):
+    genName = "h3_pt_eta_nV_gen"
+    full3gen = aux.getFromFile( fullName, genName )
+    fast3gen = aux.getFromFile( fastName, genName )
+
+    ebEtaMax = getYbinCenterOfShiftedBin( full3gen, 1.4442, -1 )
+    eeEtaMin = getYbinCenterOfShiftedBin( full3gen, 1.556, +1 )
+    eeEtaMax = getYbinCenterOfShiftedBin( full3gen, 2.5, -1 )
+
+    cuts = [
+        ( "", 0, 5000, 0, 5000, 0, 5000 ),
+        ( "EB", 0, 5000, 0, ebEtaMax, 0, 5000 ),
+        ( "EE", 0, 5000, eeEtaMin, eeEtaMax, 0, 5000 ),
+        ( "pt40", 40, 5000, 0, 5000, 0, 5000 ),
+        ( "pt500", 500, 5000, 0, 5000, 0, 5000 ),
+        ]
+
+
+
+    for compareName in ["h3_pt_eta_nV_loose","h3_pt_eta_nV_medium","h3_pt_eta_nV_tight","h3_pt_eta_nV_fake"]:
+        idName = compareName.split("_")[-1]
+        full3com = aux.getFromFile( fullName, compareName )
+        fast3com = aux.getFromFile( fastName, compareName )
+
+        for axis in "XYZ":
+
+            for cutn, xmin,xmax,ymin,ymax,zmin,zmax in cuts:
+                can = ROOT.TCanvas()
+
+                for h in full3gen,full3com,fast3gen,fast3com:
+                    h.GetXaxis().SetRangeUser(xmin,xmax)
+                    h.GetYaxis().SetRangeUser(ymin,ymax)
+                    h.GetZaxis().SetRangeUser(zmin,zmax)
+
+                full1gen = full3gen.Project3D(axis+"gen")
+                full1com = full3com.Project3D(axis+"full")
+                fast1gen = fast3gen.Project3D(axis+"gen")
+                fast1com = fast3com.Project3D(axis+"fast")
+                if axis == "X":
+                    binning = range(0,1000,20)+range(1000,2000,50)+range(2000,3000,100)
+                    full1gen = aux.rebin(full1gen, binning, False)
+                    full1com = aux.rebin(full1com, binning, False)
+                    fast1gen = aux.rebin(fast1gen, binning, False)
+                    fast1com = aux.rebin(fast1com, binning, False)
+
+                fullEff = ROOT.TEfficiency( full1com, full1gen )
+                fastEff = ROOT.TEfficiency( fast1com, fast1gen )
+                fastEff.SetLineColor(ROOT.kRed)
+
+                fullEff.Draw()
+                fastEff.Draw("same")
+
+                can.Update()
+
+                fullgr = fullEff.GetPaintedGraph()
+                fastgr = fastEff.GetPaintedGraph()
+                n = fullgr.GetN()
+                x = fullgr.GetX()
+                fully = fullgr.GetY()
+                fullyEU = fullgr.GetEYlow()
+                fullyED = fullgr.GetEYhigh()
+
+                fasty = fastgr.GetY()
+                fastyEU = fastgr.GetEYlow()
+                fastyED = fastgr.GetEYhigh()
+
+                rGr = fullgr.Clone( aux.randomName() )
+
+                for i in range(n):
+                    if not fasty[i] or not fully[i]:
+                        rGr.RemovePoint(i)
+                        continue
+                    r = fully[i]/fasty[i]
+                    eu = r * math.sqrt( abs( (fullyEU[i]/fully[i])**2 - (fastyEU[i]/fasty[i])**2 ) )
+                    ed = r * math.sqrt( abs( (fullyED[i]/fully[i])**2 - (fastyED[i]/fasty[i])**2 ) )
+                    rGr.SetPoint(i,x[i],r)
+                    rGr.SetPointError(i,0,0,eu, ed)
+
+                ratio.clearXaxisCurrentPad()
+                p = ratio.createBottomPad(0.5)
+
+                rGr.SetMaximum(1.05)
+                rGr.SetMinimum(0.95)
+                rGr.Draw("ap")
+                rGr.GetYaxis().SetTitle("Full/Fast")
+
+                aux.save("fastSimStudies_{}_{}_{}".format(idName,axis,cutn) )
+                return
+
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -146,13 +240,11 @@ def main():
         fastName = "../fastSimComparison/%s_FastSim_hists.root"%ds
 
 
-        names = aux.getObjectNames( fullName )
-        for name in names: drawSame( fullName, fastName, name )
-        #drawSame( fullName, fastName, "cIso_loose", aux.drange(0, 3, 10 ) )
-        #drawSame( fullName, fastName, "nIso_loose", aux.drange(0, 8, 10 ) )
-        #drawSame( fullName, fastName, "pIso_loose", aux.drange(0, 5, 10 ) )
+        #names = aux.getObjectNames( fullName )
+        #for name in names: drawSame( fullName, fastName, name )
+        h3analyser( fullName, fastName )
 
-        scaleFactors( fullName, fastName )
+        #scaleFactors( fullName, fastName )
 
 if __name__ == "__main__":
     main()
