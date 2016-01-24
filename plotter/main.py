@@ -275,6 +275,9 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     settings["tr_jControlTrailingJet"] = ("trailing fake jet", ROOT.kMagenta)
     settings["tr_jControlRandomJet"] = ("random fake jet", ROOT.kRed)
 
+    hPrimary = None
+
+
     for cutName, (legend,col) in settings.iteritems():
 
         h = controlDataset.getHist( name.replace("__tr","__"+cutName) )
@@ -287,6 +290,10 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
         h.SetYTitle( aux.getYAxisTitle( h ) )
         h.SetLineColor(col)
         h.drawOption_ = "hist e"
+        if "h_n_photonAndfakeJet__tr" in name and "fake jet" in legend:
+            for bin in range(h.GetNbinsX()+1):
+                h.SetBinContent(bin,h.GetBinContent(bin+1))
+            hPrimary = h
         m.add( h, legend+" {:.1e}".format(integral) )
 
     if "h_met__tr" in name:
@@ -322,6 +329,11 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     can.SetLogy()
     aux.save( saveName+"_log" )
 
+
+    if hPrimary:
+        r = ratio.Ratio("#gamma/fake-jet", hdir, hPrimary )
+        r.draw()
+        aux.write2File( r.ratio.Clone(), "fakeJetsWeight", "weights.root" )
 
 
 def multiQcdClosures( dataset, samplename, controlDataset=None ):
@@ -727,10 +739,10 @@ def checkGJetsQcdNlo():
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
-    mc = gjets+qcd
+    mc = gjets+qcd+ttjets+ttg+wjets+wg_mg+zg_130+znunu
 
-    name = "h_ht__tr"
-    cutName = "tr_jControlJet"
+    name = "h_tremht__tr"
+    cutName = "tr_jControlLeadingJet"
     binningName = "1"
 
     h_mc_sr = mc.getHist( name )
@@ -752,6 +764,10 @@ def checkGJetsQcdNlo():
         h.drawOption_="hist"
         h.Scale( 1./h.Integral() )
         h = aux.rebin( h, aux.getBinnigsFromName( name )["1"] )
+    h_mc_cr = aux.rebin( h_mc_cr, aux.getBinnigsFromName( name )["1"] )
+    h_mc_sr = aux.rebin( h_mc_sr, aux.getBinnigsFromName( name )["1"] )
+    h_da_cr = aux.rebin( h_da_cr, aux.getBinnigsFromName( name )["1"] )
+    h_da_sr = aux.rebin( h_da_sr, aux.getBinnigsFromName( name )["1"] )
 
     m.add( h_mc_sr, "MC #gamma" )
     m.add( h_mc_cr, "MC jet" )
@@ -793,7 +809,7 @@ def main():
     #multiQcdClosures( gjets+qcd+ttjets+ttg+wjets+wg_mg+znunu+zg_130,"mc" )
     #gjets.label = "GJets Data"
     #drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
-    checkGJetsQcdNlo()
+    #checkGJetsQcdNlo()
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
