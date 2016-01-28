@@ -47,7 +47,7 @@ def defaultStyle():
     st.SetPalette(56)
     st.SetNumberContours(999)
 
-    st.SetErrorX(0)
+    #st.SetErrorX(0)
 
 
     st.cd()
