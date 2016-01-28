@@ -105,8 +105,13 @@ def getBinning( axis ):
 
 def checkRebinningConsistence( axis, newBinning ):
     oldBinning = getBinning( axis )
+    # get rid of unprecise floats:
+    oldBinning = [ round(i,5) for i in oldBinning ]
+    newBinning = [ round(i,5) for i in newBinning ]
+    # ignore new bin edges out of range of old binning
+    newBinning = [ i for i in newBinning if i>= oldBinning[0] ]
     for i in newBinning:
-        if i not in oldBinning: print "New bin edge is not compatible with old binning", i
+        if i not in oldBinning: print "New bin edge is not compatible with old binning", i, "old binning:", oldBinning
 
 def rebin2d( h, binEdgesX, binEdgesY ):
     # Check consistency with old binning
