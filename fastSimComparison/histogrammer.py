@@ -70,17 +70,54 @@ if __name__ == "__main__":
         for name, hist in baseH.iteritems():
             h[name+s] = hist.Clone()
 
-    h["h3_pt_eta_nV_gen"] = ROOT.TH3F("","p_{T} (GeV);|#eta|;vertex multiplicity", 30, 0, 3000, 100, 0, 2.6, 36, -0.5, 35.5 )
+    h["h3_pt_eta_nV_gen"] = ROOT.TH3F("",";p_{T} (GeV);|#eta|;vertex multiplicity", 300, 0, 3000, 100, 0, 2.6, 36, -0.5, 35.5 )
     import copy
     h["h3_pt_eta_nV_loose"] = copy.copy( h["h3_pt_eta_nV_gen"] )
     h["h3_pt_eta_nV_medium"] = copy.copy( h["h3_pt_eta_nV_gen"] )
     h["h3_pt_eta_nV_tight"] = copy.copy( h["h3_pt_eta_nV_gen"] )
     h["h3_pt_eta_nV_fake"] = copy.copy( h["h3_pt_eta_nV_gen"] )
+    h["h3_gen1_pt_eta_nV_loose"] = copy.copy( h["h3_pt_eta_nV_gen"] )
+    h["h3_gen1_pt_eta_nV_medium"] = copy.copy( h["h3_pt_eta_nV_gen"] )
+    h["h3_gen1_pt_eta_nV_tight"] = copy.copy( h["h3_pt_eta_nV_gen"] )
+    h["h3_gen1_pt_eta_nV_fake"] = copy.copy( h["h3_pt_eta_nV_gen"] )
+
+
+    for wp in ["loose", "medium", "tight"]:
+        for ev in ["pixelSeedVeto","csev"]:
+            h["h2_pt_eta_{}_{}".format(wp,ev)] = ROOT.TH2F("",";p_{T} (GeV);|#eta|", 300, 0, 3000, 250, 0, 2.5 )
+            h["h2_e_eta_{}_{}".format(wp,ev)] = ROOT.TH2F("",";E (GeV);|#eta|", 300, 0, 3000, 250, 0, 2.5 )
 
 
     for ievent, event in enumerate(ch):
         #if ievent > 1000: break
 
+        # 2d histograms
+        for photon in event.photons:
+            if not photon.isTrueAlternative: continue
+            eta = abs(photon.p.Eta())
+            if eta > 1.4442 and eta < 1.566 or eta > 2.5: continue
+            pt = photon.p.Pt()
+            e = photon.p.Mag()
+            if not photon.hasPixelSeed:
+                if photon.isLoose:  h["h2_pt_eta_loose_pixelSeedVeto"].Fill( pt, eta )
+                if photon.isMedium: h["h2_pt_eta_medium_pixelSeedVeto"].Fill( pt, eta )
+                if photon.isTight:  h["h2_pt_eta_tight_pixelSeedVeto"].Fill( pt, eta )
+            if photon.passElectronVeto:
+                if photon.isLoose:  h["h2_pt_eta_loose_csev"].Fill( pt, eta )
+                if photon.isMedium: h["h2_pt_eta_medium_csev"].Fill( pt, eta )
+                if photon.isTight:  h["h2_pt_eta_tight_csev"].Fill( pt, eta )
+            if not photon.hasPixelSeed:
+                if photon.isLoose:  h["h2_e_eta_loose_pixelSeedVeto"].Fill( e, eta )
+                if photon.isMedium: h["h2_e_eta_medium_pixelSeedVeto"].Fill( e, eta )
+                if photon.isTight:  h["h2_e_eta_tight_pixelSeedVeto"].Fill( e, eta )
+            if photon.passElectronVeto:
+                if photon.isLoose:  h["h2_e_eta_loose_csev"].Fill( e, eta )
+                if photon.isMedium: h["h2_e_eta_medium_csev"].Fill( e, eta )
+                if photon.isTight:  h["h2_e_eta_tight_csev"].Fill( e, eta )
+
+
+
+        # 1d histograms
         for photon in event.photons:
             eta = abs(photon.p.Eta())
 
@@ -105,34 +142,26 @@ if __name__ == "__main__":
                 elif 1.5 < eta and eta < 2.4:
                     fill( photon, h, "_tight_ee_genPhoton" )
 
-            if not photon.isLoose \
-                and photon.hOverE<0.05 \
-                and photon.isoNeutralHadronsEA < 1.06+0.014*photon.p.Pt()+0.000019*(photon.p.Pt())**2 \
-                and photon.isoPhotonsEA < 0.28+0.0053*photon.p.Pt() \
-                and not photon.hasPixelSeed \
-                and ( \
-                ( 0.012 < photon.sigmaIetaIeta and photon.sigmaIetaIeta <0.015 ) \
-                != ( 1.37 < photon.isoChargedHadronsEA and photon.isoChargedHadronsEA < 15 ) ):
-
+            if isFake(photon):
                 fill( photon, h, "_fake" )
                 if eta<1.4442:
                     fill( photon, h, "_fake" )
                 elif 1.5 < eta and eta < 2.4:
                     fill( photon, h, "_fake" )
 
+        # 3d histograms
         for genP in event.genParticles:
             if genP.pdgId != 22: continue
             pt = genP.p.Pt()
-            eta = abs(genP.p.Eta())
-            nv = event.nGoodVertices
-            h["h3_pt_eta_nV_gen"].Fill( pt, eta, nv )
             for photon in event.photons:
-                if photon.p.DeltaR( genP.p ) > 0.1 or (photon.p.Pt()-pt)/pt > 0.1: continue
-
-                if photon.isLoose: h["h3_pt_eta_nV_loose"].Fill( pt, eta, nv )
-                if photon.isMedium: h["h3_pt_eta_nV_medium"].Fill( pt, eta, nv )
-                if photon.isTight: h["h3_pt_eta_nV_tight"].Fill( pt, eta, nv )
-                if isFake(photon): h["h3_pt_eta_nV_fake"].Fill( pt, eta, nv )
+                if photon.p.DeltaR( genP.p ) < 0.1 and (photon.p.Pt()-pt)/pt < 0.1:
+                    eta = abs(genP.p.Eta())
+                    nv = event.nGoodVertices
+                    h["h3_pt_eta_nV_gen"].Fill( pt, eta, nv )
+                    if photon.isLoose: h["h3_pt_eta_nV_loose"].Fill( pt, eta, nv )
+                    if photon.isMedium: h["h3_pt_eta_nV_medium"].Fill( pt, eta, nv )
+                    if photon.isTight: h["h3_pt_eta_nV_tight"].Fill( pt, eta, nv )
+                    if isFake(photon): h["h3_pt_eta_nV_fake"].Fill( pt, eta, nv )
 
 
 
