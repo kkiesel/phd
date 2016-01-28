@@ -57,7 +57,7 @@ def datasetAbbr( filename ):
 
 
 def drawSame( fullName, fastName, hname, binning=[] ):
-#    if hname not in ["pt_loose_ee_genPhoton","pt_loose_eb_genPhoton"]: return
+    #if hname not in ["pt_loose_ee_genPhoton","pt_loose_eb_genPhoton"]: return
     ds = datasetAbbr( fullName )
 
     fullNgen = aux.getNgen(fullName)
@@ -82,11 +82,6 @@ def drawSame( fullName, fastName, hname, binning=[] ):
     if binning:
         fullh = aux.rebin( fullh, binning )
         fasth = aux.rebin( fasth, binning )
-
-    if ds == "QCD":
-        if hname in ["pt_loose", "eta_loose", "pt_loose_eb", "pt_loose_ee"]:
-            for h in fullh, fasth:
-                h.Rebin(4)
 
     if "hoe" in hname or "Iso" in hname:
         for h in fullh, fasth:
@@ -114,11 +109,26 @@ def drawSame( fullName, fastName, hname, binning=[] ):
 
     scale = fullh.Integral(0,-1)/fasth.Integral(0,-1)
     fastInt, fastErr = aux.integralAndError(fasth)
-    scaleError = scale * fastErr/fastInt
+    fullInt, fullErr = aux.integralAndError(fullh)
+    scaleError = scale * math.sqrt(abs( (fastErr/fastInt)**2 - (fullErr/fullInt)**2 ))
 
-    info = ROOT.TLatex( 0.25, .95, "{}  {}  #scale[0.75]{{#Deltas=({:.2f}#pm{:.2f})%}}".format(infoText(hname),ds, 100*(scale-1),100*(scaleError)) )
+    info = ROOT.TLatex( 0.25, .95, "{}  {}  #scale[0.75]{{{:.5f}#pm{:.5f}}}".format(infoText(hname),ds, scale,scaleError) )
+    #info = ROOT.TLatex( 0.25, .95, "{}  {}  #scale[0.75]{{#Deltas=({:.2f}#pm{:.2f})%}}".format(infoText(hname),ds, 100*(scale-1),100*(scaleError)) )
     info.SetNDC()
     info.Draw()
+
+    if "hasPixelSeed" in hname or "passEVeto" in hname:
+        bin = 1 if "hasPixelSeed" in hname else 2
+        scaleE = fullh.Integral(bin,bin)/fasth.Integral(bin,bin)
+        fastIntE, fastErrE = aux.integralAndError(fasth,bin,bin)
+        fullIntE, fullErrE = aux.integralAndError(fullh,bin,bin)
+        scaleErrorE = scaleE * math.sqrt(abs( (fastErrE/fastIntE)**2 - (fullErrE/fullIntE)**2 ))
+        l = ROOT.TLatex(.2, .4, "#splitline{{Scale with e-veto}}{{{:.5f}#pm{:.5f}}}".format(scaleE,scaleErrorE) )
+        l.SetNDC()
+        l.Draw()
+    else: return
+
+
 
     aux.save( "fastSimStudies_"+ds+"_"+hname )
     can.SetLogy(1)
@@ -137,6 +147,51 @@ def scaleFactors( fullName, fastName ):
 
 def getYbinCenterOfShiftedBin( h3, val, shift ):
     return h3.GetYaxis().GetBinCenter(h3.GetYaxis().FindFixBin( val ) + shift )
+
+def h2analyzer( fullName, fastName ):
+    ds = datasetAbbr( fullName )
+    names = aux.getObjectNames( fullName, objects=[ROOT.TH2] )
+    fullNgen = aux.getNgen(fullName)
+    fastNgen = aux.getNgen(fastName)
+
+    s = style.style2d()
+    style.setPaletteRWB()
+
+    for name in names:
+        full2d = aux.getFromFile( fullName, name )
+        fast2d = aux.getFromFile( fastName, name )
+        full2d.Scale(1./fullNgen)
+        fast2d.Scale(1./fastNgen)
+
+        for h in full2d,fast2d:
+            h.Rebin2D(40,7)
+
+        full2d.Divide( fast2d )
+        full2d.SetZTitle("#varepsilon_{FullSim}/#varepsilon_{FastSim}")
+        full2d.SetMinimum(0.8)
+        full2d.SetMaximum(1.2)
+
+        c = ROOT.TCanvas()
+        full2d.Draw("colz")
+        aux.save("fastSimStudies_h2_{}_{}".format(ds,name) )
+
+        uncert = ROOT.TH2F(full2d)
+        full2d.SetZTitle("relative uncertainty")
+        for xbin in range(uncert.GetNbinsX()+2):
+            for ybin in range(uncert.GetNbinsY()+2):
+                con = uncert.GetBinContent(xbin,ybin)
+                err = uncert.GetBinError(xbin,ybin)
+                if con: uncert.SetBinContent(xbin,ybin, err/con)
+
+        uncert.SetMinimum(0)
+        uncert.SetMaximum(.05)
+        uncert.Draw("colz")
+        aux.save("fastSimStudies_h2_{}_{}_uncert".format(ds,name) )
+
+
+
+
+
 
 def h3analyser( fullName, fastName ):
     genName = "h3_pt_eta_nV_gen"
@@ -239,12 +294,15 @@ def main():
         fullName = "../fastSimComparison/%s_FullSim_hists.root"%ds
         fastName = "../fastSimComparison/%s_FastSim_hists.root"%ds
 
+        #fastName = "../fastSimComparison/GJet_Pt-15To6000-Flat_nTuple_hists.root"
 
         #names = aux.getObjectNames( fullName )
         #for name in names: drawSame( fullName, fastName, name )
-        h3analyser( fullName, fastName )
+        #h3analyser( fullName, fastName )
 
         #scaleFactors( fullName, fastName )
+
+        h2analyzer( fullName, fastName )
 
 if __name__ == "__main__":
     main()
