@@ -157,8 +157,21 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
 
         m.add( h, d.label )
 
-    if name == "h_met__tr_eControl":
-        m.minimum = 0.1
+    if name == "h_met__tr" and binningName == "1": m.minimum = 1e-2
+    if name == "h_met__tr_eControl" and binningName == "1": m.minimum = 1
+    if name == "h_met__tr_jControlLeadingJet" and binningName == "1": m.minimum = 1
+
+    if name == "h_ht__tr" and binningName == "1": m.minimum = 1e-3
+    if name == "h_ht__tr_eControl" and binningName == "1": m.minimum = 1e-1
+    if name == "h_ht__tr_jControlLeadingJet" and binningName == "1": m.minimum = 1e-2
+
+    if name == "h_n_jet__tr" and binningName == "1": m.minimum = 1
+    if name == "h_n_jet__tr_eControl" and binningName == "1": m.minimum = 1
+    if name == "h_n_jet__tr_jControlLeadingJet" and binningName == "1": m.minimum = 1
+
+    if name == "h_g_pt__tr" and binningName == "1": m.minimum = 1e-2
+    if name == "h_j1_pt__tr" and binningName == "1": m.minimum = 1e-2
+
 
     if m.Draw():
 
@@ -172,13 +185,7 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
                 aux.writeWeight( r.ratio, name, sampleNames )
 
         info = ""
-        if name.endswith("__trPhoton90_ht550"): info = "HLT_#gamma90,H_{T}>550"
-        if name.endswith("__trPhoton90_ht300"): info = "HLT_#gamma90,H_{T}>300"
-        if name.endswith("__trPhoton90"): info = "HLT_#gamma90, #scale[0.7]{scaled by 1/90 (prescale)}"
-        if name.endswith("__trPhoton175"): info = "HLT_#gamma175"
-        if name.endswith("__trBit"): info = "HLT_#gamma90_H_{T}>500"
-        if name.endswith("__tr"): info = "HLT_#gamma90_HT500,H_{T}>600"
-        l = aux.Label(info="#scale[0.7]{%s}"%info)
+        l = aux.Label(info="#scale[0.7]{%s}"%info, sim=data not in additional)
 
         if binningName: binningName = "_"+binningName
         saveName = "sameHistograms_{}_{}{}".format(sampleNames, name, binningName )
@@ -265,7 +272,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     hdir.SetMarkerColor(1)
     hdir.SetMarkerStyle(20)
     hdir.drawOption_ = "pe"
-    m.add( hdir, "#gamma {:.1e}".format(hdir.Integral()) )
+    m.add( hdir, "#gamma     {:.1e}".format(hdir.Integral("width")) )
 
     import collections
     settings = collections.OrderedDict()
@@ -273,6 +280,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     settings["tr_jControlPhotonAll"] = ("all #gamma candidates", ROOT.kBlue)
     settings["tr_jControlLeadingJet"] = ("leading fake jet", ROOT.kOrange)
     settings["tr_jControlTrailingJet"] = ("trailing fake jet", ROOT.kMagenta)
+    #settings["tr_jControlTrailingJet_nJetWeighted"] = ("trailing fj (jetweighted)", ROOT.kMagenta+2)
     settings["tr_jControlRandomJet"] = ("random fake jet", ROOT.kRed)
 
     hPrimary = None
@@ -283,7 +291,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
         h = controlDataset.getHist( name.replace("__tr","__"+cutName) )
 
         if not h.Integral(): continue
-        integral = h.Integral()
+        integral = h.Integral("width")
         if binning: h = aux.rebin( h, binning )
         aux.appendFlowBin( h )
         h.Scale( hdir.Integral()/h.Integral() )
@@ -291,17 +299,17 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
         h.SetLineColor(col)
         h.drawOption_ = "hist e"
         if "h_n_photonAndfakeJet__tr" in name and "fake jet" in legend:
-            for bin in range(h.GetNbinsX()+1):
-                h.SetBinContent(bin,h.GetBinContent(bin+1))
+#            for bin in range(h.GetNbinsX()+1):
+#                h.SetBinContent(bin,h.GetBinContent(bin+1))
             hPrimary = h
         m.add( h, legend+" {:.1e}".format(integral) )
 
     if "h_met__tr" in name:
         psettings = collections.OrderedDict()
-        psettings["h_metStar__tr"] = ("#vec{E}_{T}^{miss}*",33 )
-        #psettings["h_met_dn07__tr"] = ("#vec{E}_{T}^{miss}-7%#vec{p}_{T}^{#gamma}",33 )
+        #psettings["h_metStar__tr"] = ("#vec{E}_{T}^{miss}*",33 )
+        psettings["h_met_dn07__tr"] = ("#vec{E}_{T}^{miss}-7%#vec{p}_{T}^{#gamma}",33 )
         psettings["h_met_dn08__tr"] = ("#vec{E}_{T}^{miss}-8%#vec{p}_{T}^{#gamma}",29 )
-        #psettings["h_met_dn09__tr"] = ("#vec{E}_{T}^{miss}-9%#vec{p}_{T}^{#gamma}",34 )
+        psettings["h_met_dn09__tr"] = ("#vec{E}_{T}^{miss}-9%#vec{p}_{T}^{#gamma}",34 )
 
         for cutName, (legend,col) in psettings.iteritems():
 
@@ -318,6 +326,12 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
             h.SetMarkerStyle(col)
             h.drawOption_ = "pe"
             m.add( h, legend )
+
+    if "h_g_eta__tr" in name:
+        m.leg.SetX1(0.2)
+        m.leg.SetY1(0.2)
+        m.leg.SetX2(0.8)
+        m.leg.SetY2(0.6)
 
 
     m.Draw()
@@ -411,7 +425,19 @@ def ewkClosure( dataset, samplename="" ):
 
         hpre = getHistoFromDataset( dataset, name.replace( gSet, cSet ) )
         scale = hdir.Integral() / hpre.Integral()
+
+        #scale = 0.018/2
+        #scale = 0.006
+        scale_e = scale/3
+        scale_e = 0
+
         hpre.Scale( scale )
+        hpre_sys = hpre.Clone( aux.randomName() )
+        hpre_sys.SetMarkerSize(0)
+        hpre_sys.SetFillColor(hpre_sys.GetLineColor())
+        hpre_sys.SetFillStyle(3446)
+        hpre_sys.drawOption_ = "e2"
+
         hpre.drawOption_ = "hist"
         for h in hdir, hpre:
             h.SetYTitle( aux.getYAxisTitle( h ) )
@@ -421,21 +447,28 @@ def ewkClosure( dataset, samplename="" ):
             m = multiplot.Multiplot()
             mod_dir = hdir
             mod_pre = hpre
+            mod_pre_sys = hpre_sys
 
             if binning:
                 mod_dir = aux.rebin(mod_dir, binning)
                 mod_pre = aux.rebin(mod_pre, binning)
+                mod_pre_sys = aux.rebin(mod_pre_sys, binning)
+            for bin in range(mod_pre_sys.GetNbinsX()+2): mod_pre_sys.SetBinError( bin, mod_pre_sys.GetBinContent(bin)*scale_e/scale )
 
-            if name == "h_met__tr_reco_genElectron": mod_dir.SetMaximum( mod_dir.GetMaximum() *5 )
-            m.add( mod_dir, "#gamma (gen e)" )
-            m.add( mod_pre, "{:.2f}% #times #gamma-like e".format(100*scale) )
+            m.add( mod_dir, "e#rightarrow#gamma" )
+            m.add( mod_pre, "Normalized #gamma-like e" )
+            #m.add( mod_pre, "{:.2f}% #times #gamma-like e".format(100*scale) )
+            if scale_e: m.add( mod_pre_sys, "" )
 
+            m.leg.SetX1(0.5)
+            m.leg.SetY1(0.8)
             m.Draw()
 
-            l = aux.Label()
-            aux.save( "ewkClosure_"+name+samplename+binningName )
+            l = aux.Label(sim=True,info=dataset.label)
+            if binningName: binningName = "_"+binningName
+            aux.save( "ewkClosure_{}_{}{}".format(samplename,name,binningName ) )
             can.SetLogy()
-            aux.save( "ewkClosure_"+name+samplename+binningName+"_log" )
+            aux.save( "ewkClosure_{}_{}{}_log".format(samplename,name,binningName ) )
 
 
 def drawROCs():
@@ -794,13 +827,13 @@ def main():
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data])
     #drawSameHistograms( "mc_dataHt", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[dataHt])
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
-    #drawSameHistograms( "_mc", bkg=[gjets, qcd, wjets, ttjets, ttg], additional=[signal["T5gg_1400_1200"], signal["T5gg_1000_200"]])
+    #drawSameHistograms( "mc", [gjets, qcd, wjets, ttjets, ttg,znunu], additional=[signal["T5gg_1400_1200"], signal["T5gg_1400_200"]])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
     #drawRazor( data )
 
-    #ewkClosure( ttjets, "_tt" )
-    #ewkClosure( wjets, "_w" )
-    #ewkClosure( wjets+ttjets, "_ewk" )
+    #ewkClosure( ttjets, "tt" )
+    #ewkClosure( wjets, "w" )
+    #ewkClosure( wjets+ttjets, "ewk" )
     #qcdClosure( qcd+gjets, "_gqcd" )
     #qcdClosure( data, "_data" )
     #multiQcdClosures( qcd+gjets, "gqcd" )
