@@ -78,6 +78,7 @@ class Multiplot:
 
         # Other histograms
         for h in self.hists:
+            if not h.GetName(): continue
             if isinstance( h, ROOT.THStack ): continue
             if "Data" in h.GetName(): continue
 
