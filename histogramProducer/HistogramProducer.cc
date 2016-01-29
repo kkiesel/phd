@@ -211,6 +211,7 @@ class HistogramProducer : public TSelector {
 
   //Weighter qcdWeighter;
   Weighter htWeighter;
+  Weighter qcdNFakeJetWeighter;
 
   CutFlowPhoton looseCutFlowPhoton;
 
@@ -290,8 +291,8 @@ void HistogramProducer::initSelection( string const& s ) {
   h["h_n_electron__"+s] = TH1F( "", ";electron multiplicity", 4, -0.5, 3.5 );
   h["h_n_muon__"+s] = TH1F( "", ";muon multiplicity", 4, -0.5, 3.5 );
 
-  h["h_n_fakeJet__"+s] = TH1F( "", ";photon-like jet multiplicity", 21, -0.5, 20.5 );
-  h["h_n_photonAndfakeJet__"+s] = TH1F( "", ";photon and photon-like jet multiplicity", 21, -0.5, 20.5 );
+  h["h_n_fakeJet__"+s] = TH1F( "", ";photon-like jet multiplicity", 11, -0.5, 10.5 );
+  h["h_n_photonAndfakeJet__"+s] = TH1F( "", ";photon and photon-like jet multiplicity", 11, -0.5, 10.5 );
 
   h2["h2_razorPlane__"+s] = TH2F( "", ";M_{R} (GeV); R^{2}", 100, 0, 2000, 100, 0, .5 );
   h2["h2_g_pt_emht__"+s] = TH2F( "", ";p_{T} (GeV); EMH_{T} (GeV)", 100, 0, 1000, 150, 500, 2000 );
@@ -367,11 +368,6 @@ void HistogramProducer::fillSelection( string const& s ) {
 
   h["h_met__"+s].Fill( met->p.Pt(), selW );
   h["h_metStar__"+s].Fill( (met->p-(*matchedJet(*selPhotons[0])-selPhotons[0]->p)).Pt(), selW );
-  cout << "\nmet = " << met->p << std::endl;
-  cout << "ptg = " << selPhotons[0]->p << std::endl;
-  cout << "ptj = " << *matchedJet(*selPhotons[0]) << std::endl;
-  cout << "met*= " << (met->p-(*matchedJet(*selPhotons[0])-selPhotons[0]->p)) << std::endl;
-  cout << "ptr = " << matchedJet(*selPhotons[0])->Pt()/selPhotons[0]->p.Pt()-1 << std::endl;
   h["h_met_dn__"+s].Fill( (met->p-0.1*selPhotons[0]->p).Pt(), selW );
   h["h_met_dn10__"+s].Fill( (met->p-0.1*selPhotons[0]->p).Pt(), selW );
   h["h_met_dn09__"+s].Fill( (met->p-0.09*selPhotons[0]->p).Pt(), selW );
@@ -468,7 +464,9 @@ void HistogramProducer::fillSelection( string const& s ) {
   h["h_n_muon__"+s].Fill( selMuons.size(), selW );
 
   h["h_n_fakeJet__"+s].Fill( fakeJets.size(), selW );
-  h["h_n_photonAndfakeJet__"+s].Fill( fakeJets.size()+selPhotons.size(), selW );
+  unsigned nFakeJets = fakeJets.size();
+  if( selPhotons.size() && selPhotons.at(0)->r9 > 0) nFakeJets++; // only for real photons, else it is contained in fakeJets
+  h["h_n_photonAndfakeJet__"+s].Fill( nFakeJets, selW );
 
   if( mrr2.first > 1e-7 ) {
     h2["h2_razorPlane__"+s].Fill( mrr2.first, mrr2.second, selW );
@@ -604,6 +602,7 @@ HistogramProducer::HistogramProducer():
   hlt_ht600( fReader, "HLT_PFHT600_v" ),
   //qcdWeighter( "../plotter/weights_unweighted.root", "weight__data_g_pt__tr_jControl"),
   htWeighter( "../plotter/weights_unweighted.root", "weight_mc_data_ht__tr"),
+  qcdNFakeJetWeighter( "../plotter/toreador_weight_nJet.root", "fakeJetsWeight"),
   looseCutFlowPhoton( {{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
     {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} })
 {
@@ -627,12 +626,15 @@ void HistogramProducer::SlaveBegin(TTree *tree)
     "tr_genElectron",
     "tr_met100_genElectron",
     "tr_eControl",
+    "tr_eControl_genElectron",
+    "tr_eControl_met100_genElectron",
     "tr_met100_eControl",
     "tr_jControlPhotonSB",
     "tr_jControlPhotonAll",
     "tr_jControlLeadingJet",
     "tr_jControlTrailingJet",
     "tr_jControlRandomJet",
+    "tr_jControlTrailingJet_nJetWeighted",
     "tr_htWeighted",
   };
   for( auto& v : strs ) initSelection(v);
@@ -729,6 +731,13 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr_eControl");
+    for( auto& p : genParticles ) {
+      if( fabs(p.pdgId)==11 && selPhotons[0]->p.DeltaR(p.p)<0.2 ) {
+        fillSelection("tr_eControl_genElectron");
+        if( met->p.Pt()>100 ) fillSelection("tr_eControl_met100_genElectron");
+        break; // fill only once
+      }
+    }
     if(met->p.Pt()>100) fillSelection("tr_met100_eControl");
   }
 
@@ -790,7 +799,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if( selPhotons.size() && selHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
     for( auto& p : genParticles ) {
-      if( p.pdgId==22 && selPhotons[0]->p.DeltaR(p.p)<0.1 && fabs(selPhotons[0]->p.Pt()/p.p.Pt()-1)<0.1 ) {
+      if( fabs(p.pdgId)==11 && selPhotons[0]->p.DeltaR(p.p)<0.2 ) {
         fillSelection("tr_genElectron");
         if( met->p.Pt()>100 ) fillSelection("tr_met100_genElectron");
         break; // fill only once
@@ -818,6 +827,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     selPhotons.push_back( &fakeJets.at(fakeJets.size()-1) );
     for( auto& j : saveSelJets ) { if (j->p.DeltaR(selPhotons[0]->p)>0.3) selJets.push_back( j ); }
     fillSelection("tr_jControlTrailingJet");
+    selW = originalW*qcdNFakeJetWeighter.getWeight( fakeJets.size() );
+    fillSelection("tr_jControlTrailingJet_nJetWeighted");
+    selW = originalW;
     selPhotons.clear();
     selJets.clear();
 
