@@ -14,8 +14,8 @@
 
 #include "TreeParticles.hpp"
 #include "UserFunctions.h"
-#include "Weighter.hpp"
-#include "CutFlow.hpp"
+#include "Weighter.h"
+#include "CutFlow.h"
 
 
 class HistogramProducer : public TSelector {
