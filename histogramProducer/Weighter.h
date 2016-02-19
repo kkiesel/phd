@@ -14,7 +14,7 @@ class Weighter {
     }
 
     ~Weighter(){
-      delete h;
+      if(h) delete h;
     }
 
     float getWeight( float value ){
@@ -22,5 +22,5 @@ class Weighter {
     }
 
   private:
-    TH1F* h;
+    TH1F* h=0;
 };
