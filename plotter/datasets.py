@@ -116,6 +116,7 @@ gjets400 = Dataset( "GJets_HT-400To600", 274.4, ROOT.kCyan+2, "GJets_HT-400To600
 gjets600 = Dataset( "GJets_HT-600ToInf", 93.46, ROOT.kCyan, "GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 
 gjets = gjets40 + gjets100 + gjets200 + gjets400 + gjets600
+gjets = gjets200 + gjets400 + gjets600
 gjets.label = "#gamma+Jet"
 
 qcd100 = Dataset( "QCD_HT100to200", 27990000, ROOT.kBlue+1, "QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
@@ -128,6 +129,7 @@ qcd1500 = Dataset( "QCD_HT1500to2000", 119.9, ROOT.kBlue+1, "QCD_HT1500to2000_Tu
 qcd2000 = Dataset( "QCD_HT2000toInf", 25.24,  ROOT.kBlue, "QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 
 qcd = qcd100 + qcd200 + qcd300 + qcd500 + qcd700 + qcd1000 + qcd1500 + qcd2000
+qcd = qcd300 + qcd500 + qcd700 + qcd1000 + qcd1500 + qcd2000
 qcd.label = "Multijet"
 
 emqcd15 = Dataset( "QCD_Pt-15to20_EMEnriched", 1273000000*0.0018, ROOT.kBlue+0, "QCD_Pt-15to20_EMEnriched_TuneCUETP8M1_13TeV_pythia8" )
@@ -204,13 +206,15 @@ class SampleCollection(collections.MutableMapping):
     """Dictionary used to store signal datasets.
     The first time a dataset is requested, it is created"""
 
+    colors = [ROOT.kGreen+4, ROOT.kGreen+1] + [ ROOT.kGreen-i for i in range(5) ]
+
     def __init__(self, *args, **kwargs):
         self.store = dict()
         self.update(dict(*args, **kwargs))  # use the free update to set keys
 
     def __getitem__(self, key):
         if key not in self.store:
-            self.store[key] = Dataset( aux.getDatasetFromKey(key), col=ROOT.kGreen+len(self) )
+            self.store[key] = Dataset( aux.getDatasetFromKey(key), col=self.colors[len(self)] )
             self.store[key].label = aux.getSignalLabel( key )
         return self.store[key]
 
