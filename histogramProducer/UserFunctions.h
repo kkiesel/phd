@@ -57,7 +57,7 @@ std::ostream& operator << ( std::ostream& os, const TVector3& p ) {
 }
 
 
-string getOutputFilename( string inputFileName ) {
+string getOutputFilename( const string& inputFileName, const string& appendix="hists" ) {
 
   // Converts "/path/to/ntuple/QCD_nTuple.root" to "QCD_hists.root"
 
@@ -65,7 +65,7 @@ string getOutputFilename( string inputFileName ) {
   auto endPos = inputFileName.find("_nTuple.root");
   string outputName = "out.root";
   if( endPos != string::npos ) {
-    outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "_hists.root";
+    outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "_"+appendix+".root";
   }
   return outputName;
 
@@ -110,4 +110,32 @@ inline bool pseudoRandomSort(const tree::Particle p1, const tree::Particle p2) {
 }
 
 const float photonsEtaMaxBarrel = 1.4442;
+
+class JetSelector {
+  public:
+    JetSelector( const string& filename, const string& histname ) {
+      TFile f( filename.c_str() );
+      TH2F* h2 = (TH2F*)f.Get( histname.c_str() );
+      if(h2) {
+        for(unsigned i=1; i<(unsigned)h2->GetNbinsX()+2; i++) {
+          auto h = h2->ProjectionY(("proj"+to_string(i)).c_str(), i, i );
+          if(h->Integral()) {
+            h->Scale(1./h->Integral());
+            hMap[i-1] = *h;
+          }
+        }
+      }
+    }
+
+    ~JetSelector(){
+    }
+
+    unsigned getJetN( unsigned nJets ){
+      if(!hMap.count(nJets)) return 0;
+      return (unsigned)std::round(hMap.at(nJets).GetRandom());
+    }
+
+  private:
+    map<unsigned,TH1D> hMap;
+};
 
