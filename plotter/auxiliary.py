@@ -210,6 +210,8 @@ def sumSq( *items ):
 def mergeBins( h, dest, source ):
     h.SetBinContent( dest, h.GetBinContent( dest ) + h.GetBinContent( source ) )
     h.SetBinError( dest, sumSq( h.GetBinError( dest ), h.GetBinError( source ) ) )
+    h.SetBinContent( source, 0 )
+    h.SetBinError( source, 0 )
 
 def appendFlowBin( h, under=True, over=True ):
     if under:
