@@ -328,13 +328,10 @@ def save( name, folder="plots/", endings=[".pdf"] ):
 def getBinnigsFromName( name ):
     out = { "": None }
     # get histogram name
-    match = re.match( "(.*)__.*", name )
-    if match:
-        hname = match.group(1)
-        if binCfg.has_section(hname):
-            for binningName, binning in binCfg.items( hname ):
-                binning = [ float(x) for x in binning.split(" ") ]
-                out[binningName] = binning
+    if binCfg.has_section(name):
+        for binningName, binning in binCfg.items( name ):
+            binning = [ float(x) for x in binning.split(" ") ]
+            out[binningName] = binning
     return out
 
 def drange(start, stop, n):
