@@ -18,15 +18,6 @@ import auxiliary as aux
 
 def infoText( name ):
     infoReplacements = {
-#        "_noSel":"no photon id",
-#        "_loose":"",
-#        "_loose_eb":"EB",
-#        "_loose_ee":"EE",
-#        "_loose_eb_genPhoton":"EB,gen #gamma",
-#        "_loose_ee_genPhoton":"EE,gen #gamma",
-#        "_loose_eb_genElectron":"EB,gen e",
-#        "_loose_ee_genElectron":"EE,gen e",
-
         "_loose_genPhoton":"gen #gamma",
         "_loose_eb_genPhoton":"EB,gen #gamma",
         "_loose_ee_genPhoton":"EE,gen #gamma",
@@ -155,36 +146,50 @@ def h2analyzer( fullName, fastName ):
     fastNgen = aux.getNgen(fastName)
 
     s = style.style2d()
-    style.setPaletteRWB()
+
+    outFile = ROOT.TFile("photonFastSimScaleFactors_2015_25nsID.root", "recreate")
 
     for name in names:
+        style.setPaletteRWB()
         full2d = aux.getFromFile( fullName, name )
         fast2d = aux.getFromFile( fastName, name )
         full2d.Scale(1./fullNgen)
         fast2d.Scale(1./fastNgen)
 
         for h in full2d,fast2d:
-            h.Rebin2D(40,7)
+            h.Rebin2D(30,7)
 
         full2d.Divide( fast2d )
         full2d.SetZTitle("#varepsilon_{FullSim}/#varepsilon_{FastSim}")
-        full2d.SetMinimum(0.8)
-        full2d.SetMaximum(1.2)
+        full2d.SetMinimum(0.7)
+        full2d.SetMaximum(1.3)
+        #full2d.SetMinimum(0.5)
+        #full2d.SetMaximum(1.5)
+
+        for xbin in range(full2d.GetNbinsX()+2):
+            for ybin in range(full2d.GetNbinsY()+2):
+                con = full2d.GetBinContent(xbin,ybin)
+                if not con: full2d.SetBinContent(xbin,ybin, 1.)
+                if not con: full2d.SetBinError(xbin,ybin, 1.)
+
 
         c = ROOT.TCanvas()
         full2d.Draw("colz")
+        outFile.cd()
+        if "_e_" in name: full2d.Write( name )
         aux.save("fastSimStudies_h2_{}_{}".format(ds,name) )
 
         uncert = ROOT.TH2F(full2d)
-        full2d.SetZTitle("relative uncertainty")
+        uncert.SetZTitle("relative uncertainty [%]")
+        s.SetPalette(56)
         for xbin in range(uncert.GetNbinsX()+2):
             for ybin in range(uncert.GetNbinsY()+2):
                 con = uncert.GetBinContent(xbin,ybin)
                 err = uncert.GetBinError(xbin,ybin)
-                if con: uncert.SetBinContent(xbin,ybin, err/con)
+                if con: uncert.SetBinContent(xbin,ybin, 100*err/con)
 
         uncert.SetMinimum(0)
-        uncert.SetMaximum(.05)
+        uncert.SetMaximum(5)
         uncert.Draw("colz")
         aux.save("fastSimStudies_h2_{}_{}_uncert".format(ds,name) )
 
