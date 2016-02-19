@@ -21,7 +21,8 @@ import multiplot
 
 import auxiliary as aux
 
-intLumi = 2110.588 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2544.html
+intLumi = 2.26e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2577.html
+#intLumi = 2110.588 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2544.html
 
 def getHistoFromDataset( dataset, name ):
     h0 = None
@@ -117,6 +118,7 @@ def divideDatasetIntegrals( numerator, denominator, name ):
     return num/den if den else 1.
 
 def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, binningName="", scaleToData=False ):
+    if name == "h_j_looseID__base": return
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
@@ -152,27 +154,37 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
             h.SetBinErrorOption( ROOT.TH1.kPoisson )
             dataHist = h
         else:
-            h.drawOption_ = "hist e"
+            h.drawOption_ = "hist"
             h.SetLineWidth(3)
 
         m.add( h, d.label )
 
-    if name == "h_met__tr" and binningName == "1": m.minimum = 1e-2
-    if name == "h_met__tr_eControl" and binningName == "1": m.minimum = 1
-    if name == "h_met__tr_jControlLeadingJet" and binningName == "1": m.minimum = 1
+    if name == "h_met__tr" and binningName == "3": m.minimum = 1e-3
+    if name == "h_met__tr_eControl" and binningName == "3": m.minimum = 1e-1
+    if name == "h_met__tr_jControlLeadingJet" and binningName == "1": m.minimum = 0.9
 
-    if name == "h_ht__tr" and binningName == "1": m.minimum = 1e-3
+    if name == "h_ht__tr" and binningName == "3": m.minimum = 1e-3
     if name == "h_ht__tr_eControl" and binningName == "1": m.minimum = 1e-1
     if name == "h_ht__tr_jControlLeadingJet" and binningName == "1": m.minimum = 1e-2
 
-    if name == "h_n_jet__tr" and binningName == "1": m.minimum = 1
+    if name == "h_n_jet__tr" and binningName == "3": m.minimum = 1
     if name == "h_n_jet__tr_eControl" and binningName == "1": m.minimum = 1
     if name == "h_n_jet__tr_jControlLeadingJet" and binningName == "1": m.minimum = 1
 
-    if name == "h_g_pt__tr" and binningName == "1": m.minimum = 1e-2
-    if name == "h_j1_pt__tr" and binningName == "1": m.minimum = 1e-2
+    if name == "h_g_pt__tr" and binningName == "3": m.minimum = 1e-4
+    if name == "h_j1_pt__tr" and binningName == "3": m.minimum = 1e-3
 
+    if "h_met__tr" in name:
+        m.leg.SetX1(0.45)
+        m.leg.SetY1(0.44)
+    else:
+        m.leg.SetX1(1)
+        m.leg.SetY1(1)
+        m.leg.SetX2(1)
+        m.leg.SetY2(1)
 
+    if "jControl" in name: m.sortStackByIntegral()
+    ROOT.gPad.SetLogy()
     if m.Draw():
 
         # ratio
@@ -198,7 +210,10 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     file = stack[0].files[0] if stack else additional[0].files[0]
     names = aux.getObjectNames( file )
 
-    #names = [ "h_met__tr_jControl2" ] # test plot
+    #names = [ "h_met__tr_jControlLeadingJet" ] # test plot
+    names = ["h_met__tr_eControl"]
+
+
 
     for name in names:
         if not name.startswith("h_"): continue
@@ -257,13 +272,14 @@ def drawRazor( dataset ):
     aux.save( "razorAlongX" )
     """
 
-def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName ):
+def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_jControl" ):
     if not controlDataset: controlDataset = dataset
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
 
-    hdir = dataset.getHist( name )
+    hdir = dataset.getHist( dirDir+"/"+name )
+    dirInt = hdir.Integral(0,-1)
     if not hdir.Integral(): return
     if binning: hdir = aux.rebin( hdir, binning )
     aux.appendFlowBin( hdir )
@@ -271,71 +287,43 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     hdir.SetLineColor(1)
     hdir.SetMarkerColor(1)
     hdir.SetMarkerStyle(20)
-    hdir.drawOption_ = "pe"
-    m.add( hdir, "#gamma     {:.1e}".format(hdir.Integral("width")) )
+    hdir.SetMarkerSize(0.8)
+    hdir.drawOption_ = "pe x0"
+    m.add( hdir, "#gamma     ({:.1f}k)".format(dirInt/1e3) )
 
-    import collections
-    settings = collections.OrderedDict()
-    settings["tr_jControlPhotonSB"] = ("no #sigma_{i#etai#eta} or no I_{#pm}", ROOT.kCyan)
-    settings["tr_jControlPhotonAll"] = ("all #gamma candidates", ROOT.kBlue)
-    settings["tr_jControlLeadingJet"] = ("leading fake jet", ROOT.kOrange)
-    settings["tr_jControlTrailingJet"] = ("trailing fake jet", ROOT.kMagenta)
-    #settings["tr_jControlTrailingJet_nJetWeighted"] = ("trailing fj (jetweighted)", ROOT.kMagenta+2)
-    settings["tr_jControlRandomJet"] = ("random fake jet", ROOT.kRed)
+    hpre = controlDataset.getHist( preDir+"/"+name )
+    preInt = hpre.Integral(0,-1)
+    if not preInt: return
+    if binning: hpre = aux.rebin( hpre, binning )
+    aux.appendFlowBin( hpre )
+    hpre.Scale( dirInt/preInt )
+    hpre.SetYTitle( aux.getYAxisTitle( hpre ) )
+    hpre.SetLineColor(ROOT.kRed)
+    hpre.drawOption_ = "hist e"
+    m.add( hpre, "jet ({:.1f}M)".format(preInt/1e6) )
 
-    hPrimary = None
-
-
-    for cutName, (legend,col) in settings.iteritems():
-
-        h = controlDataset.getHist( name.replace("__tr","__"+cutName) )
-
-        if not h.Integral(): continue
-        integral = h.Integral("width")
-        if binning: h = aux.rebin( h, binning )
-        aux.appendFlowBin( h )
-        h.Scale( hdir.Integral()/h.Integral() )
-        h.SetYTitle( aux.getYAxisTitle( h ) )
-        h.SetLineColor(col)
-        h.drawOption_ = "hist e"
-        if "h_n_photonAndfakeJet__tr" in name and "fake jet" in legend:
-#            for bin in range(h.GetNbinsX()+1):
-#                h.SetBinContent(bin,h.GetBinContent(bin+1))
-            hPrimary = h
-        m.add( h, legend+" {:.1e}".format(integral) )
-
-    if "h_met__tr" in name:
-        psettings = collections.OrderedDict()
-        #psettings["h_metStar__tr"] = ("#vec{E}_{T}^{miss}*",33 )
-        psettings["h_met_dn07__tr"] = ("#vec{E}_{T}^{miss}-7%#vec{p}_{T}^{#gamma}",33 )
-        psettings["h_met_dn08__tr"] = ("#vec{E}_{T}^{miss}-8%#vec{p}_{T}^{#gamma}",29 )
-        psettings["h_met_dn09__tr"] = ("#vec{E}_{T}^{miss}-9%#vec{p}_{T}^{#gamma}",34 )
-
-        for cutName, (legend,col) in psettings.iteritems():
-
-            h = dataset.getHist( cutName )
-
-            if not h.Integral(): continue
-            integral = h.Integral()
-            if binning: h = aux.rebin( h, binning )
-            aux.appendFlowBin( h )
-            h.Scale( hdir.Integral()/h.Integral() )
-            h.SetYTitle( aux.getYAxisTitle( h ) )
-            h.SetLineColor(1)
-            h.SetMarkerColor(ROOT.kGray)
-            h.SetMarkerStyle(col)
-            h.drawOption_ = "pe"
-            m.add( h, legend )
-
-    if "h_g_eta__tr" in name:
-        m.leg.SetX1(0.2)
-        m.leg.SetY1(0.2)
-        m.leg.SetX2(0.8)
-        m.leg.SetY2(0.6)
-
+    if name=="met":
+        hpreUp = controlDataset.getHist( preDir+"/"+name+"Up" )
+        if binning: hpreUp = aux.rebin( hpreUp, binning )
+        aux.appendFlowBin( hpreUp )
+        hpreUp.Scale( dirInt/preInt )
+        hpreUp.SetLineColor(ROOT.kRed)
+        hpreUp.SetLineStyle(3)
+        hpreUp.drawOption_ = "hist"
+        m.add( hpreUp, "jet +" )
+        hpreDn = controlDataset.getHist( preDir+"/"+name+"Dn" )
+        if binning: hpreDn = aux.rebin( hpreDn, binning )
+        aux.appendFlowBin( hpreDn )
+        hpreDn.Scale( dirInt/preInt )
+        hpreDn.SetLineColor(ROOT.kRed)
+        hpreDn.SetLineStyle(2)
+        hpreDn.drawOption_ = "hist"
+        m.add( hpreDn, "jet -" )
 
     m.Draw()
-    l = aux.Label(info=dataset.label)
+    l = aux.Label(info=dataset.label, sim=dataset is not data)
+    r = ratio.Ratio("#gamma/jet",hdir,hpre)
+    r.draw(.5,1.5)
 
     if binningName: binningName = "_"+binningName
     saveName = "multiQcdClosure_{}_{}{}".format(samplename, name, binningName )
@@ -343,20 +331,17 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     can.SetLogy()
     aux.save( saveName+"_log" )
 
-
-    if hPrimary:
-        r = ratio.Ratio("#gamma/fake-jet", hdir, hPrimary )
-        r.draw()
-        aux.write2File( r.ratio.Clone(), "fakeJetsWeight", "weights.root" )
+    if name == "n_heJet" and preDir="tr_jControl":
+        aux.write2File( r.ratio.Clone(), "weight_n_heJet", "weights.root" )
 
 
 def multiQcdClosures( dataset, samplename, controlDataset=None ):
-    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
-    names = [ x for x in names if x.endswith("tr") ]
+    names = aux.getObjectNames( dataset.files[0], "tr", [ROOT.TH1F] )
 
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName+"_wnjet", preDir="tr_jControl_wnjet" )
 
 
 
@@ -560,8 +545,8 @@ def efficiency( dataset, name, savename="" ):
     h_tot = h.GetTotalHistogram()
     if "hlt" in name:
         newBins = []
-        if name == "eff_hlt_pt__base": newBins = range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000]
-        if name == "eff_hlt_ht__base": newBins = range(0,1001,40) + [1000,1500,2000]
+        if name == "eff_hlt_pt": newBins = range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000]
+        if name == "eff_hlt_ht": newBins = range(0,1001,40) + [1000,1500,2000]
         if newBins:
             h_pas = aux.rebin( h_pas, newBins, False )
             h_tot = aux.rebin( h_tot, newBins, False )
@@ -573,9 +558,9 @@ def efficiency( dataset, name, savename="" ):
     ROOT.gPad.Update()
     eff.GetPaintedGraph().GetYaxis().SetRangeUser(0., 1.1)
 
-    if "_pt_" in name:
+    if "_pt" in name:
         cutValue = 100
-    elif "_ht_" in name:
+    elif "_ht" in name:
         cutValue = 600
     else:
         cutValue = 0
@@ -612,6 +597,7 @@ def efficiency( dataset, name, savename="" ):
 
     l = aux.Label(sim="Data" not in dataset.label)
     l.lum.DrawLatexNDC( .1, l.lum.GetY(), dataset.label )
+    name = "_"+name.split("/")[-1]
     aux.save( "efficiency_"+savename+name )
 
     h_tot.SetLineColor(2)
@@ -620,7 +606,7 @@ def efficiency( dataset, name, savename="" ):
     aux.save( "efficiency_"+savename+name+"_raw" )
 
 def efficiencies( dataset, savename="" ):
-    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TEfficiency] )
+    names = ["triggerStudies/"+x for x in aux.getObjectNames( dataset.files[0], "triggerStudies", [ROOT.TEfficiency] ) ]
 
     for name in names:
         efficiency( dataset, name, savename )
@@ -811,6 +797,25 @@ def checkGJetsQcdNlo():
     can.SetLogy()
     aux.save("checkGjetsQcdNlo")
 
+def photonPosition( dataset, savename, dir="tr", normalize=False ):
+    can = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+
+    h2 = dataset.getHist( dir+"/n_heJets_vs_photonPosition" )
+    for xbin in range(1,h2.GetNbinsX()+1):
+        h = h2.ProjectionY(str(xbin),xbin,xbin)
+        h.SetTitle(";photon position;Events")
+        if not h.Integral(0,-1): continue
+        if normalize: h.Scale(1./h.Integral())
+        if normalize: h.GetYaxis().SetTitle("Normalized events")
+        h.SetLineColor(xbin)
+        h.drawOption_="hist e"
+        m.add( h, str(xbin-1)+" additional he jets" )
+
+    m.Draw()
+    aux.save("photonPosition_"+savename+"_"+dir )
+    if False: aux.write2File( h2, savename, "gammaPosition.root" )
+
 
 def main():
     pass
@@ -847,10 +852,8 @@ def main():
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
     #efficiencies( gjets, "gjet_" )
-    #efficiencies( data_2015D, "singlePhotonD_" )
-    #efficiencies( data_prompt, "singlePhotonPrompt_" )
-    #efficiencies( data, "singlePhoton_" )
-    #efficiencies( dataHt, "jetHt_" )
+    #efficiencies( data, "singlePhoton" )
+    #efficiencies( dataHt, "jetHt" )
     #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
     #efficiency( data_2015D, "eff_hlt_ht__offlinePT100__base", "singlePhotonD_" )
     #efficiency( data_prompt, "eff_hlt_ht__offlinePT100__base", "singlePhotonPrompt_" )
@@ -864,6 +867,12 @@ def main():
     #drawH2s()
     #drawISRsplitting()
     #razorStudies()
+
+    #photonPosition( gjets+qcd, "gqcd" )
+    #photonPosition( gjets+qcd, "gqcd_jet", "tr_jControl" )
+    #photonPosition( gjets+qcd, "gqcd_jet", "tr_jControl_wnjet" )
+    #photonPosition( data, "data" )
+
 
 if __name__ == "__main__":
     from datasets import *
