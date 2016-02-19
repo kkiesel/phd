@@ -12,7 +12,7 @@ import style
 import auxiliary as aux
 from datasets import *
 
-def getRootMap( filename, dictname="rawEff_vs_run" ):
+def getRootMap( filename, dictname="triggerStudies/rawEff_vs_run" ):
     inFile = ROOT.TFile.Open( filename )
     ROOT.gInterpreter.GenerateDictionary("map<int,pair<int,int>>","map")
     myMap = ROOT.MakeNullPointer( ROOT.map("int,pair<int,int>") )
@@ -51,6 +51,8 @@ def draw(map, saveName=""):
 
     c = ROOT.TCanvas("","",2400,800)
     c.SetLeftMargin(0.05)
+    hrat.SetMaximum(1)
+    hrat.SetMinimum(0)
     hrat.Draw("axis")
     eff.Draw("p same Z")
 
