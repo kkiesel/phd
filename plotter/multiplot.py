@@ -40,6 +40,9 @@ class Multiplot:
 
         self.hists.append( stack )
 
+    def sortStackByIntegral( self ):
+        self.histsToStack = sorted( self.histsToStack, key=lambda x: x.Integral(0,-1) )
+
 
     def Draw( self ):
         if not self.hists and not self.histsToStack:
