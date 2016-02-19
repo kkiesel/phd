@@ -12,7 +12,6 @@ import multiplot
 
 import auxiliary as aux
 
-
 if __name__ == "__main__":
     path = os.environ['CMSSW_BASE']+'/src/TreeWriter/PUreweighting/'
 
@@ -47,18 +46,14 @@ if __name__ == "__main__":
 
     # just create the pad, the ratio is not used
     r = ratio.Ratio( "Data/Sim.", h_data, h_mc )
-    r.Draw()
+    r.draw()
 
     h_weight.SetMaximum(3)
     h_weight.SetTitle( ";number of pileup events;Data/Sim." )
     h_weight.Draw("hist")
 
 
-    intLumi = 1280.23 # /pb
-
-    l = aux.Label(False)
-    l.lum = ROOT.TLatex( .63, .95, "%.1f fb^{-1} (13 TeV)"%(intLumi/1000.) )
-    l.draw()
+    l = aux.Label()
 
     can.SaveAs("plots/pu_weight.pdf")
 
