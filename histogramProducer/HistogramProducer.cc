@@ -89,7 +89,10 @@ class HistogramProducer : public TSelector {
 
 void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_pt"] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 250, 0, 1000 );
+  effMap["eff_hlt_eta"] = TEfficiency( "", ";|#eta|;#varepsilon", 15, 0, 1.5 );
   effMap["eff_hlt_ht"] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
+  effMap["eff_hlt_ht_ptMin"] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
+  effMap["eff_hlt_ht_etaMax"] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
   effMap["eff_hlt_ht_ct"] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
   effMap["eff_hlt_nVertex"] = TEfficiency( "", ";Vertex multiplicity", 41, -0.5, 40.5 );
   effMap["eff_hlt_sie"] = TEfficiency( "", ";#sigma_{i#etai#eta}", 400, 0, 0.02 );
@@ -104,8 +107,12 @@ void HistogramProducer::initTriggerStudies() {
 void HistogramProducer::fillTriggerStudies() {
 
   float ht = 0;
+  tree::Jet *minPtJet=0;
+  tree::Jet *maxEtaJet=0;
   for( auto& jet : jets ) {
     if( jet.p.Pt() > 40 && fabs(jet.p.Eta()) < 3 ) {
+      if( !minPtJet || minPtJet->p.Pt() > jet.p.Pt() ) minPtJet = &jet;
+      if( !maxEtaJet || fabs(minPtJet->p.Eta()) < fabs(jet.p.Eta()) ) maxEtaJet = &jet;
       ht += jet.p.Pt();
     }
   }
@@ -131,10 +138,16 @@ void HistogramProducer::fillTriggerStudies() {
     if( isData && *runNo == 259637 ) return;
 
     // main trigger plots
-    if( thisPhoton->p.Pt()>100 && *hlt_photon90 ) effMap.at("eff_hlt_ht").Fill( *hlt_photon90_ht500, ht );
+    if( thisPhoton->p.Pt()>100 && *hlt_photon90 ) {
+      effMap.at("eff_hlt_ht").Fill( *hlt_photon90_ht500, ht );
+      effMap.at("eff_hlt_ht_ptMin").Fill( *hlt_photon90_ht500, minPtJet->p.Pt() );
+      if( ht>600 ) effMap.at("eff_hlt_ht_maxEta").Fill( *hlt_photon90_ht500, fabs(maxEtaJet->p.Eta()) );
+    }
     if( thisPhoton->p.Pt()>100 && *hlt_photon90_ht500 ) effMap.at("eff_hlt_ht_ct").Fill( *hlt_ht600, ht );
-    if( *hlt_ht600 && ht > 700 ) effMap.at("eff_hlt_pt").Fill( *hlt_photon90_ht500, thisPhoton->p.Pt() );
-
+    if( *hlt_ht600 && ht > 700 ) {
+      effMap.at("eff_hlt_pt").Fill( *hlt_photon90_ht500, thisPhoton->p.Pt() );
+      effMap.at("eff_hlt_eta").Fill( *hlt_photon90_ht500, fabs(thisPhoton->p.Eta()) );
+    }
   }
 
   if( *hlt_ht600 && ht > 700 ) {
