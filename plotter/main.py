@@ -331,7 +331,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     can.SetLogy()
     aux.save( saveName+"_log" )
 
-    if name == "n_heJet" and preDir="tr_jControl":
+    if name == "n_heJet" and preDir=="tr_jControl":
         aux.write2File( r.ratio.Clone(), "weight_n_heJet", "weights.root" )
 
 
