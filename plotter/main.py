@@ -289,7 +289,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     hdir.SetMarkerStyle(20)
     hdir.SetMarkerSize(0.8)
     hdir.drawOption_ = "pe x0"
-    m.add( hdir, "#gamma     ({:.1f}k)".format(dirInt/1e3) )
+    m.add( hdir, "#gamma  ({:.1f}k)".format(dirInt/1e3) )
 
     hpre = controlDataset.getHist( preDir+"/"+name )
     preInt = hpre.Integral(0,-1)
@@ -326,12 +326,12 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     r.draw(.5,1.5)
 
     if binningName: binningName = "_"+binningName
-    saveName = "multiQcdClosure_{}_{}{}".format(samplename, name, binningName )
+    saveName = "multiQcdClosure_{}_{}_{}{}".format(samplename, dirDir, name, binningName )
     aux.save( saveName )
     can.SetLogy()
     aux.save( saveName+"_log" )
 
-    if name == "n_heJet" and preDir="tr_jControl":
+    if name == "n_heJet" and preDir=="tr_jControl":
         aux.write2File( r.ratio.Clone(), "weight_n_heJet", "weights.root" )
 
 
@@ -341,6 +341,10 @@ def multiQcdClosures( dataset, samplename, controlDataset=None ):
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he0", preDir="tr_jControl_he0" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he1", preDir="tr_jControl_he1" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he2", preDir="tr_jControl_he2" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he3", preDir="tr_jControl_he3" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName+"_wnjet", preDir="tr_jControl_wnjet" )
 
 
@@ -841,7 +845,7 @@ def main():
     #ewkClosure( wjets+ttjets, "ewk" )
     #qcdClosure( qcd+gjets, "_gqcd" )
     #qcdClosure( data, "_data" )
-    #multiQcdClosures( qcd+gjets, "gqcd" )
+    multiQcdClosures( qcd+gjets, "gqcd" )
     #multiQcdClosures( data, "data", dataHt )
     #multiQcdClosures( ttg, "tt", ttjets )
     #multiQcdClosures( gjets+qcd+ttjets+ttg+wjets+wg_mg+znunu+zg_130,"mc" )
