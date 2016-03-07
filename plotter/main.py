@@ -574,7 +574,7 @@ def efficiency( dataset, name, savename="" ):
         passed = int(h_pas.Integral( bin, -1 ))
         total = int(h_tot.Integral( bin, -1 ))
         if not total: return
-        conf = 0.682689492137
+        conf = ROOT.TEfficiency().GetConfidenceLevel()
         e = 1.*passed/total
         e_up = ROOT.TEfficiency.ClopperPearson( total, passed, conf, True )
         e_dn = ROOT.TEfficiency.ClopperPearson( total, passed, conf, False )
