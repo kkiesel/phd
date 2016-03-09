@@ -48,8 +48,6 @@ class FakeRateEstimator : public TSelector {
   tree::Photon* probe;
   map<string,TEfficiency> eff;
 
-  vector<tree::Electron> tags;
-
   float selW=1.; // weight
 
   bool isData;
@@ -84,7 +82,6 @@ void FakeRateEstimator::Init(TTree *tree)
 
   // x axis is always mee
   eff["pt"] = TEfficiency("","", 200, 50, 150, 150, 0, 150 );
-  eff["pt_bkg"] = TEfficiency("","", 200, 50, 150, 150, 0, 150 );
   eff["eta"] = TEfficiency("","", 200, 50, 150, 150, 0, 1.5 );
   eff["njet"] = TEfficiency("","", 200, 50, 150, 8, -.5, 7.5 );
   eff["nvtx"] = TEfficiency("","", 200, 50, 150, 21, -.5, 20.5 );
@@ -121,16 +118,6 @@ Bool_t FakeRateEstimator::Process(Long64_t entry)
   eff.at("njet").Fill( !probe->hasPixelSeed, m, nJet );
   eff.at("nvtx").Fill( !probe->hasPixelSeed, m, *nGoodVertices );
   eff.at("ptVSeta").Fill( !probe->hasPixelSeed, m, probe->p.Pt(), fabs(probe->p.Eta()) );
-
-  cout << "ntags = " << tags.size() << endl;
-  for( auto& t : tags ) {
-    auto thisM = mass(t.p, probe->p);
-    eff.at("pt").Fill( !probe->hasPixelSeed, thisM, probe->p.Pt() );
-    cout << t.p << endl;
-  }
-
-  // check if tag is copied or alwasy the same?
-  tags.push_back( *tag );
 
   return kTRUE;
 }
