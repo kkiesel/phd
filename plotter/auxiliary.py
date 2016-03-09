@@ -219,7 +219,10 @@ def appendFlowBin( h, under=True, over=True ):
     if over:
         mergeBins( h, h.GetNbinsX(), h.GetNbinsX()+1 )
 
-def integralAndError( h, binx1=0, binx2=-1 ):
+def integralAndError( h, binx1=0, binx2=-1, bins=True ):
+    if not bins:
+        binx1 = h.FindFixBin(binx1)
+        binx2 = h.FindFixBin(binx2)
     e = ROOT.Double()
     c = h.IntegralAndError(binx1,binx2,e)
     return c,e
