@@ -6,9 +6,9 @@
 
 *.root
 
-histogramProducer/HistogramProducer_cc.d
-histogramProducer/HistogramProducer_cc.so
-histogramProducer/HistogramProducer_cc_ACLiC_dict_rdict.pcm
+histogramProducer/*_cc.d
+histogramProducer/*_cc.so
+histogramProducer/*_cc_ACLiC_dict_rdict.pcm
 
 plotter/plots/
 plotter/plotsPhys14/
