@@ -43,6 +43,9 @@ class FakeRateEstimator : public TSelector {
   TTreeReaderValue<Bool_t> hlt_photon90;
   TTreeReaderValue<Bool_t> hlt_photon175;
   TTreeReaderValue<Bool_t> hlt_ht600;
+  TTreeReaderValue<Bool_t> hlt_e22_wp75;
+  TTreeReaderValue<Bool_t> hlt_e22_wpl;
+  TTreeReaderValue<Bool_t> hlt_e27_wpl;
 
   tree::Electron* tag;
   tree::Photon* probe;
@@ -70,7 +73,10 @@ FakeRateEstimator::FakeRateEstimator():
   hlt_photon90_ht500( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
   hlt_photon90( fReader, "HLT_Photon90_v" ),
   hlt_photon175( fReader, "HLT_Photon175_v" ),
-  hlt_ht600( fReader, "HLT_PFHT600_v" )
+  hlt_ht600( fReader, "HLT_PFHT600_v" ),
+  hlt_e22_wp75( fReader, "HLT_Ele22_eta2p1_WP75_Gsf_v" ),
+  hlt_e22_wpl( fReader, "HLT_Ele22_eta2p1_WPLoose_Gsf_v" ),
+  hlt_e27_wpl( fReader, "HLT_Ele27_eta2p1_WPLoose_Gsf_v" )
 {
 }
 
@@ -87,6 +93,17 @@ void FakeRateEstimator::Init(TTree *tree)
   eff["nvtx"] = TEfficiency("","", 200, 50, 150, 21, -.5, 20.5 );
   eff["ptVSeta"] = TEfficiency("","", 200, 50, 150, 150, 0, 150, 150, 0, 1.5 );
 
+  eff["hlt_ptLoose_e22_75"] = TEfficiency("","",100, 0, 80 );
+  eff["hlt_ptMedium_e22_75"] = TEfficiency("","",100, 0, 80 );
+  eff["hlt_ptTight_e22_75"] = TEfficiency("","",100, 0, 80 );
+  eff["hlt_ptLoose_e22_l"] = TEfficiency("","",100, 0, 80 );
+  eff["hlt_ptMedium_e22_l"] = TEfficiency("","",100, 0, 80 );
+  eff["hlt_ptTight_e22_l"] = TEfficiency("","",100, 0, 80 );
+  eff["hlt_ptLoose_e27_l"] = TEfficiency("","",100, 0, 80 );
+  eff["hlt_ptMedium_e27_l"] = TEfficiency("","",100, 0, 80 );
+  eff["hlt_ptTight_e27_l"] = TEfficiency("","",100, 0, 80 );
+
+
 }
 
 void FakeRateEstimator::SlaveBegin(TTree *tree)
@@ -96,20 +113,41 @@ void FakeRateEstimator::SlaveBegin(TTree *tree)
 Bool_t FakeRateEstimator::Process(Long64_t entry)
 {
   fReader.SetEntry(entry);
+  tag=0;
+  probe=0;
   for( auto& electron : electrons ) {
-    if( electron.isLoose
-       //&& electron.p.DeltaR( /* trigger matched electron */ ) < .1
-      ) {
+    if( fabs(electron.p.Eta())<2.1 )
+    {
+      if( electron.isLoose ) {
+        eff["hlt_ptLoose_e22_75"].Fill( *hlt_e22_wp75, electron.p.Pt() );
+        eff["hlt_ptLoose_e22_l"].Fill( *hlt_e22_wpl, electron.p.Pt() );
+        eff["hlt_ptLoose_e27_l"].Fill( *hlt_e27_wpl, electron.p.Pt() );
+      }
+      if( electron.isMedium ) {
+        eff["hlt_ptMedium_e22_75"].Fill( *hlt_e22_wp75, electron.p.Pt() );
+        eff["hlt_ptMedium_e22_l"].Fill( *hlt_e22_wpl, electron.p.Pt() );
+        eff["hlt_ptMedium_e27_l"].Fill( *hlt_e27_wpl, electron.p.Pt() );
+      }
+      if( electron.isTight ) {
+        eff["hlt_ptTight_e22_75"].Fill( *hlt_e22_wp75, electron.p.Pt() );
+        eff["hlt_ptTight_e22_l"].Fill( *hlt_e22_wpl, electron.p.Pt() );
+        eff["hlt_ptTight_e27_l"].Fill( *hlt_e27_wpl, electron.p.Pt() );
+      }
+
       tag = &electron;
       break;
     }
   }
+  if(!tag) return kTRUE;
+
   for( auto& photon : photons ) {
     if( photon.isLoose && photon.p.DeltaR(tag->p)>.4 ) {
       probe = &photon;
       break;
     }
   }
+  if(!probe) return kTRUE;
+
   //int nJet = count_if(jets.begin(), jets.end(), [*probe](const tree::Jet& jet) { return jet.p.Pt()>40 && fabs(jet.p.Eta())<3 && jet.p.DeltaR(probe->p)>.3;});
   int nJet = 0;
   float m = mass( tag->p, probe->p );
@@ -125,7 +163,6 @@ Bool_t FakeRateEstimator::Process(Long64_t entry)
 void FakeRateEstimator::Terminate()
 {
   auto outputName = getOutputFilename( fReader.GetTree()->GetCurrentFile()->GetName(), "fakeRate" );
-  cout << "Created " << outputName;
   TFile file( outputName.c_str(), "RECREATE");
 
   for( auto& it : eff ) {
