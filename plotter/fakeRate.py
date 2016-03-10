@@ -77,9 +77,9 @@ def makeFit( hist, name=None ):
 
     # crystal ball
     mean = ROOT.RooRealVar( "mean", "mean", 0., -1, 1 )
-    sigma = ROOT.RooRealVar( "sigma", "sigma", 1.6, 0, 2 )
+    sigma = ROOT.RooRealVar( "sigma", "sigma", 1.6, 0, 3 )
     alpha = ROOT.RooRealVar( "alpha", "alpha", 1.2, 0, 10 )
-    n = ROOT.RooRealVar( "n", "n", 0.81, 0, 5 )
+    n = ROOT.RooRealVar( "n", "n", 0.81, 0, 10 )
     cb = ROOT.RooCBShape( "cb", "cb", x, mean, sigma, alpha, n )
 
 
@@ -95,13 +95,15 @@ def makeFit( hist, name=None ):
 
 
     # add signal + background
-    nSig = ROOT.RooRealVar("nSig","nSig",0,1e5)
-    nBkg = ROOT.RooRealVar("nBkg","nBkg",0,1e5)
+    nSig = ROOT.RooRealVar("nSig","nSig",0,hist.Integral())
+    nBkg = ROOT.RooRealVar("nBkg","nBkg",0,hist.Integral())
 
     sig_ext = ROOT.RooExtendPdf("esig","extended signal p.d.f",sig,nSig,"signalRange")
     bkg_ext = ROOT.RooExtendPdf("ebkg","extended background p.d.f",bkg,nBkg,"signalRange")
 
     model = ROOT.RooAddPdf("model","sig+bkg",ROOT.RooArgList(sig_ext, bkg_ext))
+    if name=="allT": # TODO
+        model = ROOT.RooAddPdf("model","sig+bkg",ROOT.RooArgList(sig_ext))
 
     # import data
     dh = ROOT.RooDataHist("dh","dh",ROOT.RooArgList(x),ROOT.RooFit.Import(hist))
@@ -114,7 +116,18 @@ def makeFit( hist, name=None ):
     plot.SetTitle(";m (GeV)")
     dh.plotOn( plot )
     model.plotOn( plot )
+    model.plotOn( plot, ROOT.RooFit.Components("ebkg"),ROOT.RooFit.LineStyle(ROOT.kDotted),ROOT.RooFit.LineColor(ROOT.kGreen+4))
+    c = ROOT.TCanvas()
     plot.Draw()
+
+    # TODO:
+    hresid = plot.residHist()
+    residualFrame = x.frame()
+    residualFrame.addPlotable(hresid,"P")
+    p = ratio.createBottomPad()
+    residualFrame.Draw()
+
+
     ROOT.gPad.SetLogy(0)
     if name: aux.save( "fakeRate_rooFit_{}".format(name) )
     return nSig.getVal(), nSig.getPropagatedError(r)
@@ -167,15 +180,40 @@ def plotBoth( inFileName, hname ):
     ROOT.gPad.SetLogy(1)
     aux.save("fakeRate_both")
 
-    c1, e1 = makeFit( hP, "test" )
+    c1, e1 = makeFit( hP, "allP" )
+    c2, e2 = makeFit( hT, "allT" )
+    print c1/c2, math.sqrt( (e1/c2)**2 + (c1*e2/c2**2)**2 )
 
 
+def efficiency( inFiles, name ):
+    eff = aux.getFromFile( inFiles[0], name )
+    for f in inFiles[1:]: eff.Add(aux.getFromFile( f, name ))
+
+    eff.Draw()
+    aux.save("fakeRate_efficiency_{}_{}".format(inFiles[0][21:23],name))
+
+def efficiencies():
+    import itertools
+    names = [ "hlt_pt{}_{}".format(wp,tr) for wp,tr in itertools.product(["Loose","Medium","Tight"],["e22_75","e22_l", "e27_l"]) ]
+
+    mcNames = ["../histogramProducer/DYJetsToLL_M-50_fakeRate.root"]
+    dataNames = ["../histogramProducer/SingleElectron_Run2015{}_fakeRate.root".format(s) for s in ["D-PromptReco-v4","D-05Oct2015-v1","C_25ns-05Oct2015-v1"]]
+
+
+    for name in names:
+        efficiency(mcNames, name)
+        efficiency(dataNames, name)
 
 
 def main():
     inFileName = "../histogramProducer/DYJetsToLL_M-50_fakeRate.root"
+    inFileName = "../histogramProducer/SingleElectron_Run2015_fakeRate.root"
     #fakeRate1d( inFileName, "pt" )
     plotBoth( inFileName, "eta" )
+
+    #efficiencies()
+
+
 
 
 if __name__ == "__main__":
