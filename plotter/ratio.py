@@ -124,10 +124,10 @@ class Ratio:
         clearXaxisCurrentPad()
         p = createBottomPad()
 
-        self.totalUncert.Draw("e2")
-        self.ratioStat.Draw("same e")
+        self.ratioStat.Draw("e x0")
         if self.sysHisto:
-            self.ratioSys.Draw("e2 same")
+            self.ratioSys.Draw("same e2")
+            self.totalUncert.Draw("same e2")
         self.ratio.Draw("same "+self.ratio.drawOption_)
 
         if yMin < 1 and yMax > 1:
