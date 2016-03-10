@@ -31,10 +31,12 @@ class FakeRateEstimator : public TSelector {
   TTreeReaderArray<tree::Muon> muons;
   TTreeReaderArray<tree::Particle> genJets;
   TTreeReaderArray<tree::GenParticle> genParticles;
+  TTreeReaderArray<tree::Particle> triggerObjects;
   TTreeReaderValue<tree::MET> met;
   TTreeReaderValue<Float_t> pu_weight;
   TTreeReaderValue<Char_t> mc_weight;
   TTreeReaderValue<Int_t> nGoodVertices;
+  TTreeReaderValue<Int_t> nTracksPV;
   TTreeReaderValue<Float_t> genHt;
   TTreeReaderValue<ULong64_t> eventNo;
   TTreeReaderValue<UInt_t> runNo;
@@ -64,8 +66,10 @@ FakeRateEstimator::FakeRateEstimator():
   muons( fReader, "muons" ),
   genJets( fReader, "genJets" ),
   genParticles( fReader, "genParticles" ),
+  triggerObjects( fReader, "triggerObjects" ),
   met( fReader, "met" ),
   nGoodVertices( fReader, "nGoodVertices" ),
+  nTracksPV( fReader, "nTracksPV" ),
   pu_weight( fReader, "pu_weight" ),
   mc_weight( fReader, "mc_weight" ),
   genHt( fReader, "genHt" ),
@@ -87,11 +91,12 @@ void FakeRateEstimator::Init(TTree *tree)
   isData = inputName.find("Run201") != string::npos;
 
   // x axis is always mee
-  eff["pt"] = TEfficiency("","", 200, 50, 150, 150, 0, 150 );
-  eff["eta"] = TEfficiency("","", 200, 50, 150, 150, 0, 1.5 );
-  eff["njet"] = TEfficiency("","", 200, 50, 150, 8, -.5, 7.5 );
-  eff["nvtx"] = TEfficiency("","", 200, 50, 150, 21, -.5, 20.5 );
-  eff["ptVSeta"] = TEfficiency("","", 200, 50, 150, 150, 0, 150, 150, 0, 1.5 );
+  eff["pt"] = TEfficiency("",";m (GeV);p_{T} (GeV)", 200, 50, 150, 150, 0, 150 );
+  eff["eta"] = TEfficiency("",";m (GeV);|#eta|", 200, 50, 150, 150, 0, 1.5 );
+  eff["njet"] = TEfficiency("",";m (GeV);jet multiplicity", 200, 50, 150, 8, -.5, 7.5 );
+  eff["nvtx"] = TEfficiency("",";m (GeV);vertex multiplicity", 200, 50, 150, 21, -.5, 20.5 );
+  eff["ntrk"] = TEfficiency("",";m (GeV);track multiplicity", 200, 50, 150, 21, -.5, 20.5 );
+  eff["ptVSeta"] = TEfficiency("",";m (GeV);p_{T} (GeV);|#eta|", 200, 50, 150, 150, 0, 150, 150, 0, 1.5 );
 
   eff["hlt_ptLoose_e22_75"] = TEfficiency("","",100, 0, 80 );
   eff["hlt_ptMedium_e22_75"] = TEfficiency("","",100, 0, 80 );
@@ -116,7 +121,7 @@ Bool_t FakeRateEstimator::Process(Long64_t entry)
   tag=0;
   probe=0;
   for( auto& electron : electrons ) {
-    if( fabs(electron.p.Eta())<2.1 )
+    if( triggerObjects.GetSize() && triggerObjects[0].p.DeltaR(electron.p) < .2 && fabs(electron.p.Eta())<2.1 )
     {
       if( electron.isLoose ) {
         eff["hlt_ptLoose_e22_75"].Fill( *hlt_e22_wp75, electron.p.Pt() );
@@ -134,8 +139,10 @@ Bool_t FakeRateEstimator::Process(Long64_t entry)
         eff["hlt_ptTight_e27_l"].Fill( *hlt_e27_wpl, electron.p.Pt() );
       }
 
-      tag = &electron;
-      break;
+      if( electron.isLoose && electron.p.Pt()>40 ) {
+        tag = &electron;
+        break;
+      }
     }
   }
   if(!tag) return kTRUE;
@@ -155,6 +162,7 @@ Bool_t FakeRateEstimator::Process(Long64_t entry)
   eff.at("eta").Fill( !probe->hasPixelSeed, m, fabs(probe->p.Eta()) );
   eff.at("njet").Fill( !probe->hasPixelSeed, m, nJet );
   eff.at("nvtx").Fill( !probe->hasPixelSeed, m, *nGoodVertices );
+  eff.at("ntrk").Fill( !probe->hasPixelSeed, m, *nTracksPV );
   eff.at("ptVSeta").Fill( !probe->hasPixelSeed, m, probe->p.Pt(), fabs(probe->p.Eta()) );
 
   return kTRUE;
