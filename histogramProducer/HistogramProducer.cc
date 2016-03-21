@@ -163,19 +163,19 @@ void HistogramProducer::fillTriggerStudies() {
           && looseCutFlowPhoton.passSie()
           && looseCutFlowPhoton.passNIso()
           && looseCutFlowPhoton.passPIso()
-          ) effMap.at("eff_hlt_cIso").Fill( *hlt_photon90_ht500, photon.isoChargedHadronsEA );
+          ) effMap.at("eff_hlt_cIso").Fill( *hlt_photon90_ht500, photon.cIso );
         if(
           looseCutFlowPhoton.passHoe()
           && looseCutFlowPhoton.passSie()
           && looseCutFlowPhoton.passCIso()
           && looseCutFlowPhoton.passPIso()
-          ) effMap.at("eff_hlt_nIso").Fill( *hlt_photon90_ht500, photon.isoNeutralHadronsEA );
+          ) effMap.at("eff_hlt_nIso").Fill( *hlt_photon90_ht500, photon.nIso );
         if(
           looseCutFlowPhoton.passHoe()
           && looseCutFlowPhoton.passSie()
           && looseCutFlowPhoton.passCIso()
           && looseCutFlowPhoton.passNIso()
-          ) effMap.at("eff_hlt_pIso").Fill( *hlt_photon90_ht500, photon.isoPhotonsEA );
+          ) effMap.at("eff_hlt_pIso").Fill( *hlt_photon90_ht500, photon.pIso );
         if(
           looseCutFlowPhoton.passHoe()
           && looseCutFlowPhoton.passIso()
