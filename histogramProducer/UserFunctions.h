@@ -69,6 +69,14 @@ string getOutputFilename( const string& inputFileName, const string& appendix="h
   if( endPos != string::npos ) {
     outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "_"+appendix+".root";
   }
+
+  // for signal scans
+  if( inputFileName.find("/T5") != string::npos ) {
+    endPos = inputFileName.find(".root");
+    if( endPos != string::npos ) {
+      outputName = inputFileName.substr( startPos+1, endPos-startPos-1 ) + "_"+appendix+".root";
+    }
+  }
   return outputName;
 
 }
