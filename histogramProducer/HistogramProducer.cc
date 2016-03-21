@@ -573,7 +573,7 @@ void HistogramProducer::Terminate()
   file.GetDirectory("triggerStudies")->WriteObject( &rawEff_vs_run, "rawEff_vs_run" );
   file.cd();
 
-  fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write();
+  fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write("hCutFlow");
 
 }
 
