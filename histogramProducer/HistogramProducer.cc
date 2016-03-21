@@ -203,11 +203,13 @@ map<string,TH1F> initHistograms(){
   hMap["met"] = TH1F( "", ";E^{miss}_{T} (GeV)", 200, 0, 2000 );
   hMap["metUp"] = TH1F( "", ";E^{miss}_{T} up (GeV)", 200, 0, 2000 );
   hMap["metDn"] = TH1F( "", ";E^{miss}_{T} down (GeV)", 200, 0, 2000 );
-  hMap["metPar"] = TH1F( "", ";E^{miss}_{T#parallel} (GeV)", 200, 0, 2000 );
-  hMap["metPer"] = TH1F( "", ";E^{miss}_{T#perp} (GeV)", 200, 0, 2000 );
+  hMap["metUpJec"] = TH1F( "", ";E^{miss}_{T} up (GeV)", 200, 0, 2000 );
+  hMap["metDnJec"] = TH1F( "", ";E^{miss}_{T} down (GeV)", 200, 0, 2000 );
+  hMap["metPar"] = TH1F( "", ";E^{miss}_{T} #parallel (GeV)", 200, 0, 2000 );
+  hMap["metPer"] = TH1F( "", ";E^{miss #perp  }_{T} (GeV)", 200, 0, 2000 );
   hMap["metRaw"] = TH1F( "", ";uncorrected E^{miss}_{T} (GeV)", 200, 0, 2000 );
-  hMap["metParRaw"] = TH1F( "", ";uncorrected E^{miss}_{T#parallel} (GeV)", 200, 0, 2000 );
-  hMap["metPerRaw"] = TH1F( "", ";uncorrected E^{miss}_{T#perp} (GeV)", 200, 0, 2000 );
+  hMap["metParRaw"] = TH1F( "", ";uncorrected E^{miss}_{T} #parallel (GeV)", 200, 0, 2000 );
+  hMap["metPerRaw"] = TH1F( "", ";uncorrected E^{miss #perp  }_{T} (GeV)", 200, 0, 2000 );
   hMap["mt_g_met"] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 150, 0, 1500 );
 
   hMap["tremht"] = TH1F( "", ";EMH_{T}^{trigger-like} (GeV)", 300, 0, 3000 );
