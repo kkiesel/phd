@@ -34,7 +34,7 @@ class HistogramProducer : public TSelector {
   void defaultSelection();
   void fillSelection( string const& s );
   void fillSelectedPhotons( const tree::Particle& p );
-  const TVector3* matchedJet( const tree::Particle& p );
+  tree::Jet* matchedJet( const tree::Particle& p );
 
   void initTriggerStudies();
   void fillTriggerStudies();
@@ -292,7 +292,9 @@ void HistogramProducer::fillSelection( string const& s ) {
   for( auto& p : selPhotons ) {
     emrecoil += p->p;
     ht_g += p->p.Pt();
-    ht_gStar += matchedJet(*p)->Pt();
+    auto mJet = matchedJet(*p);
+    if(mJet) ht_gStar += mJet->p.Pt();
+    else ht_gStar = p->p.Pt();
   }
   float st = ht_g + met->p.Pt();
 
@@ -310,9 +312,15 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap.at(s).at("metRaw").Fill( met->p_raw.Pt(), selW );
 
   if( selPhotons.size() > 0 ) {
+    auto mJet = matchedJet(*selPhotons.at(0));
+    if(mJet){
+      hMapMap.at(s).at("metUpJec").Fill( (met->p+(mJet->p*mJet->uncert)).Pt(), selW );
+      hMapMap.at(s).at("metDnJec").Fill( (met->p-(mJet->p*mJet->uncert)).Pt(), selW );
+      hMapMap.at(s).at("g_ptStar").Fill( mJet->p.Pt(), selW );
+    }
+
     hMapMap.at(s).at("mt_g_met").Fill( (selPhotons.at(0)->p + met->p).Pt(), selW );
     hMapMap.at(s).at("g_pt").Fill( selPhotons.at(0)->p.Pt(), selW );
-    hMapMap.at(s).at("g_ptStar").Fill( matchedJet(*selPhotons.at(0))->Pt(), selW );
     hMapMap.at(s).at("g_eta").Fill( fabs(selPhotons.at(0)->p.Eta()), selW );
     hMapMap.at(s).at("g_phi").Fill( selPhotons.at(0)->p.Phi(), selW );
     float dphi_met_g = fabs(met->p.DeltaPhi( selPhotons.at(0)->p ));
@@ -464,12 +472,15 @@ void HistogramProducer::fillSelectedPhotons( const tree::Particle& p ) {
   selPhotons.push_back( &artificialPhotons.back() );
 }
 
-const TVector3* HistogramProducer::matchedJet( const tree::Particle& p ) {
-  vector<tree::Jet*> allJets;
-  for( auto& j : jets ) allJets.push_back(&j);
-  auto i = indexOfMatchedParticle<tree::Jet*>( p, allJets, .1 );
-  return i>=0 ? &(jets[i].p) : &(p.p);
+tree::Jet* HistogramProducer::matchedJet( const tree::Particle& p ) {
+  for( auto& jet : jets ) {
+    if( jet.p.DeltaR(p.p)<.2 ) {
+      return &jet;
+    }
+  }
+  return 0;
 }
+
 
 Bool_t HistogramProducer::Process(Long64_t entry)
 {
