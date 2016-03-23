@@ -336,17 +336,17 @@ void HistogramProducer::fillSelection( string const& s ) {
     hMapMap2.at(s).at("n_heJets_vs_photonPosition").Fill( selHEJets.size(), photonPosition, selW );
   }
 
-  if( selJets.size() > 2 ) {
-    hMapMap.at(s).at("j3_pt").Fill( selJets.at(2)->p.Pt(), selW );
-    hMapMap.at(s).at("j3_eta").Fill( fabs(selJets.at(2)->p.Eta()), selW );
+  if( selHEJets.size() > 2 ) {
+    hMapMap.at(s).at("j3_pt").Fill( selHEJets.at(2)->p.Pt(), selW );
+    hMapMap.at(s).at("j3_eta").Fill( fabs(selHEJets.at(2)->p.Eta()), selW );
   }
-  if( selJets.size() > 1 ) {
-    hMapMap.at(s).at("j2_pt").Fill( selJets.at(1)->p.Pt(), selW );
-    hMapMap.at(s).at("j2_eta").Fill( fabs(selJets.at(1)->p.Eta()), selW );
+  if( selHEJets.size() > 1 ) {
+    hMapMap.at(s).at("j2_pt").Fill( selHEJets.at(1)->p.Pt(), selW );
+    hMapMap.at(s).at("j2_eta").Fill( fabs(selHEJets.at(1)->p.Eta()), selW );
   }
-  if( selJets.size() > 0 ) {
-    hMapMap.at(s).at("j1_pt").Fill( selJets.at(0)->p.Pt(), selW );
-    hMapMap.at(s).at("j1_eta").Fill( fabs(selJets.at(0)->p.Eta()), selW );
+  if( selHEJets.size() > 0 ) {
+    hMapMap.at(s).at("j1_pt").Fill( selHEJets.at(0)->p.Pt(), selW );
+    hMapMap.at(s).at("j1_eta").Fill( fabs(selHEJets.at(0)->p.Eta()), selW );
   }
 
   if( selHEJets.size() > 2 ) {
@@ -362,33 +362,18 @@ void HistogramProducer::fillSelection( string const& s ) {
     hMapMap.at(s).at("hej1_eta").Fill( fabs(selHEJets.at(0)->p.Eta()), selW );
   }
 
-  /*
-  if( selBJets.size() > 2 ) {
-    hMapMap.at(s).at("bj3_pt").Fill( selBJets.at(2)->p.Pt(), selW );
-    hMapMap.at(s).at("bj3_eta").Fill( fabs(selBJets.at(2)->p.Eta()), selW );
-  }
-  if( selBJets.size() > 1 ) {
-    hMapMap.at(s).at("bj2_pt").Fill( selBJets.at(1)->p.Pt(), selW );
-    hMapMap.at(s).at("bj2_eta").Fill( fabs(selBJets.at(1)->p.Eta()), selW );
-  }
-  if( selBJets.size() > 0 ) {
-    hMapMap.at(s).at("bj1_pt").Fill( selBJets.at(0)->p.Pt(), selW );
-    hMapMap.at(s).at("bj1_eta").Fill( fabs(selBJets.at(0)->p.Eta()), selW );
-  }
-  */
-
-  if( selJets.size() > 0 ) {
-    float dphi = fabs(met->p.DeltaPhi( selJets.at(0)->p ));
+  if( selHEJets.size() > 0 ) {
+    float dphi = fabs(met->p.DeltaPhi( selHEJets.at(0)->p ));
     hMapMap.at(s).at("dphi_met_j1").Fill( dphi, selW );
-    if( selPhotons.size() > 0 ) hMapMap.at(s).at("dphi_g_j1").Fill( fabs(selPhotons.at(0)->p.DeltaPhi(selJets.at(0)->p)), selW );
+    if( selPhotons.size() > 0 ) hMapMap.at(s).at("dphi_g_j1").Fill( fabs(selPhotons.at(0)->p.DeltaPhi(selHEJets.at(0)->p)), selW );
   }
-  if( selJets.size() > 1 ) {
-    float dphi = fabs(met->p.DeltaPhi( selJets.at(1)->p ));
+  if( selHEJets.size() > 1 ) {
+    float dphi = fabs(met->p.DeltaPhi( selHEJets.at(1)->p ));
     hMapMap.at(s).at("dphi_met_j2").Fill( dphi, selW );
-    if( selPhotons.size() > 0 ) hMapMap.at(s).at("dphi_g_j2").Fill( fabs(selPhotons.at(0)->p.DeltaPhi(selJets.at(1)->p)), selW );
+    if( selPhotons.size() > 0 ) hMapMap.at(s).at("dphi_g_j2").Fill( fabs(selPhotons.at(0)->p.DeltaPhi(selHEJets.at(1)->p)), selW );
   }
-  if( selJets.size() > 2 ) {
-    float dphi = fabs(met->p.DeltaPhi( selJets.at(2)->p ));
+  if( selHEJets.size() > 2 ) {
+    float dphi = fabs(met->p.DeltaPhi( selHEJets.at(2)->p ));
     hMapMap.at(s).at("dphi_met_j3").Fill( dphi, selW );
   }
 
@@ -523,6 +508,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
+    if(met->p.Pt()>70) fillSelection("tr_highMet");
+    else fillSelection("tr_lowMet");
     if(selHEJets.size()==0) fillSelection("tr_he0");
     if(selHEJets.size()==1) fillSelection("tr_he1");
     if(selHEJets.size()==2) fillSelection("tr_he2");
@@ -543,8 +530,11 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if(selHEJets.size()==1) fillSelection("tr_jControl_he1");
     if(selHEJets.size()==2) fillSelection("tr_jControl_he2");
     if(selHEJets.size()==3) fillSelection("tr_jControl_he3");
-    selW *= nJetWeighter.getWeight(selHEJets.size());
+    float wnJet=nJetWeighter.getWeight(selHEJets.size());
+    selW = originalW * wnJet;
     fillSelection("tr_jControl_wnjet");
+    if(met->p.Pt()>70) fillSelection("tr_jControl_highMet");
+    else fillSelection("tr_jControl_lowMet");
     selW = originalW;
   }
 
