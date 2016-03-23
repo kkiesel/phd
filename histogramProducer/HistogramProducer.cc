@@ -1,5 +1,3 @@
-#include<regex>
-
 #include "TROOT.h"
 #include "TChain.h"
 #include "TFile.h"
@@ -57,7 +55,6 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<UInt_t> lumNo;
   TTreeReaderValue<Bool_t> hlt_photon90_ht500;
   TTreeReaderValue<Bool_t> hlt_photon90;
-  TTreeReaderValue<Bool_t> hlt_photon175;
   TTreeReaderValue<Bool_t> hlt_ht600;
 
   vector<tree::Photon*> selPhotons;
@@ -70,9 +67,6 @@ class HistogramProducer : public TSelector {
   vector<tree::Photon> artificialPhotons;
 
   float selW=1.; // weight
-  float selHt=0;
-
-  pair<float,float> mrr2;
 
   map<string,map<string,TH1F>> hMapMap;
   map<string,map<string,TH2F>> hMapMap2;
@@ -300,7 +294,16 @@ void HistogramProducer::fillSelection( string const& s ) {
   }
   float st = ht_g + met->p.Pt();
 
-  hMapMap.at(s).at("tremht").Fill( selHt, selW );
+  float tremht = 0;
+  for( auto& jet : jets ){
+    auto pt = jet.p.Pt();
+    if( pt>40 && fabs(jet.p.Eta())<3 ) {
+      tremht += pt;
+    }
+  }
+
+
+  hMapMap.at(s).at("tremht").Fill( tremht, selW );
   hMapMap.at(s).at("emht").Fill( ht_g, selW );
   hMapMap.at(s).at("emhtStar").Fill( ht_gStar, selW );
   hMapMap.at(s).at("ht").Fill( ht, selW );
@@ -406,7 +409,6 @@ HistogramProducer::HistogramProducer():
   runNo( fReader, "runNo" ),
   hlt_photon90_ht500( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
   hlt_photon90( fReader, "HLT_Photon90_v" ),
-  hlt_photon175( fReader, "HLT_Photon175_v" ),
   hlt_ht600( fReader, "HLT_PFHT600_v" ),
   jetSelector("../plotter/gammaPosition.root", "gqcd"),
   nJetWeighter("../plotter/weights.root", "weight_n_heJet"),
@@ -483,13 +485,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // The signal trigger effiency in this run is low.
   // Perhaps this has something to do with the bad beam spot in this and other runs
   if( isData && *runNo == 259637 ) return true;
-
-  selHt = 0;
-  for( auto& jet : jets ){
-    if( jet.p.Pt()>40 && fabs(jet.p.Eta())<3 ) {
-      selHt += jet.p.Pt();
-    }
-  }
 
   /////////////////////////////////////////////////////////////////////////////
   // signal sample
