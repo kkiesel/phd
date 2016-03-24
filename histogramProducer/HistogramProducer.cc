@@ -409,10 +409,10 @@ void HistogramProducer::defaultSelection()
     selElectrons.push_back( &el );
   }
   for( auto& jet : jets ) {
-    if( !jet.isLoose || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3 ) continue;
-    if( indexOfMatchedParticle<tree::Photon*>( jet, selPhotons, .4 ) >= 0 ) continue;
-    if( indexOfMatchedParticle<tree::Electron*>( jet, selElectrons, .4 ) >= 0 ) continue;
-    if( indexOfMatchedParticle<tree::Muon*>( jet, selMuons, .4 ) >= 0 ) continue;
+    if( !jet.isLoose
+      || jet.hasPhotonMatch || jet.hasElectronMatch || hasMuonMatch
+      || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3 ) continue;
+
     selJets.push_back( &jet );
     if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < photonsEtaMaxBarrel )
       selHEJets.push_back( &jet );
