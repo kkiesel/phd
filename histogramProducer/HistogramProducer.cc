@@ -400,7 +400,7 @@ void HistogramProducer::defaultSelection()
   }
   for( auto& jet : jets ) {
     if( !jet.isLoose
-      || jet.hasPhotonMatch || jet.hasElectronMatch || hasMuonMatch
+      || jet.hasPhotonMatch || jet.hasElectronMatch || jet.hasMuonMatch
       || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3 ) continue;
 
     selJets.push_back( &jet );
@@ -497,7 +497,7 @@ void HistogramProducer::Terminate()
 {
 
   auto outputName = getOutputFilename( fReader.GetTree()->GetCurrentFile()->GetName() );
-  cout << "Created " << outputName;
+  cout << "Created " << outputName << endl;
 
   // save all defined histograms to file
   TFile file( outputName.c_str(), "RECREATE");
