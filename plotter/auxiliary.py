@@ -379,6 +379,15 @@ def diagonalFlip( original ):
             flipped.SetBinError( ybin, xbin, original.GetBinError(xbin,ybin) )
     return flipped
 
+def maxBinWidth( h ):
+    return max([ h.GetBinWidth(bin) for bin in range(h.GetNbinsX()+2) ])
+
+def metricPrefix( n ):
+    for unit in ["","K","M","G","T"]:
+        if abs(n) < 1000:
+            return "{:3.1f}{}".format(n, unit)
+        n /= 1000
+    return "{:3.1f}".format(n)
 
 class Label:
     # Create labels
