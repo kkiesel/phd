@@ -76,5 +76,3 @@ files.sort( key=os.path.getsize, reverse=True )
 
 p = multiprocessing.Pool()
 p.map( run.run, files )
-
-print "DONE"
