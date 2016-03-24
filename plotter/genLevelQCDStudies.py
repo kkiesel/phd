@@ -103,6 +103,7 @@ f2 = "../../CMSSW/genLevelChecks/CMSSW_7_4_14/src/GenWriter/GenWriter/histogramm
 
 #for nObjects in range(2,6):
 #    for object in range(1,nObjects+1):
+#        simpleCompare(f1,"gqcd100_n{}_o{}_pt".format(nObjects,object), [("gjet_{}_ptO{}".format(nObjects,object),"obj{}".format(object)),("gjet_{}_ptO{}G".format(nObjects,object),"obj{}, #gamma".format(object)),("gjet_{}_ptO{}J".format(nObjects,object),"obj{}, j".format(object)),("qcd_{}_ptJ{}".format(nObjects,object),"QCD obj{}".format(object))] )
 #        simpleCompare(f2,"gqcdAN_n{}_o{}_pt".format(nObjects,object), [("gjet_{}_ptO{}".format(nObjects,object),"obj{}".format(object)),("gjet_{}_ptO{}G".format(nObjects,object),"obj{}, #gamma".format(object)),("gjet_{}_ptO{}J".format(nObjects,object),"obj{}, j".format(object)),("qcd_{}_ptJ{}".format(nObjects,object),"QCD obj{}".format(object))] )
 
 def getProcessN(file):
