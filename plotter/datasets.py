@@ -214,7 +214,7 @@ class SampleCollection(collections.MutableMapping):
 
     def __getitem__(self, key):
         if key not in self.store:
-            self.store[key] = Dataset( aux.getDatasetFromKey(key), col=self.colors[len(self)] )
+            self.store[key] = Dataset( key, col=self.colors[len(self)] )
             self.store[key].label = aux.getSignalLabel( key )
         return self.store[key]
 
