@@ -135,7 +135,7 @@ void HistogramProducer::fillTriggerStudies() {
     if( thisPhoton->p.Pt()>100 && *hlt_photon90 ) {
       effMap.at("eff_hlt_ht").Fill( *hlt_photon90_ht500, ht );
       effMap.at("eff_hlt_ht_ptMin").Fill( *hlt_photon90_ht500, minPtJet->p.Pt() );
-      if( ht>600 ) effMap.at("eff_hlt_ht_maxEta").Fill( *hlt_photon90_ht500, fabs(maxEtaJet->p.Eta()) );
+      if( ht>600 ) effMap.at("eff_hlt_ht_etaMax").Fill( *hlt_photon90_ht500, fabs(maxEtaJet->p.Eta()) );
     }
     if( thisPhoton->p.Pt()>100 && *hlt_photon90_ht500 ) effMap.at("eff_hlt_ht_ct").Fill( *hlt_ht600, ht );
     if( *hlt_ht600 && ht > 700 ) {
@@ -187,6 +187,7 @@ map<string,TH2F> initHistograms2(){
   map<string,TH2F> hMap;
 
   hMap["n_heJets_vs_photonPosition"] = TH2F("","",10, -0.5, 9.5, 10, -0.5, 9.5 );
+  hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1 );
 
   return hMap;
 }
@@ -218,15 +219,6 @@ map<string,TH1F> initHistograms(){
   hMap["g_pt"] = TH1F( "", ";p_{T} (GeV)", 150, 0, 1500 );
   hMap["g_ptStar"] = TH1F( "", ";p_{T}* (GeV)", 150, 0, 1500 );
   hMap["g_eta"] = TH1F( "", ";|#eta|", 1500, 0, 1.5 );
-  hMap["g_phi"] = TH1F( "", ";#phi", 200, -3.2, 3.2 );
-
-  // jet
-  hMap["j1_pt"] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 150, 0, 1500 );
-  hMap["j1_eta"] = TH1F( "", ";|#eta^{1.jet}|", 150, 0, 3 );
-  hMap["j2_pt"] = TH1F( "", ";p_{T}^{2.jet} (GeV)", 150, 0, 1500 );
-  hMap["j2_eta"] = TH1F( "", ";|#eta^{2.jet}|", 150, 0, 3 );
-  hMap["j3_pt"] = TH1F( "", ";p_{T}^{3.jet} (GeV)", 150, 0, 1500 );
-  hMap["j3_eta"] = TH1F( "", ";|#eta^{3.jet}|", 150, 0, 3 );
 
   // he-jet
   hMap["hej1_pt"] = TH1F( "", ";p_{T}^{1.jet} (GeV)", 150, 0, 1500 );
@@ -236,24 +228,14 @@ map<string,TH1F> initHistograms(){
   hMap["hej3_pt"] = TH1F( "", ";p_{T}^{3.jet} (GeV)", 150, 0, 1500 );
   hMap["hej3_eta"] = TH1F( "", ";|#eta^{3.jet}|", 150, 0, 3 );
 
-  // b-jets
-  /*
-  hMap["bj1_pt"] = TH1F( "", ";p_{T}^{1.b-jet} (GeV)", 150, 0, 1500 );
-  hMap["bj1_eta"] = TH1F( "", ";|#eta^{1.b-jet}|", 150, 0, 3 );
-  hMap["bj2_pt"] = TH1F( "", ";p_{T}^{2.b-jet} (GeV)", 150, 0, 1500 );
-  hMap["bj2_eta"] = TH1F( "", ";|#eta^{2.b-jet}|", 150, 0, 3 );
-  hMap["bj3_pt"] = TH1F( "", ";p_{T}^{3.b-jet} (GeV)", 150, 0, 1500 );
-  hMap["bj3_eta"] = TH1F( "", ";|#eta^{3.b-jet}|", 150, 0, 3 );
-  */
-
   // angles
   hMap["dphi_met_g"] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#gamma)|", 70, 0, 3.5 );
-  hMap["dphi_met_j1"] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},1.jet)|", 70, 0, 3.5 );
-  hMap["dphi_met_j2"] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},2.jet)|", 70, 0, 3.5 );
-  hMap["dphi_met_j3"] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},3.jet)|", 70, 0, 3.5 );
+  hMap["dphi_met_hej1"] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},1.jet)|", 70, 0, 3.5 );
+  hMap["dphi_met_hej2"] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},2.jet)|", 70, 0, 3.5 );
+  hMap["dphi_met_hej3"] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},3.jet)|", 70, 0, 3.5 );
   hMap["dphi_met_recoil"] = TH1F( "", ";|#Delta#phi(E_{T}^{miss},#Sigma jet)|", 70, 0, 3.5 );
-  hMap["dphi_g_j1"] = TH1F( "", ";|#Delta#phi(#gamma,1.jet)|", 70, 0, 3.5 );
-  hMap["dphi_g_j2"] = TH1F( "", ";|#Delta#phi(#gamma,2.jet)|", 70, 0, 3.5 );
+  hMap["dphi_g_hej1"] = TH1F( "", ";|#Delta#phi(#gamma,1.jet)|", 70, 0, 3.5 );
+  hMap["dphi_g_hej2"] = TH1F( "", ";|#Delta#phi(#gamma,2.jet)|", 70, 0, 3.5 );
 
   // multiplicities
   hMap["n_vertex"] = TH1F( "", ";vertex multiplicity", 61, -0.5, 60.5 );
@@ -275,7 +257,7 @@ void HistogramProducer::fillSelection( string const& s ) {
     hMapMap2[s] = initHistograms2();
   }
 
-
+  // calculate variables
   float ht = 0;
   TVector3 recoil(0,0,0);
   for( auto& j: selJets ){
@@ -302,7 +284,6 @@ void HistogramProducer::fillSelection( string const& s ) {
     }
   }
 
-
   hMapMap.at(s).at("tremht").Fill( tremht, selW );
   hMapMap.at(s).at("emht").Fill( ht_g, selW );
   hMapMap.at(s).at("emhtStar").Fill( ht_gStar, selW );
@@ -327,7 +308,6 @@ void HistogramProducer::fillSelection( string const& s ) {
     hMapMap.at(s).at("mt_g_met").Fill( (selPhotons.at(0)->p + met->p).Pt(), selW );
     hMapMap.at(s).at("g_pt").Fill( selPhotons.at(0)->p.Pt(), selW );
     hMapMap.at(s).at("g_eta").Fill( fabs(selPhotons.at(0)->p.Eta()), selW );
-    hMapMap.at(s).at("g_phi").Fill( selPhotons.at(0)->p.Phi(), selW );
     float dphi_met_g = fabs(met->p.DeltaPhi( selPhotons.at(0)->p ));
     hMapMap.at(s).at("dphi_met_g").Fill( dphi_met_g, selW );
     hMapMap.at(s).at("metPar").Fill( fabs(met->p.Pt()*cos(dphi_met_g)), selW );
@@ -337,19 +317,7 @@ void HistogramProducer::fillSelection( string const& s ) {
     unsigned photonPosition=0;
     for(;photonPosition<selHEJets.size() && selHEJets.at(photonPosition)->p.Pt() > selPhotons.at(0)->p.Pt();photonPosition++);
     hMapMap2.at(s).at("n_heJets_vs_photonPosition").Fill( selHEJets.size(), photonPosition, selW );
-  }
-
-  if( selHEJets.size() > 2 ) {
-    hMapMap.at(s).at("j3_pt").Fill( selHEJets.at(2)->p.Pt(), selW );
-    hMapMap.at(s).at("j3_eta").Fill( fabs(selHEJets.at(2)->p.Eta()), selW );
-  }
-  if( selHEJets.size() > 1 ) {
-    hMapMap.at(s).at("j2_pt").Fill( selHEJets.at(1)->p.Pt(), selW );
-    hMapMap.at(s).at("j2_eta").Fill( fabs(selHEJets.at(1)->p.Eta()), selW );
-  }
-  if( selHEJets.size() > 0 ) {
-    hMapMap.at(s).at("j1_pt").Fill( selHEJets.at(0)->p.Pt(), selW );
-    hMapMap.at(s).at("j1_eta").Fill( fabs(selHEJets.at(0)->p.Eta()), selW );
+    hMapMap2.at(s).at("g_eta_vs_g_phi").Fill( selPhotons.at(0)->p.Eta(), selPhotons.at(0)->p.Phi(), selW );
   }
 
   if( selHEJets.size() > 2 ) {
@@ -367,17 +335,17 @@ void HistogramProducer::fillSelection( string const& s ) {
 
   if( selHEJets.size() > 0 ) {
     float dphi = fabs(met->p.DeltaPhi( selHEJets.at(0)->p ));
-    hMapMap.at(s).at("dphi_met_j1").Fill( dphi, selW );
-    if( selPhotons.size() > 0 ) hMapMap.at(s).at("dphi_g_j1").Fill( fabs(selPhotons.at(0)->p.DeltaPhi(selHEJets.at(0)->p)), selW );
+    hMapMap.at(s).at("dphi_met_hej1").Fill( dphi, selW );
+    if( selPhotons.size() > 0 ) hMapMap.at(s).at("dphi_g_hej1").Fill( fabs(selPhotons.at(0)->p.DeltaPhi(selHEJets.at(0)->p)), selW );
   }
   if( selHEJets.size() > 1 ) {
     float dphi = fabs(met->p.DeltaPhi( selHEJets.at(1)->p ));
-    hMapMap.at(s).at("dphi_met_j2").Fill( dphi, selW );
-    if( selPhotons.size() > 0 ) hMapMap.at(s).at("dphi_g_j2").Fill( fabs(selPhotons.at(0)->p.DeltaPhi(selHEJets.at(1)->p)), selW );
+    hMapMap.at(s).at("dphi_met_hej2").Fill( dphi, selW );
+    if( selPhotons.size() > 0 ) hMapMap.at(s).at("dphi_g_hej2").Fill( fabs(selPhotons.at(0)->p.DeltaPhi(selHEJets.at(1)->p)), selW );
   }
   if( selHEJets.size() > 2 ) {
     float dphi = fabs(met->p.DeltaPhi( selHEJets.at(2)->p ));
-    hMapMap.at(s).at("dphi_met_j3").Fill( dphi, selW );
+    hMapMap.at(s).at("dphi_met_hej3").Fill( dphi, selW );
   }
 
   hMapMap.at(s).at("dphi_met_recoil").Fill( fabs(met->p.DeltaPhi( recoil )), selW );
@@ -389,7 +357,6 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap.at(s).at("n_electron").Fill( selElectrons.size(), selW );
   hMapMap.at(s).at("n_muon").Fill( selMuons.size(), selW );
   hMapMap.at(s).at("n_heJet").Fill( selHEJets.size(), selW );
-
 
 } // end fill
 
