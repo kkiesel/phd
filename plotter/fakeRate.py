@@ -78,7 +78,7 @@ def makeFit( hist, name=None ):
     # crystal ball
     mean = ROOT.RooRealVar( "mean", "mean", 0., -1, 1 )
     sigma = ROOT.RooRealVar( "sigma", "sigma", 1.6, 0, 3 )
-    alpha = ROOT.RooRealVar( "alpha", "alpha", 1.2, 0, 10 )
+    alpha = ROOT.RooRealVar( "alpha", "alpha", -1.2, -10, 10 )
     n = ROOT.RooRealVar( "n", "n", 0.81, 0, 10 )
     cb = ROOT.RooCBShape( "cb", "cb", x, mean, sigma, alpha, n )
 
@@ -89,7 +89,7 @@ def makeFit( hist, name=None ):
 
     # define background function
     a0 = ROOT.RooRealVar("a0","a0",10, 0, 1000)
-    a1 = ROOT.RooRealVar("a1","a1",0,-2,0)
+    a1 = ROOT.RooRealVar("a1","a1",0,-2,2)
     a2 = ROOT.RooRealVar("a2","a2",1)
     bkg = ROOT.RooPolynomial("p2","p2",x,ROOT.RooArgList(a0,a1),0)
 
@@ -130,6 +130,8 @@ def makeFit( hist, name=None ):
 
     ROOT.gPad.SetLogy(0)
     if name: aux.save( "fakeRate_rooFit_{}".format(name) )
+    print nSig.getVal(), nSig.getPropagatedError(r)
+    print nBkg.getVal(), nBkg.getPropagatedError(r)
     return nSig.getVal(), nSig.getPropagatedError(r)
 
 
