@@ -991,9 +991,12 @@ def main():
     #ewkClosure( wjets+ttjets, "ewk" )
     #qcdClosure( qcd+gjets, "_gqcd" )
     #qcdClosure( data, "_data" )
-    multiQcdClosures( qcd+gjets, "gqcd" )
+    #multiQcdClosures( qcd+gjets, "gqcd" )
+    #multiQcdClosures( zg_130+znunu, "znunu" )
+    #multiQcdClosures( ttg+ttjets, "tt" )
+    #multiQcdClosures( wg_mg+wjets, "w" )
     #multiQcdClosures( data, "data", dataHt )
-    #multiQcdClosures( ttg, "tt", ttjets )
+    #multiQcdClosures( signal["T5Wg_1550_100"], "signal" )
     #multiQcdClosures( gjets+qcd+ttjets+ttg+wjets+wg_mg+znunu+zg_130,"mc" )
     #gjets.label = "GJets Data"
     #drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
@@ -1019,9 +1022,12 @@ def main():
     #razorStudies()
 
     #photonPosition( gjets+qcd, "gqcd" )
+    #photonPosition( ttg+ttjets, "gjtt" )
     #photonPosition( gjets+qcd, "gqcd_jet", "tr_jControl" )
     #photonPosition( gjets+qcd, "gqcd_jet", "tr_jControl_wnjet" )
     #photonPosition( data, "data" )
+
+    #metCorrections( gjets+qcd, "gqcd" )
 
 
 if __name__ == "__main__":
