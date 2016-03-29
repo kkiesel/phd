@@ -2,7 +2,8 @@ import ROOT
 import argparse
 import os
 
-def run(infile, selector="HistogramProducer.cc"):
+def run(infile="", selector="HistogramProducer.cc"):
+    # load libraries
     ROOT.gSystem.Load("pluginTreeWriterTreeWriterAuto.so")
     lib = "AutoDict_map_int_pair_int_int____cxx.so"
     if not os.path.isfile(lib):
@@ -14,7 +15,7 @@ def run(infile, selector="HistogramProducer.cc"):
         ch.AddFile(infile)
         ch.Process(selector+"+")
     else:
-        ROOT.TSelector.GetSelector(selector+"+")
+        ROOT.TSelector.GetSelector(selector+"++")
         print "Compiled TSelector"
 
 
