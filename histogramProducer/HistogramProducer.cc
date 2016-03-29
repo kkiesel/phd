@@ -1,3 +1,5 @@
+#include "time.h"
+
 #include "TROOT.h"
 #include "TChain.h"
 #include "TFile.h"
@@ -79,6 +81,7 @@ class HistogramProducer : public TSelector {
   Weighter nJetWeighter;
   CutFlowPhoton looseCutFlowPhoton;
 
+  double startTime;
 };
 
 void HistogramProducer::initTriggerStudies() {
@@ -370,7 +373,8 @@ HistogramProducer::HistogramProducer():
   jetSelector("../plotter/gammaPosition.root", "gqcd"),
   nJetWeighter("../plotter/weights.root", "weight_n_heJet"),
   looseCutFlowPhoton( {{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
-    {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} })
+    {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} }),
+  startTime(time(NULL))
 {
 }
 
@@ -497,7 +501,7 @@ void HistogramProducer::Terminate()
 {
 
   auto outputName = getOutputFilename( fReader.GetTree()->GetCurrentFile()->GetName() );
-  cout << "Created " << outputName << endl;
+  cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 
   // save all defined histograms to file
   TFile file( outputName.c_str(), "RECREATE");
