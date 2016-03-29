@@ -455,7 +455,7 @@ def multiQcdClosures( dataset, samplename, controlDataset=None ):
 def metCorrections( dataset, samplename="" ):
 
     for binningName, binning in aux.getBinnigsFromName( "met" ).iteritems():
-        for dir in "tr", "tr_jControl_wnjet_wht", "tr_jControl","tr_jControl_wnjet":
+        for dir in "tr", "tr_jControl_wnjet", "tr_jControl","tr_jControl_wnjet":
             can = ROOT.TCanvas()
             m = multiplot.Multiplot()
             for name in "met","metPar","metPer","metRaw","metParRaw","metPerRaw":
