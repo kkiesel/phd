@@ -67,12 +67,17 @@ dir = "/user/kiesel/nTuples/v09/"
 #############################################
 
 toProcess = ds["gjet"]+ds["qcd"]
+toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
+#toProcess = ["TTJets_nTuple.root","TTGJets_nTuple.root"]
 
 #############################################
 #############################################
 
 files = [dir+x for x in toProcess]
 files.sort( key=os.path.getsize, reverse=True )
+
+# compile only
+run.run()
 
 p = multiprocessing.Pool()
 p.map( run.run, files )
