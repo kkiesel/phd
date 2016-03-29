@@ -342,6 +342,96 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     if name == "n_heJet" and preDir=="tr_jControl":
         aux.write2File( r.ratio.Clone(), "weight_n_heJet", "weights.root" )
 
+def selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_jControl" ):
+    if not controlDataset: controlDataset = dataset
+    can = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+
+    if "jControl" in dirDir and "jControl" in preDir: m.leg.SetHeader("Jet control sample")
+    else: m.leg.SetHeader("Photon sample")
+
+    hdir = dataset.getHist( dirDir+"/"+name )
+    dirInt = hdir.Integral(0,-1)
+    if not hdir.Integral(): return
+    if binning: hdir = aux.rebin( hdir, binning )
+    aux.appendFlowBin( hdir )
+    hdir.SetYTitle( aux.getYAxisTitle( hdir ) )
+    hdir.SetLineColor(1)
+    hdir.SetMarkerColor(1)
+    hdir.SetMarkerStyle(20)
+    hdir.SetMarkerSize(0.8)
+    hdir.drawOption_ = "pe x0"
+    m.add( hdir, "E_{{T}}^{{miss}}>70 ({:.1f}k)".format(dirInt/1e3) )
+
+    hpre = controlDataset.getHist( preDir+"/"+name )
+    preInt = hpre.Integral(0,-1)
+    if not preInt: return
+    if binning: hpre = aux.rebin( hpre, binning )
+    aux.appendFlowBin( hpre )
+    hpre.Scale( dirInt/preInt )
+    hpre.SetYTitle( aux.getYAxisTitle( hpre ) )
+    hpre.SetLineColor(ROOT.kRed)
+    hpre.drawOption_ = "hist e"
+    m.add( hpre, "inclusive ({:.1f}k)".format(preInt/1e3) )
+
+    m.Draw()
+    l = aux.Label(info=dataset.label, sim=dataset is not data)
+    r = ratio.Ratio("E_{T}^{miss}>70/all",hdir,hpre)
+    r.draw(.5,1.5)
+
+    if binningName: binningName = "_"+binningName
+    saveName = "multiQcdClosureCompareSelection_{}_{}_{}{}".format(samplename, dirDir, name, binningName )
+    aux.save( saveName )
+    #can.SetLogy()
+    #aux.save( saveName+"_log" )
+
+def selectionComparison2( dataset, controlDataset, name, samplename, binning, binningName, dirDirs ):
+    can = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+
+    integral=None
+
+    for dir in dirDirs:
+        hdir = dataset.getHist( dir+"/"+name )
+        if not integral: integral= hdir.Integral(0,-1)
+        if binning: hdir = aux.rebin( hdir, binning )
+        aux.appendFlowBin( hdir )
+        hdir.SetYTitle( aux.getYAxisTitle( hdir ) )
+        hdir.Scale(integral/hdir.Integral(0,-1))
+        legend=""
+        if "jControl" in dir:
+            hdir.drawOption_ = "hist"
+            legend+="jet"
+        else:
+            hdir.drawOption_ = "pe x0"
+            hdir.SetMarkerStyle(20)
+            hdir.SetMarkerSize(0.8)
+            legend+="#gamma  "
+
+        if "highMet" in dir:
+            hdir.SetMarkerColor(1)
+            hdir.SetLineColor(1)
+            legend+=" high E_{T}^{miss}"
+        else:
+            hdir.SetLineColor(2)
+            hdir.SetMarkerColor(2)
+        if "lowMet" in dir:
+            legend+=" low E_{T}^{miss}"
+        m.add( hdir, legend )
+
+    m.Draw()
+    l = aux.Label(info=dataset.label, sim=dataset is not data)
+    #r = ratio.Ratio("E_{T}^{miss}>70/all",hdir,hpre)
+    #r.draw(.5,1.5)
+
+    if binningName: binningName = "_"+binningName
+    saveName = "multiQcdClosureCompareSelection2_{}_{}_{}{}".format(samplename, dirDirs[0], name, binningName )
+    aux.save( saveName )
+    can.SetLogy()
+    aux.save( saveName+"_log" )
+
+
+
 
 def multiQcdClosures( dataset, samplename, controlDataset=None ):
     names = aux.getObjectNames( dataset.files[0], "tr", [ROOT.TH1F] )
@@ -354,8 +444,47 @@ def multiQcdClosures( dataset, samplename, controlDataset=None ):
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he2", preDir="tr_jControl_he2" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he3", preDir="tr_jControl_he3" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName+"_wnjet", preDir="tr_jControl_wnjet" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highMet", preDir="tr_jControl_highMet" )
+            selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highMet", preDir="tr" )
+            selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_jControl_highMet", preDir="tr_jControl" )
+            selectionComparison2( dataset, controlDataset, name, samplename, binning, binningName, dirDirs=["tr_highMet", "tr_lowMet", "tr_jControl_highMet","tr_jControl_lowMet"] )
 
 
+
+
+def metCorrections( dataset, samplename="" ):
+
+    for binningName, binning in aux.getBinnigsFromName( "met" ).iteritems():
+        for dir in "tr", "tr_jControl_wnjet_wht", "tr_jControl","tr_jControl_wnjet":
+            can = ROOT.TCanvas()
+            m = multiplot.Multiplot()
+            for name in "met","metPar","metPer","metRaw","metParRaw","metPerRaw":
+                hdir = dataset.getHist( dir+"/"+name )
+                if not hdir.Integral(): return
+                if binning: hdir = aux.rebin( hdir, binning )
+                aux.appendFlowBin( hdir )
+                hdir.SetYTitle( aux.getYAxisTitle( hdir ) )
+                hdir.SetXTitle( "E_{T}^{miss} (GeV)" )
+                hdir.drawOption_ = "pe x0"
+                if "Raw" in name:
+                    hdir.SetLineColor(ROOT.kRed)
+                    hdir.SetMarkerColor(ROOT.kRed)
+                else:
+                    hdir.SetLineColor(1)
+                    hdir.SetMarkerColor(1)
+                if "Par" in name:
+                    hdir.drawOption_ = "hist"
+                    hdir.SetLineStyle(2)
+                elif "Per" in name:
+                    hdir.drawOption_ = "hist"
+                    hdir.SetLineStyle(3)
+                else:
+                    hdir.SetMarkerStyle(20)
+                legendName = name.replace("met","E_{T}^{miss}").replace("Par","#parallel").replace("Per"," {}^{#perp  }").replace("Raw","(uncorr)")
+                m.add( hdir, legendName )
+            m.Draw()
+            can.SetLogy()
+            aux.save("metComparison_{}_{}_{}_log".format(samplename,dir,binningName))
 
 
 
