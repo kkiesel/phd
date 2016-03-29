@@ -18,6 +18,7 @@ from sys import maxint
 import ratio
 import style
 import multiplot
+from rwthColors import rwth
 
 import auxiliary as aux
 
@@ -459,8 +460,8 @@ def metCorrections( dataset, samplename="" ):
                 hdir.SetXTitle( "E_{T}^{miss} (GeV)" )
                 hdir.drawOption_ = "pe x0"
                 if "Raw" in name:
-                    hdir.SetLineColor(ROOT.kRed)
-                    hdir.SetMarkerColor(ROOT.kRed)
+                    hdir.SetLineColor(rwth.red)
+                    hdir.SetMarkerColor(rwth.red)
                 else:
                     hdir.SetLineColor(1)
                     hdir.SetMarkerColor(1)
