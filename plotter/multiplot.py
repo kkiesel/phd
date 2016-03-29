@@ -1,4 +1,5 @@
 import ROOT
+import auxiliary as aux
 
 class Multiplot:
     def __init__( self ):
@@ -25,7 +26,7 @@ class Multiplot:
         return min( [ h.GetMinimum(0) for h in self.hists+self.histsToStack if not isinstance( h, ROOT.THStack ) ] )
 
     def getMaximum( self ):
-        return max( [ h.GetMaximum() for h in self.hists if not "enriched" in h.GetName()] )
+        return max( [ h.GetMaximum() for h in self.hists ] )
 
     def stackHists( self ):
         if not self.histsToStack:
@@ -55,9 +56,13 @@ class Multiplot:
             maximum = 2.5*maximum
             #minimum = 0.3*minimum
         else:
-            maximum += (maximum-minimum)*.1
+            range = maximum-minimum
+            maximum += range*.1
+            if minimum-.1*range > 0: minimum -= .1*range
             #minimum -= (maximum-minimum)*.1
             #minimum = max([0,minimum])
+
+        minimum = 0 #max( [.5/aux.maxBinWidth(self.hists[0]),minimum] )
 
         if self.maximum != None:
             maximum = self.maximum
