@@ -324,6 +324,14 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     l = aux.Label(info=dataset.label, sim=dataset is not data)
     r = ratio.Ratio("#gamma/jet",hdir,hpre)
     r.draw(.5,1.5)
+    if name=="met":
+        hPlus = hpreUp.Clone(aux.randomName())
+        hPlus.Divide(hpre)
+        hPlus.Draw("same")
+        hMinus = hpreDn.Clone(aux.randomName())
+        hMinus.Divide(hpre)
+        hMinus.Draw("same")
+
 
     if binningName: binningName = "_"+binningName
     saveName = "multiQcdClosure_{}_{}_{}{}".format(samplename, dirDir, name, binningName )
