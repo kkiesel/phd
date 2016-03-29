@@ -943,16 +943,25 @@ def photonPosition( dataset, savename, dir="tr", normalize=False ):
     m = multiplot.Multiplot()
 
     h2 = dataset.getHist( dir+"/n_heJets_vs_photonPosition" )
-    for xbin in range(1,h2.GetNbinsX()+1):
-        h = h2.ProjectionY(str(xbin),xbin,xbin)
+
+    colors = [ROOT.kBlack,ROOT.kBlue,ROOT.kCyan,ROOT.kGreen+4,ROOT.kRed,ROOT.kMagenta]+range(100)
+
+    #for xbin in range(1,h2.GetNbinsX()+1):
+    for xbin in range(1,6):
+        h = h2.ProjectionY(str(xbin)+aux.randomName(),xbin,xbin)
         h.SetTitle(";photon position;Events")
+        h.GetXaxis().SetTitleOffset(0.9)
         if not h.Integral(0,-1): continue
         if normalize: h.Scale(1./h.Integral())
         if normalize: h.GetYaxis().SetTitle("Normalized events")
-        h.SetLineColor(xbin)
+        h.SetLineColor(colors[xbin-1])
         h.drawOption_="hist e"
-        m.add( h, str(xbin-1)+" additional he jets" )
+        m.add( h, str(xbin-1) )
 
+    m.leg.SetHeader("number of additional high-energetic jets")
+    m.leg.SetX2(.99)
+    m.leg.SetX1(.4)
+    m.leg.SetY1(.5)
     m.Draw()
     aux.save("photonPosition_"+savename+"_"+dir )
     if False: aux.write2File( h2, savename, "gammaPosition.root" )
