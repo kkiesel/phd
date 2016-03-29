@@ -202,8 +202,6 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
         if binningName: binningName = "_"+binningName
         saveName = "sameHistograms_{}_{}{}".format(sampleNames, name, binningName )
         aux.save( saveName )
-        can.SetLogy()
-        aux.save( saveName+"_log" )
 
 
 def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
@@ -336,8 +334,6 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     if binningName: binningName = "_"+binningName
     saveName = "multiQcdClosure_{}_{}_{}{}".format(samplename, dirDir, name, binningName )
     aux.save( saveName )
-    can.SetLogy()
-    aux.save( saveName+"_log" )
 
     if name == "n_heJet" and preDir=="tr_jControl":
         aux.write2File( r.ratio.Clone(), "weight_n_heJet", "weights.root" )
@@ -382,8 +378,6 @@ def selectionComparison( dataset, controlDataset, name, samplename, binning, bin
     if binningName: binningName = "_"+binningName
     saveName = "multiQcdClosureCompareSelection_{}_{}_{}{}".format(samplename, dirDir, name, binningName )
     aux.save( saveName )
-    #can.SetLogy()
-    #aux.save( saveName+"_log" )
 
 def selectionComparison2( dataset, controlDataset, name, samplename, binning, binningName, dirDirs ):
     can = ROOT.TCanvas()
@@ -427,8 +421,6 @@ def selectionComparison2( dataset, controlDataset, name, samplename, binning, bi
     if binningName: binningName = "_"+binningName
     saveName = "multiQcdClosureCompareSelection2_{}_{}_{}{}".format(samplename, dirDirs[0], name, binningName )
     aux.save( saveName )
-    can.SetLogy()
-    aux.save( saveName+"_log" )
 
 
 
@@ -483,8 +475,7 @@ def metCorrections( dataset, samplename="" ):
                 legendName = name.replace("met","E_{T}^{miss}").replace("Par","#parallel").replace("Per"," {}^{#perp  }").replace("Raw","(uncorr)")
                 m.add( hdir, legendName )
             m.Draw()
-            can.SetLogy()
-            aux.save("metComparison_{}_{}_{}_log".format(samplename,dir,binningName))
+            aux.save("metComparison_{}_{}_{}".format(samplename,dir,binningName))
 
 
 
@@ -530,8 +521,6 @@ def qcdClosure( dataset, samplename="", gSet="tr_ht700", cSet="tr_jControl2" ):
                     aux.write2File( r.ratio.Clone(), name.replace("h_","weight_{}_".format(samplename)), "weights.root" )
             l = aux.Label()
             aux.save( "qcdClosure_"+name+samplename+binningName )
-            can.SetLogy()
-            aux.save( "qcdClosure_"+name+samplename+binningName+"_log" )
 
 
 def ewkClosure( dataset, samplename="" ):
@@ -593,8 +582,6 @@ def ewkClosure( dataset, samplename="" ):
             l = aux.Label(sim=True,info=dataset.label)
             if binningName: binningName = "_"+binningName
             aux.save( "ewkClosure_{}_{}{}".format(samplename,name,binningName ) )
-            can.SetLogy()
-            aux.save( "ewkClosure_{}_{}{}_log".format(samplename,name,binningName ) )
 
 
 def drawROCs():
@@ -804,8 +791,6 @@ def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
 
                 l = aux.Label()
                 aux.save( "ewkIsrSampleSplitting_%s_%s_%s"%(saveName,name,binningName) )
-                can.SetLogy()
-                aux.save( "ewkIsrSampleSplitting_%s_%s_%s_log"%(saveName,name,binningName) )
 
 
 
@@ -852,8 +837,6 @@ def compareRazorProjections( bkg, additional, xaxis=True, cut=-1, binning=[] ):
 
         l = aux.Label()
         aux.save( "razorProjections" )
-        can.SetLogy()
-        aux.save( "razorProjections_log" )
 
 def razorStudies():
     compareRazorProjections( [gjets,qcd,ttjets,wjets], [t5wg_1500_125], False )
