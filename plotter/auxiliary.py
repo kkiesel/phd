@@ -325,9 +325,17 @@ def automaticRebinner( hlist, minEvents=3 ):
     print out[::-1]
 
 
-def save( name, folder="plots/", endings=[".pdf"] ):
-    for ending in endings:
-        ROOT.gPad.GetCanvas().SaveAs( folder + name+ ending )
+def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
+    if normal:
+        for ending in endings:
+            ROOT.gPad.GetCanvas().SaveAs( folder+name+ending )
+    if log:
+        for i in ROOT.gPad.GetListOfPrimitives():
+            if isinstance(i,ROOT.TH1F):
+                i.SetMinimum(.5/maxBinWidth(i))
+        ROOT.gPad.SetLogy()
+        for ending in endings:
+            ROOT.gPad.GetCanvas().SaveAs( folder + name + "_log" + ending )
 
 
 def getBinnigsFromName( name ):
