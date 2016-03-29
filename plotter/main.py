@@ -289,7 +289,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     hdir.SetMarkerStyle(20)
     hdir.SetMarkerSize(0.8)
     hdir.drawOption_ = "pe x0"
-    m.add( hdir, "#gamma  ({:.1f}k)".format(dirInt/1e3) )
+    m.add( hdir, "#gamma  ({})".format(aux.metricPrefix(dirInt)) )
 
     hpre = controlDataset.getHist( preDir+"/"+name )
     preInt = hpre.Integral(0,-1)
@@ -300,7 +300,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     hpre.SetYTitle( aux.getYAxisTitle( hpre ) )
     hpre.SetLineColor(ROOT.kRed)
     hpre.drawOption_ = "hist e"
-    m.add( hpre, "jet ({:.1f}M)".format(preInt/1e6) )
+    m.add( hpre, "jet ({})".format(aux.metricPrefix(preInt)) )
 
     if name=="met":
         hpreUp = controlDataset.getHist( preDir+"/"+name+"Up" )
