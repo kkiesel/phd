@@ -453,6 +453,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   for( auto& photon : photons ) {
     if( photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel ) {
+      bool genElectronMatch = false;
+      for( auto& genP : genParticles ) {
+        if( genP.isPrompt && fabs(genP.pdgId)==11 && genP.p.DeltaR( photon.p ) < 0.1 ) {
+          genElectronMatch = true;
+          break;
+        }
+      }
+      if( genElectronMatch ) continue;
       selPhotons.push_back( &photon );
     }
   }
