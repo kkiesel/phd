@@ -31,7 +31,6 @@ colors = {
     "petrol25": (191,208,209),
     "petrol10": (230,236,236),
     "cyan": (0,152,161),
-    #"cyan": (0,152,161,75), # check if this is correct
     "cyan75": (0,177,183),
     "cyan50": (137,204,207),
     "cyan25": (202,231,231),
@@ -66,18 +65,18 @@ colors = {
     "lila50": (188,181,215),
     "lila25": (222,218,235),
     "lila10": (242,240,247),
-    "lgreen": (189,205,0),
-    "lgreen75": (208,217,92),
-    "lgreen50": (224,230,154),
-    "lgreen25": (240,243,208),
-    "lgreen10": (249,250,237)
+    "mayGreen": (189,205,0),
+    "mayGreen75": (208,217,92),
+    "mayGreen50": (224,230,154),
+    "mayGreen25": (240,243,208),
+    "mayGreen10": (249,250,237)
 }
 
 # This class will contain all colors as members
 class rwth:
     colors = [] # colors are stored here to avoid garbage collector
 
-startColor = 2001 # Starting point for ROOT internal colors naming scheme
+startColor = 5001 # Starting point for ROOT internal colors naming scheme
 
 for i, (name,(r,g,b)) in enumerate(colors.iteritems()):
     exec "rwth.{} = {:d}".format(name, startColor+i )
