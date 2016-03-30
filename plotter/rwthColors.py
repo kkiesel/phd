@@ -75,11 +75,12 @@ colors = {
 
 # This class will contain all colors as members
 class rwth:
-    colors = []
-    pass
+    colors = [] # colors are stored here to avoid garbage collector
+
+startColor = 2001 # Starting point for ROOT internal colors naming scheme
 
 for i, (name,(r,g,b)) in enumerate(colors.iteritems()):
-    exec "rwth.{} = {:d}".format(name,1001+i)
-    rwth.colors.append( ROOT.TColor(1001+i,r/255.,g/255.,b/255.) )
+    exec "rwth.{} = {:d}".format(name, startColor+i )
+    rwth.colors.append( ROOT.TColor(startColor+i, r/255., g/255., b/255.) )
 
 # Usage: histogram.SetLineColor( rwth.blue50 )
