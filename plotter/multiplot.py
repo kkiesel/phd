@@ -50,7 +50,7 @@ class Multiplot:
             return False
         self.stackHists()
 
-        minimum = 0
+        minimum = 1e-3
         maximum = 1.1*self.getMaximum()
 
         if self.maximum != None:
