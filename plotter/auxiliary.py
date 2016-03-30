@@ -329,14 +329,14 @@ def getMinimum( hists ):
     return min( [ h.GetBinContent(h.GetMinimumBin()) for h in hists if not isinstance( h, ROOT.THStack ) ] )
 
 def setMinMaxForLog():
-    allH = [ i for i in ROOT.gPad.GetListOfPrimitives() if isinstance(i, ROOT.TH1) ]
+    allH = [ i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives() if isinstance(i, ROOT.TH1) ]
     minC = getMinimum( allH )
     minExp = 1/maxBinWidth(allH[0])
-
     maxC = max( [ h.GetMaximum() for h in allH ] )
     for i in allH:
         i.SetMaximum( 2.5*maxC )
         i.SetMinimum( .5*max([minC,minExp]) )
+    ROOT.gPad.Update()
 
 
 def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
@@ -345,7 +345,7 @@ def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
             ROOT.gPad.GetCanvas().SaveAs( folder+name+ending )
     if log:
         setMinMaxForLog()
-        ROOT.gPad.SetLogy()
+        ROOT.gPad.GetCanvas().SetLogy()
         for ending in endings:
             ROOT.gPad.GetCanvas().SaveAs( folder + name + "_log" + ending )
 
