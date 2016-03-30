@@ -68,7 +68,9 @@ dir = "/user/kiesel/nTuples/v09/"
 
 toProcess = ds["gjet"]+ds["qcd"]
 toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
-#toProcess = ["TTJets_nTuple.root","TTGJets_nTuple.root"]
+toProcess = ["TTJets_nTuple.root","TTGJets_nTuple.root"]
+toProcess = [ x for sublist in ds.values() for x in sublist ]
+
 
 #############################################
 #############################################
