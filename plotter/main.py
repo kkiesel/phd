@@ -242,35 +242,6 @@ def getProjections( h2, alongX=True ):
     return hs
 
 
-def drawRazor( dataset ):
-    x = style.style2d()
-    c = ROOT.TCanvas()
-    h2 = getHistoFromDataset( dataset, "h2_razorPlane__tr" )
-    h2 = aux.rebin2d( h2, range(0, 1000,80), aux.drange(0,0.5, 10) )
-    h2.Draw("colz")
-    aux.save("razorPlane")
-    style.defaultStyle()
-    """
-    h2.Rebin2D( 1, 20 )
-    razorFit = ROOT.TF2("razorFitFunc", "[0]*( [1]*(x[0]-[2])*(x[1]-[3]) - 1 ) * exp( -[1]*(x[0]-[2])*(x[1]-[3]) )", 0, 2000, 0, 0.5 )
-    razorFit.SetParameters( h2.GetEntries(), 0.0005, 170, 0.00001 )
-    razorFit.FixParameter( 2, 170 )
-    fr = h2.Fit( "razorFitFunc" )
-    h2.Draw("cont2")
-    razorFit.Draw("same")
-    aux.save( "razorPlane" )
-
-    pX = getProjections( h2 )
-    pX[0].Draw()
-    for h in pX[1:]: h.Draw("same")
-
-    leg = ROOT.TLegend( .7, .7, .95, .95 )
-    for h in pX: leg.AddEntry( h, h.GetName(), "l" )
-    leg.Draw()
-
-    aux.save( "razorAlongX" )
-    """
-
 def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_jControl" ):
     if not controlDataset: controlDataset = dataset
     can = ROOT.TCanvas()
@@ -795,54 +766,6 @@ def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
 
 
 
-
-def getRazorProjection( dataset, xaxis, cut ):
-    h2 = getHistoFromDataset( dataset, "h2_razorPlane__tr" )
-    if xaxis:
-        h = h2.ProjectionX("_px", h2.GetYaxis().FindFixBin( cut ), -1)
-    else:
-        h = h2.ProjectionY("_py", h2.GetXaxis().FindFixBin( cut ), -1)
-    return h
-
-
-def compareRazorProjections( bkg, additional, xaxis=True, cut=-1, binning=[] ):
-
-    can = ROOT.TCanvas()
-    m = multiplot.Multiplot()
-
-    for d in bkg[-1::-1]:
-        h = getRazorProjection( d, xaxis,cut )
-        if binning: h = aux.rebin( h, binning )
-        aux.appendFlowBin( h )
-        h.SetYTitle( aux.getYAxisTitle( h ) )
-        if not h.Integral(): continue
-        m.addStack( h, d.label )
-
-
-    for d in additional:
-        h = getRazorProjection( d, xaxis,cut )
-        if not h.Integral(): continue
-        if binning: h = aux.rebin( h, binning )
-
-        if h.GetLineColor() == ROOT.kBlack: # data
-            h.drawOption_ = "ep"
-            h.SetMarkerStyle(20)
-            h.SetBinErrorOption( ROOT.TH1.kPoisson )
-        else:
-            h.drawOption_ = "hist"
-            h.SetLineWidth(3)
-
-        m.add( h, d.label )
-
-    if m.Draw():
-
-        l = aux.Label()
-        aux.save( "razorProjections" )
-
-def razorStudies():
-    compareRazorProjections( [gjets,qcd,ttjets,wjets], [t5wg_1500_125], False )
-
-
 def transitions():
     drawSameHistogram( "_gjets", "h_genHt", [gjets40,gjets100,gjets200,gjets400,gjets600] )
     drawSameHistogram( "_gjets_inc15", "h_genHt", [gjets_pt15,gjets40,gjets100], binning=range(0,120) )
@@ -928,7 +851,7 @@ def photonPosition( dataset, savename, dir="tr", normalize=False ):
 
     h2 = dataset.getHist( dir+"/n_heJets_vs_photonPosition" )
 
-    colors = [ROOT.kBlack,ROOT.kBlue,ROOT.kCyan,ROOT.kGreen+4,ROOT.kRed,ROOT.kMagenta]+range(100)
+    colors = [ rwth.black, rwth.red, rwth.blue, rwth.lila, rwth.petrol50, rwth.green ]+range(100)
 
     #for xbin in range(1,h2.GetNbinsX()+1):
     for xbin in range(1,6):
@@ -968,7 +891,6 @@ def main():
     #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
     #drawSameHistograms( "mc", [gjets, qcd, wjets, ttjets, ttg,znunu], additional=[signal["T5gg_1400_1200"], signal["T5gg_1400_200"]])
     #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
-    #drawRazor( data )
 
     #ewkClosure( ttjets, "tt" )
     #ewkClosure( wjets, "w" )
@@ -1003,7 +925,6 @@ def main():
     #drawROCs()
     #drawH2s()
     #drawISRsplitting()
-    #razorStudies()
 
     #photonPosition( gjets+qcd, "gqcd" )
     #photonPosition( ttg+ttjets, "gjtt" )
