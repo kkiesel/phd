@@ -50,26 +50,13 @@ class Multiplot:
             return False
         self.stackHists()
 
-        minimum = self.getMinimum()
-        maximum = self.getMaximum()
-        if ROOT.gPad and ROOT.gPad.GetLogy():
-            maximum = 2.5*maximum
-            #minimum = 0.3*minimum
-        else:
-            range = maximum-minimum
-            maximum += range*.1
-            if minimum-.1*range > 0: minimum -= .1*range
-            #minimum -= (maximum-minimum)*.1
-            #minimum = max([0,minimum])
-
-        minimum = 0 #max( [.5/aux.maxBinWidth(self.hists[0]),minimum] )
+        minimum = 0
+        maximum = 1.1*self.getMaximum()
 
         if self.maximum != None:
             maximum = self.maximum
         if self.minimum != None:
             minimum = self.minimum
-
-        #if minimum==0: minimum=0.1
 
         # Fill legend:
         # Data first
