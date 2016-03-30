@@ -324,15 +324,17 @@ def automaticRebinner( hlist, minEvents=3 ):
 
     print out[::-1]
 
+def getMinimum( hists ):
+    return min( [ h.GetMinimum(0) for h in hists if not isinstance( h, ROOT.THStack ) ] )
+
 
 def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
     if normal:
         for ending in endings:
             ROOT.gPad.GetCanvas().SaveAs( folder+name+ending )
     if log:
-        for i in ROOT.gPad.GetListOfPrimitives():
-            if isinstance(i,ROOT.TH1):
-                i.SetMinimum(.5/maxBinWidth(i))
+        allH = [ i for i in ROOT.gPad.GetListOfPrimitives() if isinstance(i, ROOT.TH1) ]
+        for i in allH: i.SetMinimum(.5/maxBinWidth(i))
         ROOT.gPad.SetLogy()
         for ending in endings:
             ROOT.gPad.GetCanvas().SaveAs( folder + name + "_log" + ending )
