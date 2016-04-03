@@ -71,7 +71,8 @@ def getFromFile( filename, histoname ):
     f = ROOT.TFile( filename )
     h = f.Get( histoname )
     if not h:
-        print "Object {} not found in file {}".format(histoname, filename)
+        if ROOT.gErrorIgnoreLevel < ROOT.kBreak:
+            print "Object {} not found in file {}".format(histoname, filename)
         return
     h = ROOT.gROOT.CloneObject( h )
     if isinstance( h, ROOT.TH1 ) and not h.GetSumw2N():
