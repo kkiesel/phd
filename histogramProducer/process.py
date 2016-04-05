@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 import os
 import multiprocessing
+import glob
 
 # own libray
 import run
@@ -69,6 +70,7 @@ dir = "/user/kiesel/nTuples/v09/"
 toProcess = ds["gjet"]+ds["qcd"]
 toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
 toProcess = ["TTJets_nTuple.root","TTGJets_nTuple.root"]
+toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
 toProcess = [ x for sublist in ds.values() for x in sublist ]
 
 
@@ -77,6 +79,9 @@ toProcess = [ x for sublist in ds.values() for x in sublist ]
 
 files = [dir+x for x in toProcess]
 files.sort( key=os.path.getsize, reverse=True )
+
+# adding signal scan
+#files += [ f for f in glob.glob( dir+"T5*.root") ]
 
 # compile only
 run.run()
