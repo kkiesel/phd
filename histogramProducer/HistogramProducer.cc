@@ -408,8 +408,17 @@ void HistogramProducer::defaultSelection()
       || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3 ) continue;
 
     selJets.push_back( &jet );
-    if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < photonsEtaMaxBarrel )
+    if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < photonsEtaMaxBarrel ) {
+      bool genElectronMatch = false;
+      for( auto& genP : genParticles ) {
+        if( genP.isPrompt && fabs(genP.pdgId)==11 && genP.p.DeltaR( jet.p ) < 0.1 ) {
+          genElectronMatch = true;
+          break;
+        }
+      }
+      if( genElectronMatch ) continue;
       selHEJets.push_back( &jet );
+    }
     if( jet.bDiscriminator > bTaggingWorkingPoints.at(CSVv2M) && fabs(jet.p.Eta())<2.5 )
       selBJets.push_back( &jet );
   }
