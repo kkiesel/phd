@@ -518,7 +518,6 @@ void HistogramProducer::Terminate()
 {
 
   auto outputName = getOutputFilename( fReader.GetTree()->GetCurrentFile()->GetName() );
-  cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 
   // save all defined histograms to file
   TFile file( outputName.c_str(), "RECREATE");
@@ -551,6 +550,8 @@ void HistogramProducer::Terminate()
 
   fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write("hCutFlow");
 
+  f.Close();
+  cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 }
 
 void HistogramProducer::resetSelection() {
