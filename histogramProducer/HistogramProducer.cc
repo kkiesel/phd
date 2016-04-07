@@ -56,6 +56,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Bool_t> hlt_photon90_ht500;
   TTreeReaderValue<Bool_t> hlt_photon90;
   TTreeReaderValue<Bool_t> hlt_ht600;
+  TTreeReaderValue<Int_t> hlt_ht600_pre;
 
   vector<tree::Photon*> selPhotons;
   vector<tree::Jet*> selJets;
@@ -377,6 +378,7 @@ HistogramProducer::HistogramProducer():
   hlt_photon90_ht500( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
   hlt_photon90( fReader, "HLT_Photon90_v" ),
   hlt_ht600( fReader, "HLT_PFHT600_v" ),
+  hlt_ht600_pre( fReader, "HLT_PFHT600_v_pre" ),
   jetSelector("../plotter/gammaPosition.root", "gqcd"),
   nJetWeighter("../plotter/weights.root", "weight_n_heJet"),
   looseCutFlowPhoton( {{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
@@ -483,6 +485,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
 
   if( !selPhotons.size() && selHEJets.size() && myHt > 700 && (*hlt_ht600 || !isData) ) {
+    selW *= *hlt_ht600_pre;
     auto indexToRemove = jetSelector.getJetN(selHEJets.size()-1); // -1, since one jet is erased from list (gets photon proxy)
     fillSelectedPhotons( *selHEJets.at(indexToRemove) );
     // clean jets and other he objects
@@ -497,7 +500,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if(selHEJets.size()==2) fillSelection("tr_jControl_he2");
     if(selHEJets.size()==3) fillSelection("tr_jControl_he3");
     float wnJet=nJetWeighter.getWeight(selHEJets.size());
-    selW = originalW * wnJet;
+    selW = originalW * wnJet * *hlt_ht600_pre;
     fillSelection("tr_jControl_wnjet");
     if(met->p.Pt()>70) fillSelection("tr_jControl_highMet");
     else fillSelection("tr_jControl_lowMet");
