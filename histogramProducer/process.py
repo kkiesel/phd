@@ -11,14 +11,12 @@ import run
 
 ds={
     "sp": [
-        "SinglePhoton_Run2015C_25ns-05Oct2015-v1_nTuple.root",
-        "SinglePhoton_Run2015D-05Oct2015-v1_nTuple.root",
-        "SinglePhoton_Run2015D-PromptReco-v4_nTuple.root",
+        "SinglePhoton_Run2015C_25ns-16Dec2015-v1_nTuple.root",
+        "SinglePhoton_Run2015D-16Dec2015-v1_nTuple.root",
         ],
     "jh": [
-        "JetHT_Run2015C_25ns-05Oct2015-v1_nTuple.root",
-        "JetHT_Run2015D-05Oct2015-v1_nTuple.root",
-        "JetHT_Run2015D-PromptReco-v4_nTuple.root",
+        "JetHT_Run2015C_25ns-16Dec2015-v1_nTuple.root",
+        "JetHT_Run2015D-16Dec2015-v1_nTuple.root",
         ],
     "gjet": [
         "GJets_HT-40To100_nTuple.root",
@@ -53,7 +51,6 @@ ds={
         "ZJetsToNuNu_HT-600ToInf_nTuple.root",
         ],
     "ewk": [
-        "DYJetsToLL_M-50_nTuple.root",
         "TTJets_nTuple.root",
         ],
     "gv": [
@@ -63,7 +60,7 @@ ds={
         "WGToLNuG-madgraphMLM_nTuple.root",
         ]
 }
-dir = "/user/kiesel/nTuples/v09/"
+dir = "/user/kiesel/nTuples/v11/"
 
 
 #############################################
@@ -74,8 +71,8 @@ toProcess = ds["gjet"]+ds["qcd"]
 toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
 toProcess = ["TTJets_nTuple.root","TTGJets_nTuple.root"]
 toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
+toProcess = ds["sp"]+ds["jh"]
 toProcess = [ x for sublist in ds.values() for x in sublist ]
-
 
 #############################################
 #############################################
@@ -84,7 +81,7 @@ files = [dir+x for x in toProcess]
 files.sort( key=os.path.getsize, reverse=True )
 
 # adding signal scan
-#files += [ f for f in glob.glob( dir+"T5*.root") ]
+#files = [ f for f in glob.glob( dir+"T5*00.root") ]
 
 # compile only
 run.run()
