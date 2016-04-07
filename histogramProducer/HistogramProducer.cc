@@ -502,10 +502,32 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     float wnJet=nJetWeighter.getWeight(selHEJets.size());
     selW = originalW * wnJet * *hlt_ht600_pre;
     fillSelection("tr_jControl_wnjet");
-    if(met->p.Pt()>70) fillSelection("tr_jControl_highMet");
+    if(met->p.Pt()>300) fillSelection("tr_jControl_highMet");
+    else if(met->p.Pt()>70) fillSelection("tr_jControl_mediumMet");
     else fillSelection("tr_jControl_lowMet");
     selW = originalW;
   }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // electron sample
+  /////////////////////////////////////////////////////////////////////////////
+
+  for( auto& photon : *photons ) {
+    if( photon.isLoose && photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel ) {
+      selPhotons.push_back( &photon );
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  selW = originalW;
+  for( auto& p : selPhotons ) myHt += p->p.Pt();
+  for( auto& p : selJets ) myHt += p->p.Pt();
+  if( selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
+    fillSelection("tr_eControl");
+    if( genElectronMatch(*selPhotons.at(0)) ) fillSelection("tr_eControl_genE");
+  }
+
 
   return kTRUE;
 }
