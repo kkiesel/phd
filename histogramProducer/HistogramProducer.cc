@@ -35,6 +35,8 @@ class HistogramProducer : public TSelector {
   void initTriggerStudies();
   void fillTriggerStudies();
 
+  bool genElectronMatch( const tree::Particle& p ) ;
+
 
   TTreeReader fReader;
   TTreeReaderValue<std::vector<tree::Photon>> photons;
@@ -79,6 +81,15 @@ class HistogramProducer : public TSelector {
 
   double startTime;
 };
+
+bool HistogramProducer::genElectronMatch( const tree::Particle& p ) {
+  for( auto const& genP : *genParticles ) {
+    if( fabs(genP.pdgId)==11 && genP.fromHardProcess && genP.p.DeltaR(p.p)<0.2 ) {
+      return true;
+    }
+  }
+  return false;
+}
 
 void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_pt"] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 250, 0, 1000 );
@@ -405,14 +416,6 @@ void HistogramProducer::defaultSelection()
 
     selJets.push_back( &jet );
     if( jet.p.Pt() > 100 && fabs(jet.p.Eta()) < photonsEtaMaxBarrel ) {
-      bool genElectronMatch = false;
-      for( auto& genP : genParticles ) {
-        if( genP.isPrompt && fabs(genP.pdgId)==11 && genP.p.DeltaR( jet.p ) < 0.1 ) {
-          genElectronMatch = true;
-          break;
-        }
-      }
-      if( genElectronMatch ) continue;
       selHEJets.push_back( &jet );
     }
     if( jet.bDiscriminator > bTaggingWorkingPoints.at(CSVv2M) && fabs(jet.p.Eta())<2.5 )
@@ -458,14 +461,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   for( auto& photon : *photons ) {
     if( photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel ) {
-      bool genElectronMatch = false;
-      for( auto& genP : genParticles ) {
-        if( genP.isPrompt && fabs(genP.pdgId)==11 && genP.p.DeltaR( photon.p ) < 0.1 ) {
-          genElectronMatch = true;
-          break;
-        }
-      }
-      if( genElectronMatch ) continue;
       selPhotons.push_back( &photon );
     }
   }
@@ -477,7 +472,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
-    if(met->p.Pt()>70) fillSelection("tr_highMet");
+    if( genElectronMatch(*selPhotons.at(0)) ) fillSelection("tr_genE");
+    if(met->p.Pt()>300) fillSelection("tr_highMet");
+    else if(met->p.Pt()>70) fillSelection("tr_mediumMet");
     else fillSelection("tr_lowMet");
     if(selHEJets.size()==0) fillSelection("tr_he0");
     if(selHEJets.size()==1) fillSelection("tr_he1");
