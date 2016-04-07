@@ -1,15 +1,11 @@
 #include "time.h"
 
 #include "TROOT.h"
-#include "TChain.h"
 #include "TFile.h"
 #include "TSelector.h"
 #include "TTreeReader.h"
 #include "TTreeReaderValue.h"
-#include "TTreeReaderArray.h"
-#include "TH1F.h"
 #include "TH2F.h"
-#include "TProfile.h"
 #include "TEfficiency.h"
 
 #include "TreeParticles.hpp"
@@ -41,12 +37,12 @@ class HistogramProducer : public TSelector {
 
 
   TTreeReader fReader;
-  TTreeReaderArray<tree::Photon> photons;
-  TTreeReaderArray<tree::Jet> jets;
-  TTreeReaderArray<tree::Electron> electrons;
-  TTreeReaderArray<tree::Muon> muons;
-  TTreeReaderArray<tree::Particle> genJets;
-  TTreeReaderArray<tree::GenParticle> genParticles;
+  TTreeReaderValue<std::vector<tree::Photon>> photons;
+  TTreeReaderValue<std::vector<tree::Jet>> jets;
+  TTreeReaderValue<std::vector<tree::Electron>> electrons;
+  TTreeReaderValue<std::vector<tree::Muon>> muons;
+  TTreeReaderValue<std::vector<tree::Particle>> genJets;
+  TTreeReaderValue<std::vector<tree::GenParticle>> genParticles;
   TTreeReaderValue<tree::MET> met;
   TTreeReaderValue<Float_t> pu_weight;
   TTreeReaderValue<Char_t> mc_weight;
@@ -106,7 +102,7 @@ void HistogramProducer::fillTriggerStudies() {
   float ht = 0;
   tree::Jet *minPtJet=0;
   tree::Jet *maxEtaJet=0;
-  for( auto& jet : jets ) {
+  for( auto& jet : *jets ) {
     if( jet.p.Pt() > 40 && fabs(jet.p.Eta()) < 3 ) {
       if( !minPtJet || minPtJet->p.Pt() > jet.p.Pt() ) minPtJet = &jet;
       if( !maxEtaJet || fabs(minPtJet->p.Eta()) < fabs(jet.p.Eta()) ) maxEtaJet = &jet;
@@ -115,7 +111,7 @@ void HistogramProducer::fillTriggerStudies() {
   }
 
   tree::Photon* thisPhoton=0;
-  for( auto& photon : photons ) {
+  for( auto& photon : *photons ) {
     if( photon.p.Pt() > 15 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel && photon.isLoose && !photon.hasPixelSeed ) {
       if( !thisPhoton || thisPhoton->p.Pt() < photon.p.Pt() ) {
         thisPhoton = &photon;
@@ -148,12 +144,12 @@ void HistogramProducer::fillTriggerStudies() {
   }
 
   if( *hlt_ht600 && ht > 700 ) {
-    for( auto& photon : photons ) {
+    for( auto& photon : *photons ) {
       if( photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel ) {
         if( looseCutFlowPhoton.check( photon ) ) {
           effMap.at("eff_hlt_r9").Fill( *hlt_photon90_ht500, photon.r9 );
           effMap.at("eff_hlt_nVertex").Fill( *hlt_photon90_ht500, *nGoodVertices );
-          effMap.at("eff_hlt_nJet").Fill( *hlt_photon90_ht500, jets.GetSize() );
+          effMap.at("eff_hlt_nJet").Fill( *hlt_photon90_ht500, jets->size() );
         }
         if(
           looseCutFlowPhoton.passHoe()
@@ -280,7 +276,7 @@ void HistogramProducer::fillSelection( string const& s ) {
   float st = ht_g + met->p.Pt();
 
   float tremht = 0;
-  for( auto& jet : jets ){
+  for( auto& jet : *jets ){
     auto pt = jet.p.Pt();
     if( pt>40 && fabs(jet.p.Eta())<3 ) {
       tremht += pt;
@@ -392,17 +388,17 @@ void HistogramProducer::SlaveBegin(TTree *tree)
 
 void HistogramProducer::defaultSelection()
 {
-  for( auto& mu : muons ) {
+  for( auto& mu : *muons ) {
     if( mu.p.Pt() < 15 ) continue;
     if( indexOfMatchedParticle<tree::Photon*>( mu, selPhotons, .3 ) >= 0 ) continue;
     selMuons.push_back( &mu );
   }
-  for( auto& el : electrons ) {
+  for( auto& el : *electrons ) {
     if( !el.isLoose || el.p.Pt() < 15 ) continue;
     if( indexOfMatchedParticle<tree::Photon*>( el, selPhotons, .3 ) >= 0 ) continue;
     selElectrons.push_back( &el );
   }
-  for( auto& jet : jets ) {
+  for( auto& jet : *jets ) {
     if( !jet.isLoose
       || jet.hasPhotonMatch || jet.hasElectronMatch || jet.hasMuonMatch
       || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3 ) continue;
@@ -432,7 +428,7 @@ void HistogramProducer::fillSelectedPhotons( const tree::Particle& p ) {
 }
 
 tree::Jet* HistogramProducer::matchedJet( const tree::Particle& p ) {
-  for( auto& jet : jets ) {
+  for( auto& jet : *jets ) {
     if( jet.p.DeltaR(p.p)<.2 ) {
       return &jet;
     }
@@ -460,7 +456,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // signal sample
   /////////////////////////////////////////////////////////////////////////////
 
-  for( auto& photon : photons ) {
+  for( auto& photon : *photons ) {
     if( photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel ) {
       bool genElectronMatch = false;
       for( auto& genP : genParticles ) {
