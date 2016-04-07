@@ -15,9 +15,10 @@ def run(infile="", selector="HistogramProducer.cc"):
         ch = ROOT.TChain("TreeWriter/eventTree")
         ch.AddFile(infile)
         ch.Process(selector+"+")
-    else:
-        ROOT.TSelector.GetSelector(selector+"++")
+    elif ROOT.TSelector.GetSelector(selector+"++"):
         print "Compiled TSelector"
+    else:
+        raise Exception ('TSelector could not be compiled!')
 
 
 if __name__ == "__main__":
