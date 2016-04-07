@@ -84,23 +84,10 @@ class Dataset:
 
 
 # data
-data = Dataset( "SinglePhoton", 0, ROOT.kBlack )
-
-data_2015C = Dataset( "SinglePhoton_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
-data_2015D = Dataset( "SinglePhoton_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
-data_2015D.label = "05Oct2015 reco"
-data_prompt = Dataset( "SinglePhoton_Run2015D-PromptReco-v4", 0, ROOT.kBlack )
-data_prompt.label = "PromptReco-v4"
-
-data = data_prompt+data_2015D # +data_2015C
+data = Dataset("SinglePhoton_Run2015D-16Dec2015-v1", 0, ROOT.kBlack ) + Dataset("SinglePhoton_Run2015C_25ns-16Dec2015-v1", 0, ROOT.kBlack )
 data.label = "Data"
 
-dataHt_2015C = Dataset( "JetHT_Run2015C_25ns-05Oct2015-v1", 0, ROOT.kBlack )
-dataHt_2015D = Dataset( "JetHT_Run2015D-05Oct2015-v1", 0, ROOT.kBlack )
-dataHt_2015D.label = "05Oct2015 reco"
-dataHt_prompt = Dataset( "JetHT_Run2015D-PromptReco-v4", 0, ROOT.kBlack )
-dataHt_prompt.label = "Prompt"
-dataHt = dataHt_prompt+dataHt_2015D #+dataHt_2015C
+dataHt = Dataset("JetHT_Run2015D-16Dec2015-v1", 0, ROOT.kBlack ) + Dataset("JetHT_Run2015C_25ns-16Dec2015-v1", 0, ROOT.kBlack )
 dataHt.label = "Data (JetHt)"
 
 # k-factors from twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
@@ -160,10 +147,11 @@ wjets600_inf = Dataset( "WJetsToLNu_HT-600ToInf", 18.77, ROOT.kRed, "WJetsToLNu_
 
 # k-factor
 wjetsSamples = [ wjets100, wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500 ]
+wjetsSamples = [ wjets400, wjets600, wjets800, wjets1200, wjets2500 ]
 for ds in wjetsSamples+[wjets600_inf]:
     ds.xsecs = [ ds.xsecs[0] * 1.21 ]
 
-wjets = wjets600_inf + wjets400 + wjets200 + wjets100 # no high HT samples
+wjets = wjets600_inf + wjets400 + wjets200 # no high HT samples
 wjets = sum( wjetsSamples )
 wjets.label = "W#rightarrowl#nu"
 
@@ -185,7 +173,7 @@ znunu600 = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.20, ROOT.kMagenta+0 , "ZJetsToN
 zg_130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.223, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
 zg_130.label = "#gammaZ(#nu#nu) p_{T}^{#gamma}>130"
 
-znunuSamples = znunu100, znunu200, znunu400, znunu600
+znunuSamples = znunu400, znunu600
 for ds in znunuSamples:
     # apply k-factor
     ds.xsecs = [ ds.xsecs[0] * 1.23 ]
@@ -206,7 +194,7 @@ class SampleCollection(collections.MutableMapping):
     """Dictionary used to store signal datasets.
     The first time a dataset is requested, it is created"""
 
-    colors = [ROOT.kGreen+4, ROOT.kGreen+1] + [ ROOT.kGreen-i for i in range(5) ]
+    colors = [ROOT.kGreen+4, ROOT.kGreen+1] + [ ROOT.kGreen-i for i in range(5) ] + range(1000)
 
     def __init__(self, *args, **kwargs):
         self.store = dict()
