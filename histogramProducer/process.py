@@ -3,6 +3,9 @@ import os
 import multiprocessing
 import glob
 
+import ROOT
+ROOT.gErrorIgnoreLevel = ROOT.kWarning
+
 # own libray
 import run
 
