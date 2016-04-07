@@ -568,7 +568,7 @@ void HistogramProducer::Terminate()
 
   fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write("hCutFlow");
 
-  f.Close();
+  file.Close();
   cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 }
 
