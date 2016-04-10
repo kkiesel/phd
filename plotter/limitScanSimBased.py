@@ -92,7 +92,7 @@ def readDict( filename ):
 
 def getHistForModel( model ):
     if model == "T5gg": return ROOT.TH2F("","", 22, 950, 2050, 18, 50, 1850 )
-    if model == "T5Wg": return ROOT.TH2F("","", 15, 850, 1600, 15, -50, 1550 )
+    if model == "T5Wg": return ROOT.TH2F("","", 17, 750, 1600, 15, -50, 1550 )
     print "Not specified model", model
 
 def getXsecLimitHist( gr2d, h ):
@@ -119,6 +119,6 @@ if __name__ == "__main__":
     toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
     writeDict( toDraw, "tmp/%s_graphs1d.root"%scanName )
 
-    subprocess.call(["python", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName, "plots/%s_limits_"%scanName])
+    subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName, "plots/%s_limits_"%scanName])
 
 
