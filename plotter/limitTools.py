@@ -17,7 +17,7 @@ def infoFromOut(out):
     return infos
 
 def guessSignalPoint(name):
-    m = re.match(".*(\d+)[^\d]*(\d+).*",name)
+    m = re.match(".*_(\d+)_(\d+).*",name)
     if m:
         return int(m.group(1)), int(m.group(2))
     else:
