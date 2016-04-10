@@ -24,8 +24,10 @@ import limitTools
 
 import auxiliary as aux
 from datasets import *
+import subprocess
 
 def getMetYields( dataset ):
+    binEdges = [ 150, 200, 250, 300, 370, 450 ]
     h = dataset.getHist("tr/met")
     h = aux.rebin( h, binEdges, False )
     cont = [ h.GetBinContent(i) for i in range(1,h.GetNbinsX()+2) ]
@@ -34,7 +36,6 @@ def getMetYields( dataset ):
 
 def getRgraphs( files ):
 
-    binEdges = [ 150, 200, 250, 300, 370, 450 ]
 
     dataCardTemplate = Template("""
 imax 6
@@ -49,7 +50,7 @@ process 1 1 1 1 1 1 0 0 0 0 0 0
 rate ${bgRate} ${sigRate}
 signalUnc lnN - - - - - - ${sigUnc}
 bgUnc lnN ${bgUnc} - - - - - -
-    """)
+""")
 
     dataCardTemplate = Template(dataCardTemplate.safe_substitute( {"sigUnc": "1.15 "*6, "bgUnc": "1.5 "*6 } ))
 
@@ -59,20 +60,47 @@ bgUnc lnN ${bgUnc} - - - - - -
     defaultGr = ROOT.TGraph2D(len(files))
     graphs = dict( (x,defaultGr.Clone(x)) for x in ["obs","exp","exp1up","exp1dn","exp2up","exp2dn"] )
     for ifile, file in enumerate(files):
-        p = guessSignalPoint(file)
+        p = limitTools.guessSignalPoint(file)
         pointName = file.split("/")[-1][:-11]
         sigSet = signal[pointName]
 
         sigYields = getMetYields( sigSet )
 
-        with open("tmpDataCard.txt", "w") as f:
+        with open("tmp/simBasedDataCard.txt", "w") as f:
             f.write( dataCardTemplate.safe_substitute( {"sigRate": " ".join([str(i) for i in sigYields]) } ) )
-        rInfo = limitTools.infosFromDatacard("tmpDataCard.txt")
+        rInfo = limitTools.infosFromDatacard("tmp/simBasedDataCard.txt")
         for name, gr in graphs.iteritems():
             graphs[name].SetPoint(ifile, p[0], p[1], rInfo[name] )
 
     return graphs
 
+def writeDict( d, filename ):
+    f = ROOT.TFile( filename, "recreate")
+    for name, ob in d.iteritems():
+        ob.Write(name)
+    f.Close()
+
+def readDict( filename ):
+    f = ROOT.TFile( filename )
+    tmpDir = f.GetDirectory( path )
+    d = {}
+    for element in tmpDir.GetListOfKeys():
+        obj = element.ReadObj()
+        obj = ROOT.gROOT.CloneObject( obj )
+        d[element.GetName()] = obj
+    return d
+
+def getHistForModel( model ):
+    if model == "T5gg": return ROOT.TH2F("","", 22, 950, 2050, 18, 50, 1850 )
+    if model == "T5Wg": return ROOT.TH2F("","", 15, 850, 1600, 15, -50, 1550 )
+    print "Not specified model", model
+
+def getXsecLimitHist( gr2d, h ):
+    points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
+    for x,y,z in points:
+        xsec = aux.getXsecSMSglu( x )
+        h.SetBinContent(h.FindBin(x,y), z*xsec )
+    return h
 
 
 if __name__ == "__main__":
@@ -83,32 +111,14 @@ if __name__ == "__main__":
 
     scanName = limitTools.guessScanName(args.files[0])
 
-    graphs = getRgraphs( args.files )
-    f = ROOT.TFile( "tmp/%s_graphs2d.root"%scanName,"recreate")
-    for name, gr in graphs.iteritems():
-        gr.Write(name)
-    f.Close()
+    #graphs = getRgraphs( args.files )
+    #writeDict( graphs, "tmp/%s_graphs2d.root"%scanName )
 
-
-    f = ROOT.TFile("tmp/%s_graphs2d.root"%scanName)
-    fout = ROOT.TFile( "tmp/%_graphs1d.root"%scanName, "recreate" )
-
-    for name in "obs","exp","exp1up","exp1dn","exp2up","exp2dn":
-        gr2d = f.Get(name)
-        # get histogram
-        if name == "obs":
-            #h = ROOT.TH2F("","", 14, 950, 2050, 19, 50, 1950 )
-            #h = gr2d.GetHistogram()
-            #gr2d.SetHistogram(h)
-            h = gr2d.Project("xy")
-            fout.cd()
-            h.Write("obs_hist")
-        gr = getContour(gr2d)
-        fout.cd()
-        gr.Write(name)
+    graphs = readDict( "tmp/%s_graphs2d.root"%scanName )
+    toDraw = dict( [(name,limitTools.getContour(gr)) for name,gr in graphs.iteritems() ] )
+    toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
+    writeDict( toDraw, "tmp/%s_graphs1d.root"%scanName )
 
     subprocess.call(["python", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName, "plots/%s_limits_"%scanName])
-
-
 
 
