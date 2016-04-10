@@ -119,18 +119,16 @@ def divideDatasetIntegrals( numerator, denominator, name ):
     return num/den if den else 1.
 
 def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, binningName="", scaleToData=False ):
-    if name == "h_j_looseID__base": return
 
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
     scale = 1.
     if scaleToData: scale = divideDatasetIntegrals( [ i for i in additional if "Data" in i.label ], bkg, name )
-    if "__trPhoton90" in name: scale = 1/90.
-    if "__tr_jControl" in name and "Jet" in name: scale = 1/6.
 
     for d in bkg[-1::-1]:
         h = d.getHist( name )
+        if not h: continue
         if not h.Integral(): continue
         h.Scale(scale)
         if binning: h = aux.rebin( h, binning )
@@ -142,6 +140,7 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
     dataHist = None
     for d in additional:
         h = d.getHist( name )
+        if not h: continue
         if not h.Integral(): continue
         if binning: h = aux.rebin( h, binning )
         aux.appendFlowBin( h )
@@ -160,32 +159,7 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
 
         m.add( h, d.label )
 
-    if name == "h_met__tr" and binningName == "3": m.minimum = 1e-3
-    if name == "h_met__tr_eControl" and binningName == "3": m.minimum = 1e-1
-    if name == "h_met__tr_jControlLeadingJet" and binningName == "1": m.minimum = 0.9
-
-    if name == "h_ht__tr" and binningName == "3": m.minimum = 1e-3
-    if name == "h_ht__tr_eControl" and binningName == "1": m.minimum = 1e-1
-    if name == "h_ht__tr_jControlLeadingJet" and binningName == "1": m.minimum = 1e-2
-
-    if name == "h_n_jet__tr" and binningName == "3": m.minimum = 1
-    if name == "h_n_jet__tr_eControl" and binningName == "1": m.minimum = 1
-    if name == "h_n_jet__tr_jControlLeadingJet" and binningName == "1": m.minimum = 1
-
-    if name == "h_g_pt__tr" and binningName == "3": m.minimum = 1e-4
-    if name == "h_j1_pt__tr" and binningName == "3": m.minimum = 1e-3
-
-    if "h_met__tr" in name:
-        m.leg.SetX1(0.45)
-        m.leg.SetY1(0.44)
-    else:
-        m.leg.SetX1(1)
-        m.leg.SetY1(1)
-        m.leg.SetX2(1)
-        m.leg.SetY2(1)
-
-    if "jControl" in name: m.sortStackByIntegral()
-    ROOT.gPad.SetLogy()
+    m.sortStackByIntegral()
     if m.Draw():
 
         # ratio
@@ -201,24 +175,24 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
         l = aux.Label(info="#scale[0.7]{%s}"%info, sim=data not in additional)
 
         if binningName: binningName = "_"+binningName
+        name = name.replace("/","__")
         saveName = "sameHistograms_{}_{}{}".format(sampleNames, name, binningName )
         aux.save( saveName )
 
 
 def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     file = stack[0].files[0] if stack else additional[0].files[0]
-    names = aux.getObjectNames( file )
+    names = aux.getObjectNames( file, "tr", [ROOT.TH1F] )
+    additionalHt = [ x for x in additional if x is not data ]
+    if data in additional: additionalHt += [ dataHt ]
 
-    #names = [ "h_met__tr_jControlLeadingJet" ] # test plot
-    names = ["h_met__tr_eControl"]
-
-
+    names = ["met"]
 
     for name in names:
-        if not name.startswith("h_"): continue
-
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
-            drawSameHistogram( sampleNames, name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_highMet/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_jControl/"+name, stack, additionalHt, binning, binningName )
 
 def getProjections( h2, alongX=True ):
     hs = []
@@ -249,7 +223,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
 
 
     hdir = dataset.getHist( dirDir+"/"+name )
-    dirInt = hdir.Integral(0,-1)
+    dirInt,dirIntErr = aux.integralAndError(hdir)
     if not hdir.Integral(): return
     if binning: hdir = aux.rebin( hdir, binning )
     aux.appendFlowBin( hdir )
@@ -262,18 +236,20 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     m.add( hdir, "#gamma  ({})".format(aux.metricPrefix(dirInt)) )
 
     hpre = controlDataset.getHist( preDir+"/"+name )
-    preInt = hpre.Integral(0,-1)
+    preInt,preIntErr = aux.integralAndError(hpre)
     if not preInt: return
     if binning: hpre = aux.rebin( hpre, binning )
     aux.appendFlowBin( hpre )
     hpre.Scale( dirInt/preInt )
+    scaleErr = dirInt/preInt * math.sqrt( (dirIntErr/dirInt)**2 + (preIntErr/preInt)**2 )
+    m.leg.SetHeader("scale = ({:3.1f}#pm{:3.1f})m".format(dirInt/preInt*1000,1000*scaleErr))
     hpre.SetYTitle( aux.getYAxisTitle( hpre ) )
     hpre.SetLineColor(ROOT.kRed)
     hpre.drawOption_ = "hist e"
     m.add( hpre, "jet ({})".format(aux.metricPrefix(preInt)) )
 
     if name=="met":
-        hpreUp = controlDataset.getHist( preDir+"/"+name+"Up" )
+        hpreUp = controlDataset.getHist( preDir+"/"+name+"UpJec" )
         if binning: hpreUp = aux.rebin( hpreUp, binning )
         aux.appendFlowBin( hpreUp )
         hpreUp.Scale( dirInt/preInt )
@@ -281,7 +257,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
         hpreUp.SetLineStyle(3)
         hpreUp.drawOption_ = "hist"
         m.add( hpreUp, "jet +" )
-        hpreDn = controlDataset.getHist( preDir+"/"+name+"Dn" )
+        hpreDn = controlDataset.getHist( preDir+"/"+name+"DnJec" )
         if binning: hpreDn = aux.rebin( hpreDn, binning )
         aux.appendFlowBin( hpreDn )
         hpreDn.Scale( dirInt/preInt )
@@ -884,7 +860,8 @@ def main():
     #drawSameHistograms( "gqcd_dataHt", [gjets600,gjets400,gjets200, gjets100,gjets40,qcd], [dataHt])
     #drawSameHistograms( "emqcd_data", [emqcd], [data])
     #drawSameHistograms( "_gjet15_data", [gjets_pt15, qcd], additional=[data])
-    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu,dy], additional=[data])
+    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[signal["T5Wg_1550_100"],data])
+    #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[signal["T5Wg_1550_100"],signal["T5Wg_1550_1500"]])
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data])
     #drawSameHistograms( "mc_dataHt", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[dataHt])
@@ -937,5 +914,6 @@ def main():
 
 if __name__ == "__main__":
     from datasets import *
+    #ROOT.gErrorIgnoreLevel = ROOT.kFatal
     main()
 
