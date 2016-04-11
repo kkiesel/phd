@@ -1,3 +1,4 @@
+#include "regex"
 #include "time.h"
 
 #include "TROOT.h"
@@ -75,6 +76,7 @@ class HistogramProducer : public TSelector {
   map<int,pair<int,int>> rawEff_vs_run;
 
   bool isData;
+  int gluinoMass;
 
   JetSelector jetSelector;
   Weighter nJetWeighter;
@@ -383,6 +385,7 @@ HistogramProducer::HistogramProducer():
   nJetWeighter("../plotter/weights.root", "weight_n_heJet"),
   looseCutFlowPhoton( {{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
     {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} }),
+  gluinoMass(0),
   startTime(time(NULL))
 {
 }
@@ -392,6 +395,11 @@ void HistogramProducer::Init(TTree *tree)
   fReader.SetTree(tree);
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
+
+  std::smatch sm;
+  if( regex_match( inputName, sm, regex(".*/T5.*_(\\d+)_(\\d+).root") ) ) {
+      gluinoMass = stoi(sm[1]);
+  }
   initTriggerStudies();
 }
 
@@ -456,6 +464,13 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // The signal trigger effiency in this run is low.
   // Perhaps this has something to do with the bad beam spot in this and other runs
   if( isData && *runNo == 259637 ) return true;
+
+  // For FastSim CMSSW7X, there are events with large pt jets (pt>sqrt(2))
+  // It was recommended for the 2015 analysis to ignore events with objets > 2 times gluino mass
+  // TODO: remove these events from the acceptance, change nGen (should be small influence)
+  // see here: https://hypernews.cern.ch/HyperNews/CMS/get/met/432.html
+  if( gluinoMass > 0 && jets->size() && jets->at(0).p.Pt() > 2*gluinoMass ) return kTRUE;
+
 
   /////////////////////////////////////////////////////////////////////////////
   // signal sample
