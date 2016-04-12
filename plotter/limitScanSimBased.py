@@ -91,8 +91,8 @@ def readDict( filename ):
     return d
 
 def getHistForModel( model ):
-    if model == "T5gg": return ROOT.TH2F("","", 22, 950, 2050, 18, 50, 1850 )
-    if model == "T5Wg": return ROOT.TH2F("","", 17, 750, 1600, 15, -50, 1550 )
+    if model == "T5gg": return ROOT.TH2F("","", 21, 975, 2025, 18, 50, 1850 )
+    if model == "T5Wg": return ROOT.TH2F("","", 16, 775, 1575, 31, -25, 1525 )
     print "Not specified model", model
 
 def getXsecLimitHist( gr2d, h ):
