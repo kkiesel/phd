@@ -46,6 +46,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<std::vector<tree::Muon>> muons;
   TTreeReaderValue<std::vector<tree::Particle>> genJets;
   TTreeReaderValue<std::vector<tree::GenParticle>> genParticles;
+  TTreeReaderValue<std::vector<tree::IntermediateGenParticle>> intermediateGenParticles;
   TTreeReaderValue<tree::MET> met;
   TTreeReaderValue<Float_t> pu_weight;
   TTreeReaderValue<Char_t> mc_weight;
@@ -371,6 +372,7 @@ HistogramProducer::HistogramProducer():
   muons( fReader, "muons" ),
   genJets( fReader, "genJets" ),
   genParticles( fReader, "genParticles" ),
+  intermediateGenParticles( fReader, "intermediateGenParticles" ),
   met( fReader, "met" ),
   nGoodVertices( fReader, "nGoodVertices" ),
   pu_weight( fReader, "pu_weight" ),
