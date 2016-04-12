@@ -186,7 +186,7 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     additionalHt = [ x for x in additional if x is not data ]
     if data in additional: additionalHt += [ dataHt ]
 
-    names = ["met"]
+    #names = ["met"]
 
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
