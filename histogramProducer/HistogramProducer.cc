@@ -214,10 +214,10 @@ map<string,TH1F> initHistograms(){
   hMap["metDn"] = TH1F( "", ";E^{miss}_{T} down (GeV)", 200, 0, 2000 );
   hMap["metUpJec"] = TH1F( "", ";E^{miss}_{T} up (GeV)", 200, 0, 2000 );
   hMap["metDnJec"] = TH1F( "", ";E^{miss}_{T} down (GeV)", 200, 0, 2000 );
-  hMap["metPar"] = TH1F( "", ";E^{miss}_{T} #parallel (GeV)", 200, 0, 2000 );
+  hMap["metPar"] = TH1F( "", ";E^{miss}_{T} #parallel (GeV)", 400, -2000, 2000 );
   hMap["metPer"] = TH1F( "", ";E^{miss #perp  }_{T} (GeV)", 200, 0, 2000 );
   hMap["metRaw"] = TH1F( "", ";uncorrected E^{miss}_{T} (GeV)", 200, 0, 2000 );
-  hMap["metParRaw"] = TH1F( "", ";uncorrected E^{miss}_{T} #parallel (GeV)", 200, 0, 2000 );
+  hMap["metParRaw"] = TH1F( "", ";uncorrected E^{miss}_{T} #parallel (GeV)", 400, -2000, 2000 );
   hMap["metPerRaw"] = TH1F( "", ";uncorrected E^{miss #perp  }_{T} (GeV)", 200, 0, 2000 );
   hMap["mt_g_met"] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 150, 0, 1500 );
 
@@ -324,9 +324,9 @@ void HistogramProducer::fillSelection( string const& s ) {
     hMapMap.at(s).at("g_eta").Fill( fabs(selPhotons.at(0)->p.Eta()), selW );
     float dphi_met_g = fabs(met->p.DeltaPhi( selPhotons.at(0)->p ));
     hMapMap.at(s).at("dphi_met_g").Fill( dphi_met_g, selW );
-    hMapMap.at(s).at("metPar").Fill( fabs(met->p.Pt()*cos(dphi_met_g)), selW );
+    hMapMap.at(s).at("metPar").Fill( met->p.Pt()*cos(dphi_met_g), selW );
     hMapMap.at(s).at("metPer").Fill( fabs(met->p.Pt()*sin(dphi_met_g)), selW );
-    hMapMap.at(s).at("metParRaw").Fill( fabs(met->p_raw.Pt()*cos(met->p_raw.DeltaPhi(selPhotons.at(0)->p))), selW );
+    hMapMap.at(s).at("metParRaw").Fill( met->p_raw.Pt()*cos(met->p_raw.DeltaPhi(selPhotons.at(0)->p)), selW );
     hMapMap.at(s).at("metPerRaw").Fill( fabs(met->p_raw.Pt()*sin(met->p_raw.DeltaPhi(selPhotons.at(0)->p))), selW );
     unsigned photonPosition=0;
     for(;photonPosition<selHEJets.size() && selHEJets.at(photonPosition)->p.Pt() > selPhotons.at(0)->p.Pt();photonPosition++);
