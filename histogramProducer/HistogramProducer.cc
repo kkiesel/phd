@@ -36,7 +36,7 @@ class HistogramProducer : public TSelector {
   void initTriggerStudies();
   void fillTriggerStudies();
 
-  bool genElectronMatch( const tree::Particle& p ) ;
+  int genMatch( const tree::Particle& p ) ;
 
 
   TTreeReader fReader;
@@ -86,13 +86,29 @@ class HistogramProducer : public TSelector {
   double startTime;
 };
 
-bool HistogramProducer::genElectronMatch( const tree::Particle& p ) {
-  for( auto const& genP : *genParticles ) {
-    if( fabs(genP.pdgId)==11 && genP.fromHardProcess && genP.p.DeltaR(p.p)<0.2 ) {
-      return true;
+int HistogramProducer::genMatch( const tree::Particle& p ) {
+
+  // match to daghters of massive particles
+  for(auto const& genP :*intermediateGenParticles ) {
+    for( auto const & d : genP.daughters ) {
+      auto id = fabs(d.pdgId);
+      auto dr = p.p.DeltaR(d.p);
+      auto dpt = p.p.Pt()/d.p.Pt();
+      if( dr < 0.15 ) return id;
     }
   }
-  return false;
+
+  for( auto const& genP : *genParticles ) {
+    auto id = fabs(genP.pdgId);
+    auto dr = p.p.DeltaR(genP.p);
+    auto dpt = p.p.Pt()/genP.p.Pt();
+    if( dr<0.15 && fabs(dpt-1) < 0.15) {
+      if( genP.isPrompt ) return id;
+      else return -id;
+    }
+  }
+
+  return 0;
 }
 
 void HistogramProducer::initTriggerStudies() {
@@ -258,8 +274,9 @@ map<string,TH1F> initHistograms(){
   hMap["n_bjet"] = TH1F( "", ";b-jet multiplicity", 16, -0.5, 15.5 );
   hMap["n_electron"] = TH1F( "", ";electron multiplicity", 4, -0.5, 3.5 );
   hMap["n_muon"] = TH1F( "", ";muon multiplicity", 4, -0.5, 3.5 );
-
   hMap["n_heJet"] = TH1F( "", ";photon-like jet multiplicity", 11, -0.5, 10.5 );
+
+  hMap["genMatch"] = TH1F( "", ";pdg id for gen match", 24, -0.5, 23.5 );
 
   return hMap;
 }
@@ -312,6 +329,7 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap.at(s).at("metRaw").Fill( met->p_raw.Pt(), selW );
 
   if( selPhotons.size() > 0 ) {
+    hMapMap.at(s).at("genMatch").Fill( genMatch(*selPhotons.at(0)), selW );
     auto mJet = matchedJet(*selPhotons.at(0));
     if(mJet){
       hMapMap.at(s).at("metUpJec").Fill( (met->p+(mJet->p*mJet->uncert)).Pt(), selW );
@@ -491,7 +509,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
-    if( genElectronMatch(*selPhotons.at(0)) ) fillSelection("tr_genE");
+    if( genMatch(*selPhotons.at(0)) == 11 ) fillSelection("tr_genE");
     if(met->p.Pt()>300) fillSelection("tr_highMet");
     else if(met->p.Pt()>70) fillSelection("tr_mediumMet");
     else fillSelection("tr_lowMet");
@@ -542,7 +560,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for( auto& p : selJets ) myHt += p->p.Pt();
   if( selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr_eControl");
-    if( genElectronMatch(*selPhotons.at(0)) ) fillSelection("tr_eControl_genE");
+    if( genMatch(*selPhotons.at(0)) == 11 ) fillSelection("tr_eControl_genE");
   }
 
 
