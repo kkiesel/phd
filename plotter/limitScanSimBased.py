@@ -95,7 +95,28 @@ def getHistForModel( model ):
     if model == "T5Wg": return ROOT.TH2F("","", 16, 775, 1575, 31, -25, 1525 )
     print "Not specified model", model
 
+def iterateH2(h):
+    for xbin in range(h.GetNbinsX()+2):
+        for ybin in range(h.GetNbinsY()+2):
+            yield xbin,ybin
+
+def interpolateH2( h ):
+    for x,y in iterateH2(h):
+        if not h.GetBinContent(x,y):
+            new = 0.
+            t = h.GetBinContent(x,y+1)
+            b = h.GetBinContent(x,y-1)
+            r = h.GetBinContent(x+1,y)
+            l = h.GetBinContent(x-1,y)
+            nNonZero = len( [ i for i in t,b,r,l if i>0])
+            if nNonZero > 2: new = sum([t,b,r,l])/nNonZero
+            if r and l: new = (r+l)/2
+            if t and b: new = (t+b)/2
+            h.SetBinContent( x, y, new )
+    return h
+
 def getXsecLimitHist( gr2d, h ):
+    h.SetDirectory(0) # or the next line will overwrite the hist?
     points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
     for x,y,z in points:
         xsec = aux.getXsecSMSglu( x )
@@ -117,6 +138,9 @@ if __name__ == "__main__":
     graphs = readDict( "tmp/%s_graphs2d.root"%scanName )
     toDraw = dict( [(name,limitTools.getContour(gr)) for name,gr in graphs.iteritems() ] )
     toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
+    if True:
+        toDraw["obs_hist"] = interpolateH2( toDraw["obs_hist"] )
+        toDraw["obs_hist"] = interpolateH2( toDraw["obs_hist"] )
     writeDict( toDraw, "tmp/%s_graphs1d.root"%scanName )
 
     subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName, "plots/%s_limits_"%scanName])
