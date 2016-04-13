@@ -52,6 +52,28 @@ def getDatasetFromKey(key):
     return key
 
 
+def getProjections( h2, alongX=True ):
+    hs = []
+    label = h2.GetYaxis().GetTitle()
+
+    for ybin in range( h2.GetNbinsY()+2 ):
+
+        ylow = h2.GetYaxis().GetBinLowEdge(ybin)
+        yhigh = h2.GetYaxis().GetBinUpEdge(ybin)
+        name = "{} #leq {} < {}".format( ylow, label, yhigh )
+        if ybin == 0: name = "{} < {}".format( label, yhigh )
+        if ybin == h2.GetNbinsY()+1: name = "{} #leq {}".format( ylow, label )
+
+
+        h = h2.ProjectionX( name, ybin, ybin )
+        h.SetLineColor( ybin+2)
+        if h.GetEntries():
+            h.Scale( 1./h.GetEntries() )
+            hs.append( h )
+
+    return hs
+
+
 def write2File( obj2Write, name, fname ):
     obj = obj2Write.Clone()
     if isinstance( obj, ROOT.TH1 ):
