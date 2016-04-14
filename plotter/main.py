@@ -500,7 +500,7 @@ def efficienciesDataMC( dataset_data, dataset_mc, savename="" ):
 def efficiency( dataset, name, savename="" ):
     c = ROOT.TCanvas()
     c.SetLogy(0)
-    h = getHistoFromDataset( dataset, name )
+    h = dataset.getHist( name )
     if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
 
     h_pas = h.GetPassedHistogram()
@@ -560,7 +560,7 @@ def efficiency( dataset, name, savename="" ):
     l = aux.Label(sim="Data" not in dataset.label)
     l.lum.DrawLatexNDC( .1, l.lum.GetY(), dataset.label )
     name = "_"+name.split("/")[-1]
-    aux.save( "efficiency_"+savename+name )
+    aux.save( "efficiency_"+savename+name, log=False )
 
     h_tot.SetLineColor(2)
     h_tot.Draw("hist")
@@ -730,14 +730,6 @@ def main():
     #efficiencies( gjets, "gjet_" )
     #efficiencies( data, "singlePhoton" )
     #efficiencies( dataHt, "jetHt" )
-    #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
-    #efficiency( data_2015D, "eff_hlt_ht__offlinePT100__base", "singlePhotonD_" )
-    #efficiency( data_prompt, "eff_hlt_ht__offlinePT100__base", "singlePhotonPrompt_" )
-    #efficiency( data_prompt, "eff_hlt_ht__offlinePT100__extra__base", "singlePhotonPrompt_" )
-    #efficiency( data, "eff_hlt_ht__base", "singlePhoton_" )
-    #efficiency( dataHt_2015D, "eff_hlt_pt__offlineHT650__base", "dataHtD_" )
-    #efficiency( dataHt_prompt, "eff_hlt_pt__offlineHT650__base", "dataHtPrompt_" )
-    #efficiency( dataHt_prompt, "eff_hlt_pt__offlineHT650__extra__base", "dataHtPrompt_" )
 
     #drawROCs()
     #drawH2s()
