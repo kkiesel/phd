@@ -23,28 +23,12 @@ from rwthColors import rwth
 import auxiliary as aux
 
 intLumi = 2.26e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2577.html
-#intLumi = 2110.588 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2544.html
-
-def getHistoFromDataset( dataset, name ):
-    h0 = None
-    for i in range( len(dataset.files) ):
-        h = aux.getFromFile( dataset.files[i], name )
-        if isinstance( h, ROOT.TH1 ):
-            if dataset.xsecs[i]:
-                h.Scale( intLumi * dataset.xsecs[i] / dataset.ngens[i] )
-            h.SetLineColor( dataset.color )
-            h.SetMarkerColor( dataset.color )
-
-        if h0: h0.Add( h )
-        else: h0 = h
-
-    return h0
 
 def compare( datasets, name, saveName ):
     m = multiplot.Multiplot()
 
     for d in datasets:
-        h = getHistoFromDataset( d, name )
+        d.getHist(name)
         if not h.Integral(): continue
         h.Scale( 1./h.Integral() )
         m.add( h, d.label )
@@ -56,48 +40,12 @@ def compare( datasets, name, saveName ):
 def drawH2( dataset, name, savename="test" ):
     x = style.style2d()
     c = ROOT.TCanvas()
-    h = getHistoFromDataset( dataset, name )
+    h = dataset.getHist( name )
     h.Draw("colz")
     l = aux.Label(sim=savename!="data")
-
-    # draw linear fit
-    if name in ["h2_match_photon_pt_jet_pt_base"]:
-        #h = aux.diagonalFlip( h )
-        #h.Draw("colz")
-        h.Fit("pol1")
-
     aux.save( "h2_%s_%s"%(savename,name) )
     c.SetLogz()
     aux.save( "h2_%s_%s_log"%(savename,name) )
-
-    style.defaultStyle()
-
-def subtractH2( dataset_num, dataset_den, name, savename="test" ):
-    x = style.style2d()
-    x.SetPalette( 1 )
-    c = ROOT.TCanvas()
-    num = getHistoFromDataset( dataset_num, name )
-    den = getHistoFromDataset( dataset_den, name )
-    h = num.Clone()
-    h.GetZaxis().SetTitle("( Data-Simulation ) / #sigma_{stat}               ")
-
-    for xbin in range(h.GetNbinsX()+2):
-        for ybin in range(h.GetNbinsY()+2):
-            n = num.GetBinContent(xbin,ybin)
-            e_n = num.GetBinError(xbin,ybin)
-            d = den.GetBinContent(xbin,ybin)
-            e_d = den.GetBinError(xbin,ybin)
-            if e_n == 0: e_n = 1.4
-            if e_d == 0: e_d = 1.4
-            h.SetBinContent(xbin,ybin, (n-d)/math.sqrt(e_n**2 + e_d**2) )
-
-    absMax = max( [ abs(h.GetMaximum()),abs(h.GetMinimum()) ] )
-    h.SetMaximum( absMax )
-    h.SetMinimum( -absMax )
-
-    h.Draw("colz")
-    l = aux.Label()
-    aux.save( "h2subtract_%s_%s"%(savename,name) )
     style.defaultStyle()
 
 
@@ -194,28 +142,6 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
             drawSameHistogram( sampleNames, "tr_highMet/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_jControl/"+name, stack, additionalHt, binning, binningName )
 
-def getProjections( h2, alongX=True ):
-    hs = []
-    label = h2.GetYaxis().GetTitle()
-
-    for ybin in range( h2.GetNbinsY()+2 ):
-
-        ylow = h2.GetYaxis().GetBinLowEdge(ybin)
-        yhigh = h2.GetYaxis().GetBinUpEdge(ybin)
-        name = "{} #leq {} < {}".format( ylow, label, yhigh )
-        if ybin == 0: name = "{} < {}".format( label, yhigh )
-        if ybin == h2.GetNbinsY()+1: name = "{} #leq {}".format( ylow, label )
-
-
-        h = h2.ProjectionX( name, ybin, ybin )
-        h.SetLineColor( ybin+2)
-        if h.GetEntries():
-            h.Scale( 1./h.GetEntries() )
-            hs.append( h )
-
-    return hs
-
-
 def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_jControl" ):
     if not controlDataset: controlDataset = dataset
     can = ROOT.TCanvas()
@@ -249,7 +175,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     m.add( hpre, "jet ({})".format(aux.metricPrefix(preInt)) )
 
     if name=="met":
-        hpreUp = controlDataset.getHist( preDir+"/"+name+"UpJec" )
+        hpreUp = controlDataset.getHist( preDir+"/"+name+"Up" )
         if binning: hpreUp = aux.rebin( hpreUp, binning )
         aux.appendFlowBin( hpreUp )
         hpreUp.Scale( dirInt/preInt )
@@ -257,7 +183,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
         hpreUp.SetLineStyle(3)
         hpreUp.drawOption_ = "hist"
         m.add( hpreUp, "jet +" )
-        hpreDn = controlDataset.getHist( preDir+"/"+name+"DnJec" )
+        hpreDn = controlDataset.getHist( preDir+"/"+name+"Dn" )
         if binning: hpreDn = aux.rebin( hpreDn, binning )
         aux.appendFlowBin( hpreDn )
         hpreDn.Scale( dirInt/preInt )
@@ -376,6 +302,8 @@ def selectionComparison2( dataset, controlDataset, name, samplename, binning, bi
 def multiQcdClosures( dataset, samplename, controlDataset=None ):
     names = aux.getObjectNames( dataset.files[0], "tr", [ROOT.TH1F] )
 
+    names = ["met"]
+
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
@@ -385,6 +313,7 @@ def multiQcdClosures( dataset, samplename, controlDataset=None ):
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he3", preDir="tr_jControl_he3" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName+"_wnjet", preDir="tr_jControl_wnjet" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highMet", preDir="tr_jControl_highMet" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_mediumMet", preDir="tr_jControl_mediumMet" )
             selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highMet", preDir="tr" )
             selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_jControl_highMet", preDir="tr_jControl" )
             selectionComparison2( dataset, controlDataset, name, samplename, binning, binningName, dirDirs=["tr_highMet", "tr_lowMet", "tr_jControl_highMet","tr_jControl_lowMet"] )
@@ -426,49 +355,6 @@ def metCorrections( dataset, samplename="" ):
             aux.save("metComparison_{}_{}_{}".format(samplename,dir,binningName))
 
 
-
-def qcdClosure( dataset, samplename="", gSet="tr_ht700", cSet="tr_jControl2" ):
-    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
-
-    for name in names:
-        if not name.endswith(cSet): continue
-
-        hdir = getHistoFromDataset( dataset, name.replace( cSet, gSet ) )
-        hdir.SetLineColor(1)
-        hdir.SetMarkerColor(1)
-        hdir.SetMarkerStyle(20)
-        hdir.drawOption_ = "p"
-
-        hpre = getHistoFromDataset( dataset, name )
-        if cSet=="tr_jControl2" and dataset==data: hpre = getHistoFromDataset( dataHt, name ) # temporary fix
-        scale = hdir.Integral() / hpre.Integral()
-        hpre.Scale( scale )
-        hpre.drawOption_ = "hist"
-
-        for h in hdir, hpre:
-            h.SetYTitle( aux.getYAxisTitle( h ) )
-
-        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
-            can = ROOT.TCanvas()
-            m = multiplot.Multiplot()
-            mod_dir = hdir
-            mod_pre = hpre
-
-            if binning:
-                mod_dir = aux.rebin(mod_dir, binning)
-                mod_pre = aux.rebin(mod_pre, binning)
-
-            m.add( mod_dir, "#gamma" )
-            m.add( mod_pre, "#gamma-like" )
-
-            if m.Draw():
-
-                r = ratio.Ratio( "#gamma/#gamma-like", mod_dir, mod_pre )
-                r.draw(0.5,1.5)
-                if name  == "h_g_pt__tr_jControl" and binningName == "2":
-                    aux.write2File( r.ratio.Clone(), name.replace("h_","weight_{}_".format(samplename)), "weights.root" )
-            l = aux.Label()
-            aux.save( "qcdClosure_"+name+samplename+binningName )
 
 
 def ewkClosure( dataset, samplename="" ):
@@ -765,7 +651,6 @@ def drawH2s():
     for h2name in names:
         drawH2( data, h2name, "data" )
         drawH2( qcd+gjets, h2name, "gqcd" )
-        #subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
 
 def drawISRsplitting():
     for d in ttjets,wjets,znunu:
@@ -778,48 +663,6 @@ def drawISRsplitting():
     ewkIsrSamplesSplitting( wjets, wg_mg, "w_mg" )
     ewkIsrSamplesSplitting( znunu, zg_130, "zg" )
 
-def checkGJetsQcdNlo():
-    can = ROOT.TCanvas()
-    m = multiplot.Multiplot()
-
-    mc = gjets+qcd+ttjets+ttg+wjets+wg_mg+zg_130+znunu
-
-    name = "h_tremht__tr"
-    cutName = "tr_jControlLeadingJet"
-    binningName = "1"
-
-    h_mc_sr = mc.getHist( name )
-    h_mc_cr = mc.getHist( name.replace("__tr","__"+cutName) )
-
-    h_da_sr = data.getHist( name )
-    h_da_cr = dataHt.getHist( name.replace("__tr","__"+cutName) )
-
-    for h in h_mc_cr,h_da_cr:
-        h.SetLineColor(ROOT.kRed)
-        h.SetMarkerColor(ROOT.kRed)
-    for h in h_mc_sr,h_da_sr:
-        h.SetLineColor(ROOT.kBlack)
-        h.SetMarkerColor(ROOT.kBlack)
-
-    for h in h_mc_sr,h_mc_cr:
-        h.SetLineStyle( 2 )
-    for h in h_mc_cr,h_mc_sr,h_da_cr,h_da_sr:
-        h.drawOption_="hist"
-        h.Scale( 1./h.Integral() )
-        h = aux.rebin( h, aux.getBinnigsFromName( name )["1"] )
-    h_mc_cr = aux.rebin( h_mc_cr, aux.getBinnigsFromName( name )["1"] )
-    h_mc_sr = aux.rebin( h_mc_sr, aux.getBinnigsFromName( name )["1"] )
-    h_da_cr = aux.rebin( h_da_cr, aux.getBinnigsFromName( name )["1"] )
-    h_da_sr = aux.rebin( h_da_sr, aux.getBinnigsFromName( name )["1"] )
-
-    m.add( h_mc_sr, "MC #gamma" )
-    m.add( h_mc_cr, "MC jet" )
-    m.add( h_da_sr, "Data #gamma" )
-    m.add( h_da_cr, "Data jet" )
-
-    m.Draw()
-    can.SetLogy()
-    aux.save("checkGjetsQcdNlo")
 
 def photonPosition( dataset, savename, dir="tr", normalize=False ):
     can = ROOT.TCanvas()
@@ -872,18 +715,15 @@ def main():
     #ewkClosure( ttjets, "tt" )
     #ewkClosure( wjets, "w" )
     #ewkClosure( wjets+ttjets, "ewk" )
-    #qcdClosure( qcd+gjets, "_gqcd" )
-    #qcdClosure( data, "_data" )
-    #multiQcdClosures( qcd+gjets, "gqcd" )
-    #multiQcdClosures( zg_130+znunu, "znunu" )
-    #multiQcdClosures( ttg+ttjets, "tt" )
-    #multiQcdClosures( wg_mg+wjets, "w" )
+    #multiQcdClosures( gjets+qcd, "gqcd" )
+    #multiQcdClosures( zg_130, "znunu",znunu )
+    #multiQcdClosures( ttg, "tt", ttjets )
+    #multiQcdClosures( wg_mg, "w", wjets )
     #multiQcdClosures( data, "data", dataHt )
     #multiQcdClosures( signal["T5Wg_1550_100"], "signal" )
     #multiQcdClosures( gjets+qcd+ttjets+ttg+wjets+wg_mg+znunu+zg_130,"mc" )
     #gjets.label = "GJets Data"
     #drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
-    #checkGJetsQcdNlo()
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
