@@ -480,10 +480,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   selW = *mc_weight * *pu_weight;
   float originalW = selW;
 
-  // https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2552/1/1/1.html
-  // The signal trigger effiency in this run is low.
-  // Perhaps this has something to do with the bad beam spot in this and other runs
-  if( isData && *runNo == 259637 ) return true;
 
   // For FastSim CMSSW7X, there are events with large pt jets (pt>sqrt(2))
   // It was recommended for the 2015 analysis to ignore events with objets > 2 times gluino mass
