@@ -8,6 +8,7 @@ if sys.version_info[:2] == (2,6):
 
 import ConfigParser
 import ROOT
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
 import argparse
 import re
@@ -128,17 +129,20 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('files', nargs='+')
+    parser.add_argument('--update', action='store_true')
+    parser.add_argument('--interpolate', action='store_true')
     args = parser.parse_args()
 
     scanName = limitTools.guessScanName(args.files[0])
 
-    #graphs = getRgraphs( args.files )
-    #writeDict( graphs, "tmp/%s_graphs2d.root"%scanName )
+    if args.update:
+        graphs = getRgraphs( args.files )
+        writeDict( graphs, "tmp/%s_graphs2d.root"%scanName )
 
     graphs = readDict( "tmp/%s_graphs2d.root"%scanName )
     toDraw = dict( [(name,limitTools.getContour(gr)) for name,gr in graphs.iteritems() ] )
     toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
-    if True:
+    if args.interpolate:
         toDraw["obs_hist"] = interpolateH2( toDraw["obs_hist"] )
         toDraw["obs_hist"] = interpolateH2( toDraw["obs_hist"] )
     writeDict( toDraw, "tmp/%s_graphs1d.root"%scanName )
