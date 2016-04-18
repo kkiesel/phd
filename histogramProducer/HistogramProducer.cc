@@ -77,6 +77,7 @@ class HistogramProducer : public TSelector {
   map<int,pair<int,int>> rawEff_vs_run;
 
   bool isData;
+  bool zToMet;
   int gluinoMass;
 
   JetSelector jetSelector;
@@ -415,6 +416,7 @@ void HistogramProducer::Init(TTree *tree)
   fReader.SetTree(tree);
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
+  zToMet = inputName.find("ZGTo2LG") != string::npos;
 
   std::smatch sm;
   if( regex_match( inputName, sm, regex(".*/T5.*_(\\d+)_(\\d+).root") ) ) {
@@ -474,6 +476,39 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
   fReader.SetEntry(entry);
+
+  float zToMetPt = -1;
+  if( zToMet && intermediateGenParticles->size() ) {
+    auto z = intermediateGenParticles->at(0);
+    if( z.daughters.size() > 2 ) {
+      return kTRUE;
+    }
+    met->p += z.p;
+    for( auto d : z.daughters ) {
+      for( auto p = photons->begin(); p!=photons->end(); ) {
+        if (p->p.DeltaR(d.p)<0.1) p = photons->erase(p);
+        else p++;
+      }
+      for( auto p = jets->begin(); p!=jets->end(); ) {
+        if (p->p.DeltaR(d.p)<0.1) p = jets->erase(p);
+        else p++;
+      }
+      for( auto p = electrons->begin(); p!=electrons->end(); ) {
+        if (p->p.DeltaR(d.p)<0.1) p = electrons->erase(p);
+        else p++;
+      }
+      for( auto p = muons->begin(); p!=muons->end(); ) {
+        if (p->p.DeltaR(d.p)<0.1) p = muons->erase(p);
+        else p++;
+      }
+    }
+    for( auto p : *genParticles ) {
+      if( p.pdgId==22 ) zToMetPt = p.p.Pt();
+    }
+    if (zToMetPt<0) return kTRUE;
+  }
+
+
   if(isData) fillTriggerStudies();
 
   // set weight
@@ -505,7 +540,13 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
-    if( genMatch(*selPhotons.at(0)) == 11 ) fillSelection("tr_genE");
+    if(zToMet&&zToMetPt>130) fillSelection("tr_130pt");
+    if(zToMet&&zToMetPt<130) fillSelection("tr_0pt130");
+    fillSelection("tr");
+    if(myHt>2500) fillSelection("tr_highHt");
+    auto gMatch = genMatch(*selPhotons.at(0));
+    if( gMatch == 11 ) fillSelection("tr_genE");
+    else if (gMatch<11 || gMatch>16) fillSelection("tr_noGenLep");
     if(met->p.Pt()>300) fillSelection("tr_highMet");
     else if(met->p.Pt()>70) fillSelection("tr_mediumMet");
     else fillSelection("tr_lowMet");
@@ -526,6 +567,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
       else i++;
     }
     fillSelection("tr_jControl");
+    if(myHt>2500) fillSelection("tr_jControl_highHt");
     if(selHEJets.size()==0) fillSelection("tr_jControl_he0");
     if(selHEJets.size()==1) fillSelection("tr_jControl_he1");
     if(selHEJets.size()==2) fillSelection("tr_jControl_he2");
