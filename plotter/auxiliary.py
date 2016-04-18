@@ -432,6 +432,9 @@ def metricPrefix( n ):
         n /= 1000
     return "{:3.1f}".format(n)
 
+def loopH2( h2 ):
+    return [(xbin,ybin) for xbin in range(h2.GetNbinsX()+2) for ybin in range(h2.GetNbinsX()+2)]
+
 class Label:
     # Create labels
     # Usage:
