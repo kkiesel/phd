@@ -818,12 +818,12 @@ def main():
     #ewkClosures( wjets+ttjets, "ewk" )
 
     #multiQcdClosures( gjets+qcd, "gqcd" )
-    #multiQcdClosures( zg_130, "znunu",znunu )
-    #multiQcdClosures( ttg, "tt", ttjets )
+    #multiQcdClosures( zg_130, "znunu", znunu)
+    #multiQcdClosures( ttg, "tt",ttjets )
     #multiQcdClosures( wg_mg, "w", wjets )
     #multiQcdClosures( data, "data", dataHt )
     #multiQcdClosures( signal["T5Wg_1550_100"], "signal" )
-    #multiQcdClosures( gjets+qcd+ttjets+ttg+wjets+wg_mg+znunu+zg_130,"mc" )
+    #multiQcdClosures( gjets+qcd+znunu+wjets+ttjets, "mc", gjets+qcd+ttjets+ttg+wg_mg+znunu+zg_130)
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
