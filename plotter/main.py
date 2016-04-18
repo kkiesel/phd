@@ -359,67 +359,63 @@ def metCorrections( dataset, samplename="" ):
             aux.save("metComparison_{}_{}_{}".format(samplename,dir,binningName))
 
 
+def ewkClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_genE", preDir="tr_eControl" ):
+    if not controlDataset: controlDataset = dataset
 
+    f, ef = 1.07/100., 30/100.
 
-def ewkClosure( dataset, samplename="" ):
-    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
+    can = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+    hdir = dataset.getHist( dirDir+"/"+name )
+    if not hdir.Integral(): return
+    if binning: hdir = aux.rebin( hdir, binning )
+    aux.appendFlowBin( hdir )
+    hdir.SetYTitle( aux.getYAxisTitle( hdir ) )
+    hdir.SetLineColor(1)
+    hdir.SetMarkerColor(1)
+    hdir.SetMarkerStyle(20)
+    hdir.SetMarkerSize(0.8)
+    hdir.drawOption_ = "pe x0"
+    m.add( hdir, "e#rightarrow#gamma" )
 
-    gSet = "tr_genElectron"
-    cSet = "tr_eControl"
+    hpre = controlDataset.getHist( preDir+"/"+name )
+    if not hpre.Integral(): return
+    if binning: hpre = aux.rebin( hpre, binning )
+    aux.appendFlowBin( hpre )
+    hpre.Scale(0.01)
+    hpre.SetYTitle( aux.getYAxisTitle( hpre ) )
+    hpre.SetLineColor(ROOT.kRed)
+    hpre.drawOption_ = "hist e"
+    m.add( hpre, "" )
+
+    hpre_sys = hpre.Clone( aux.randomName() )
+    hpre_sys.SetMarkerSize(0)
+    hpre_sys.SetFillColor(hpre_sys.GetLineColor())
+    hpre_sys.SetFillStyle(3446)
+    hpre_sys.drawOption_ = "e2"
+
+    for bin in range(hpre_sys.GetNbinsX()+2): hpre_sys.SetBinError( bin, hpre_sys.GetBinContent(bin)*ef )
+    m.add( hpre_sys, "Prediction" )
+
+    m.leg.SetX1(0.5)
+    m.leg.SetY1(0.8)
+    m.Draw()
+
+    r = ratio.Ratio("e#rightarrow#gamma/Pred", hdir, hpre, hpre_sys)
+    r.draw(.5,1.5)
+
+    l = aux.Label(sim=True,info=dataset.label)
+    if binningName: binningName = "_"+binningName
+    aux.save( "ewkClosure_{}_{}{}".format(samplename,name,binningName ) )
+
+def ewkClosures( dataset, samplename="", controlDataset=None ):
+    names = aux.getObjectNames( dataset.files[0], "tr_eControl", [ROOT.TH1F] )
+
+    names = ["met"]
 
     for name in names:
-        if gSet not in name: continue
-
-        hdir = getHistoFromDataset( dataset, name )
-        hdir.SetLineColor(1)
-        hdir.SetMarkerColor(1)
-        hdir.SetMarkerStyle(20)
-        hdir.drawOption_ = "p"
-
-        hpre = getHistoFromDataset( dataset, name.replace( gSet, cSet ) )
-        scale = hdir.Integral() / hpre.Integral()
-
-        #scale = 0.018/2
-        #scale = 0.006
-        scale_e = scale/3
-        scale_e = 0
-
-        hpre.Scale( scale )
-        hpre_sys = hpre.Clone( aux.randomName() )
-        hpre_sys.SetMarkerSize(0)
-        hpre_sys.SetFillColor(hpre_sys.GetLineColor())
-        hpre_sys.SetFillStyle(3446)
-        hpre_sys.drawOption_ = "e2"
-
-        hpre.drawOption_ = "hist"
-        for h in hdir, hpre:
-            h.SetYTitle( aux.getYAxisTitle( h ) )
-
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
-            can = ROOT.TCanvas()
-            m = multiplot.Multiplot()
-            mod_dir = hdir
-            mod_pre = hpre
-            mod_pre_sys = hpre_sys
-
-            if binning:
-                mod_dir = aux.rebin(mod_dir, binning)
-                mod_pre = aux.rebin(mod_pre, binning)
-                mod_pre_sys = aux.rebin(mod_pre_sys, binning)
-            for bin in range(mod_pre_sys.GetNbinsX()+2): mod_pre_sys.SetBinError( bin, mod_pre_sys.GetBinContent(bin)*scale_e/scale )
-
-            m.add( mod_dir, "e#rightarrow#gamma" )
-            m.add( mod_pre, "Normalized #gamma-like e" )
-            #m.add( mod_pre, "{:.2f}% #times #gamma-like e".format(100*scale) )
-            if scale_e: m.add( mod_pre_sys, "" )
-
-            m.leg.SetX1(0.5)
-            m.leg.SetY1(0.8)
-            m.Draw()
-
-            l = aux.Label(sim=True,info=dataset.label)
-            if binningName: binningName = "_"+binningName
-            aux.save( "ewkClosure_{}_{}{}".format(samplename,name,binningName ) )
+            ewkClosure( dataset, controlDataset, name, samplename, binning, binningName )
 
 
 def drawROCs():
