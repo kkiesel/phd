@@ -701,6 +701,105 @@ def photonPosition( dataset, savename, dir="tr", normalize=False ):
     if False: aux.write2File( h2, savename, "gammaPosition.root" )
 
 
+
+def finalPrediction():
+    name = "emht"
+
+    for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+
+        can = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+
+        allDatasets = qcd+ttjets+ttg+wg_mg+znunu+zg_130+gjets #+signal["T5Wg_1550_1500"]
+
+        dataH = allDatasets.getHist("tr/"+name)
+        dataH.SetLineColor(ROOT.kBlack)
+        dataH.SetMarkerColor(ROOT.kBlack)
+        if binning: dataH = aux.rebin( dataH, binning )
+        aux.appendFlowBin( dataH )
+        dataH.SetYTitle( aux.getYAxisTitle( dataH ) )
+        m.add( dataH, "(Pseudo) Data" )
+
+        ewkH = allDatasets.getHist("tr_eControl/"+name)
+        ewkH.Scale(0.01)
+        ewkH.SetLineColor(rwth.green)
+        if binning: ewkH = aux.rebin( ewkH, binning )
+        aux.appendFlowBin( ewkH )
+        m.addStack( ewkH, "e#rightarrow#gamma" )
+
+        qcdH = allDatasets.getHist("tr_jControl/"+name)
+        if binning: qcdH = aux.rebin( qcdH, binning )
+        aux.appendFlowBin( qcdH )
+        qcdH.Scale(dataH.Integral(0,-1,"width")/qcdH.Integral(0,-1,"width"))
+        m.addStack( qcdH, "#gamma/jet" )
+
+        """
+        isrDatasets = wg_mg+zg_130+ttg
+        isrH = isrDatasets.getHist("tr/"+name)
+        if binning: isrH = aux.rebin( isrH, binning )
+        aux.appendFlowBin( isrH )
+        m.addStack( isrH, "#gamma+V" )
+        """
+
+        wgDatasets = wg_mg
+        wgH = wgDatasets.getHist("tr_noGenLep/"+name)
+        if binning: wgH = aux.rebin( wgH, binning )
+        aux.appendFlowBin( wgH )
+        m.addStack( wgH, "#gamma+W" )
+
+        zgDatasets = zg_130
+        zgH = zgDatasets.getHist("tr_noGenLep/"+name)
+        if binning: zgH = aux.rebin( zgH, binning )
+        aux.appendFlowBin( zgH )
+        m.addStack( zgH, "#gamma+Z" )
+
+        ttgDatasets = ttg
+        ttgH = ttgDatasets.getHist("tr_noGenLep/"+name)
+        if binning: ttgH = aux.rebin( ttgH, binning )
+        aux.appendFlowBin( ttgH )
+        m.addStack( ttgH, "#gamma+tt" )
+
+
+
+        #m.maximum = 0.03
+
+        m.Draw()
+        l = aux.Label(sim=True)
+        tot = m.hists[0].GetStack().Last()
+        r = ratio.Ratio("MC/Pred",dataH,tot)
+        r.draw(.5,1.5)
+
+        if binningName: binningName = "_"+binningName
+        saveName = "finalPrediction_{}{}".format( name, binningName )
+        aux.save( saveName )
+
+def significanceMetHt():
+    x = style.style2d()
+    allDatasets = qcd+ttjets+ttg+wg_mg+znunu+zg_130+gjets
+    sigDatasets = signal["T5Wg_1550_100"]
+
+    bkgH = allDatasets.getHist("tr/met_vs_emht")
+    sigH = sigDatasets.getHist("tr/met_vs_emht")
+    for h in bkgH,sigH:
+        h.Rebin2D(2,2)
+
+    significanceH = sigH.Clone(aux.randomName())
+    significanceH.SetTitle(";minimal E_{T}^{miss} (GeV);minimal H_{T} (GeV);Significance")
+    significanceH.GetXaxis().SetRangeUser(0,1000)
+    significanceH.GetZaxis().SetRangeUser(0,4)
+
+    for xbin, ybin in aux.loopH2(sigH):
+        s = sigH.Integral(xbin,-1,ybin,-1)
+        be = ROOT.Double()
+        b = bkgH.IntegralAndError(xbin,-1,ybin,-1,be)
+        if not s or b <= 0: continue
+        sig = s/math.sqrt(b+(b/2)**2+be**2)
+        significanceH.SetBinContent(xbin,ybin,sig)
+
+    significanceH.Draw("colz")
+    aux.save("significanceMax2D_{}".format("test"), log=False)
+
+
 def main():
     pass
     #transitions()
@@ -743,6 +842,10 @@ def main():
     #photonPosition( data, "data" )
 
     #metCorrections( gjets+qcd, "gqcd" )
+
+    #finalPrediction()
+    #significanceMetHt()
+
 
 
 if __name__ == "__main__":
