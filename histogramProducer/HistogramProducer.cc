@@ -95,7 +95,7 @@ int HistogramProducer::genMatch( const tree::Particle& p ) {
       auto id = fabs(d.pdgId);
       auto dr = p.p.DeltaR(d.p);
       auto dpt = p.p.Pt()/d.p.Pt();
-      if( dr < 0.15 ) return id;
+      if( dr < 0.5 ) return id;
     }
   }
 
