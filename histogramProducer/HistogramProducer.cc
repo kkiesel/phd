@@ -115,10 +115,11 @@ int HistogramProducer::genMatch( const tree::Particle& p ) {
 void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_pt"] = TEfficiency( "", ";p_{T} (GeV);#varepsilon", 250, 0, 1000 );
   effMap["eff_hlt_eta"] = TEfficiency( "", ";|#eta|;#varepsilon", 15, 0, 1.5 );
-  effMap["eff_hlt_ht"] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
-  effMap["eff_hlt_ht_ptMin"] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
-  effMap["eff_hlt_ht_etaMax"] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
-  effMap["eff_hlt_ht_ct"] = TEfficiency( "", ";EMH_{T}^{trigger-like} (GeV);#varepsilon", 200, 0, 2000 );
+  effMap["eff_hlt_ht"] = TEfficiency( "", ";EMH_{T} (GeV);#varepsilon", 200, 0, 2000 );
+  effMap["eff_hlt_ht_ptMin"] = TEfficiency( "", ";EMH_{T} (GeV);#varepsilon", 200, 0, 2000 );
+  effMap["eff_hlt_ht_etaMax"] = TEfficiency( "", ";EMH_{T} (GeV);#varepsilon", 310, 0, 3.1 );
+  effMap["eff_hlt_ht_ct"] = TEfficiency( "", ";EMH_{T} (GeV);#varepsilon", 200, 0, 2000 );
+  effMap["eff_hlt_ht_ct_preScaled"] = TEfficiency( "", ";EMH_{T} (GeV);#varepsilon (prescaled)", 200, 0, 2000 );
   effMap["eff_hlt_nVertex"] = TEfficiency( "", ";Vertex multiplicity", 41, -0.5, 40.5 );
   effMap["eff_hlt_sie"] = TEfficiency( "", ";#sigma_{i#etai#eta}", 400, 0, 0.02 );
   effMap["eff_hlt_hoe"] = TEfficiency( "", ";H/E", 100, 0, 0.15 );
@@ -127,26 +128,30 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_nIso"] = TEfficiency( "", ";I_{n} (GeV)", 100, 0, 20 );
   effMap["eff_hlt_pIso"] = TEfficiency( "", ";I_{#gamma} (GeV)", 100, 0, 20 );
   effMap["eff_hlt_nJet"] = TEfficiency( "", ";uncleaned jet multiplicity", 15, -0.5, 14.5 );
+  effMap["eff_hlt_met"] = TEfficiency( "", ";E_{T}^{miss} (GeV)", 150, 0, 150 );
+  effMap["eff_hlt_met_ct"] = TEfficiency( "", ";E_{T}^{miss} (GeV)", 150, 0, 150 );
 }
 
 void HistogramProducer::fillTriggerStudies() {
 
+  tree::Photon* thisPhoton=0;
+  for( auto& photon : *photons ) {
+    if( photon.p.Pt() > 15 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel && photon.isLoose && !photon.hasPixelSeed ) {
+      thisPhoton = &photon;
+      break; // take leading(first) photon
+    }
+  }
+
   float ht = 0;
+  if( thisPhoton ) ht += thisPhoton->p.Pt();
   tree::Jet *minPtJet=0;
   tree::Jet *maxEtaJet=0;
   for( auto& jet : *jets ) {
     if( jet.p.Pt() > 40 && fabs(jet.p.Eta()) < 3 ) {
       if( !minPtJet || minPtJet->p.Pt() > jet.p.Pt() ) minPtJet = &jet;
       if( !maxEtaJet || fabs(minPtJet->p.Eta()) < fabs(jet.p.Eta()) ) maxEtaJet = &jet;
-      ht += jet.p.Pt();
-    }
-  }
-
-  tree::Photon* thisPhoton=0;
-  for( auto& photon : *photons ) {
-    if( photon.p.Pt() > 15 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel && photon.isLoose && !photon.hasPixelSeed ) {
-      if( !thisPhoton || thisPhoton->p.Pt() < photon.p.Pt() ) {
-        thisPhoton = &photon;
+      if( !thisPhoton || jet.p.DeltaR(thisPhoton->p) > 0.3 ) {
+        ht += jet.p.Pt();
       }
     }
   }
@@ -160,15 +165,17 @@ void HistogramProducer::fillTriggerStudies() {
       rawEff_vs_run.at(*runNo).second += 1;
     }
 
-    if( isData && *runNo == 259637 ) return;
-
     // main trigger plots
     if( thisPhoton->p.Pt()>100 && *hlt_photon90 ) {
       effMap.at("eff_hlt_ht").Fill( *hlt_photon90_ht500, ht );
       effMap.at("eff_hlt_ht_ptMin").Fill( *hlt_photon90_ht500, minPtJet->p.Pt() );
       if( ht>600 ) effMap.at("eff_hlt_ht_etaMax").Fill( *hlt_photon90_ht500, fabs(maxEtaJet->p.Eta()) );
     }
-    if( thisPhoton->p.Pt()>100 && *hlt_photon90_ht500 ) effMap.at("eff_hlt_ht_ct").Fill( *hlt_ht600, ht );
+    if( thisPhoton->p.Pt()>100 && *hlt_photon90_ht500 ) {
+      effMap.at("eff_hlt_ht_ct").Fill( *hlt_ht600, ht );
+      effMap.at("eff_hlt_ht_ct_preScaled").FillWeighted( *hlt_ht600, *hlt_ht600_pre, ht );
+      if( ht > 700 ) effMap.at("eff_hlt_met_ct").Fill( *hlt_ht600, met->p.Pt() );
+    }
     if( *hlt_ht600 && ht > 700 ) {
       effMap.at("eff_hlt_pt").Fill( *hlt_photon90_ht500, thisPhoton->p.Pt() );
       effMap.at("eff_hlt_eta").Fill( *hlt_photon90_ht500, fabs(thisPhoton->p.Eta()) );
@@ -182,6 +189,7 @@ void HistogramProducer::fillTriggerStudies() {
           effMap.at("eff_hlt_r9").Fill( *hlt_photon90_ht500, photon.r9 );
           effMap.at("eff_hlt_nVertex").Fill( *hlt_photon90_ht500, *nGoodVertices );
           effMap.at("eff_hlt_nJet").Fill( *hlt_photon90_ht500, jets->size() );
+          effMap.at("eff_hlt_met").Fill( *hlt_photon90_ht500, met->p.Pt() );
         }
         if(
           looseCutFlowPhoton.passHoe()
