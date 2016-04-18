@@ -23,28 +23,12 @@ from rwthColors import rwth
 import auxiliary as aux
 
 intLumi = 2.26e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2577.html
-#intLumi = 2110.588 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2544.html
-
-def getHistoFromDataset( dataset, name ):
-    h0 = None
-    for i in range( len(dataset.files) ):
-        h = aux.getFromFile( dataset.files[i], name )
-        if isinstance( h, ROOT.TH1 ):
-            if dataset.xsecs[i]:
-                h.Scale( intLumi * dataset.xsecs[i] / dataset.ngens[i] )
-            h.SetLineColor( dataset.color )
-            h.SetMarkerColor( dataset.color )
-
-        if h0: h0.Add( h )
-        else: h0 = h
-
-    return h0
 
 def compare( datasets, name, saveName ):
     m = multiplot.Multiplot()
 
     for d in datasets:
-        h = getHistoFromDataset( d, name )
+        d.getHist(name)
         if not h.Integral(): continue
         h.Scale( 1./h.Integral() )
         m.add( h, d.label )
@@ -56,48 +40,12 @@ def compare( datasets, name, saveName ):
 def drawH2( dataset, name, savename="test" ):
     x = style.style2d()
     c = ROOT.TCanvas()
-    h = getHistoFromDataset( dataset, name )
+    h = dataset.getHist( name )
     h.Draw("colz")
     l = aux.Label(sim=savename!="data")
-
-    # draw linear fit
-    if name in ["h2_match_photon_pt_jet_pt_base"]:
-        #h = aux.diagonalFlip( h )
-        #h.Draw("colz")
-        h.Fit("pol1")
-
     aux.save( "h2_%s_%s"%(savename,name) )
     c.SetLogz()
     aux.save( "h2_%s_%s_log"%(savename,name) )
-
-    style.defaultStyle()
-
-def subtractH2( dataset_num, dataset_den, name, savename="test" ):
-    x = style.style2d()
-    x.SetPalette( 1 )
-    c = ROOT.TCanvas()
-    num = getHistoFromDataset( dataset_num, name )
-    den = getHistoFromDataset( dataset_den, name )
-    h = num.Clone()
-    h.GetZaxis().SetTitle("( Data-Simulation ) / #sigma_{stat}               ")
-
-    for xbin in range(h.GetNbinsX()+2):
-        for ybin in range(h.GetNbinsY()+2):
-            n = num.GetBinContent(xbin,ybin)
-            e_n = num.GetBinError(xbin,ybin)
-            d = den.GetBinContent(xbin,ybin)
-            e_d = den.GetBinError(xbin,ybin)
-            if e_n == 0: e_n = 1.4
-            if e_d == 0: e_d = 1.4
-            h.SetBinContent(xbin,ybin, (n-d)/math.sqrt(e_n**2 + e_d**2) )
-
-    absMax = max( [ abs(h.GetMaximum()),abs(h.GetMinimum()) ] )
-    h.SetMaximum( absMax )
-    h.SetMinimum( -absMax )
-
-    h.Draw("colz")
-    l = aux.Label()
-    aux.save( "h2subtract_%s_%s"%(savename,name) )
     style.defaultStyle()
 
 
@@ -186,35 +134,16 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     additionalHt = [ x for x in additional if x is not data ]
     if data in additional: additionalHt += [ dataHt ]
 
-    names = ["met"]
+    #names = ["met"]
 
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_highMet/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_mediumMet/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_highHt/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_jControl_highHt/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_jControl/"+name, stack, additionalHt, binning, binningName )
-
-def getProjections( h2, alongX=True ):
-    hs = []
-    label = h2.GetYaxis().GetTitle()
-
-    for ybin in range( h2.GetNbinsY()+2 ):
-
-        ylow = h2.GetYaxis().GetBinLowEdge(ybin)
-        yhigh = h2.GetYaxis().GetBinUpEdge(ybin)
-        name = "{} #leq {} < {}".format( ylow, label, yhigh )
-        if ybin == 0: name = "{} < {}".format( label, yhigh )
-        if ybin == h2.GetNbinsY()+1: name = "{} #leq {}".format( ylow, label )
-
-
-        h = h2.ProjectionX( name, ybin, ybin )
-        h.SetLineColor( ybin+2)
-        if h.GetEntries():
-            h.Scale( 1./h.GetEntries() )
-            hs.append( h )
-
-    return hs
-
 
 def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_jControl" ):
     if not controlDataset: controlDataset = dataset
@@ -249,7 +178,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     m.add( hpre, "jet ({})".format(aux.metricPrefix(preInt)) )
 
     if name=="met":
-        hpreUp = controlDataset.getHist( preDir+"/"+name+"UpJec" )
+        hpreUp = controlDataset.getHist( preDir+"/"+name+"Up" )
         if binning: hpreUp = aux.rebin( hpreUp, binning )
         aux.appendFlowBin( hpreUp )
         hpreUp.Scale( dirInt/preInt )
@@ -257,7 +186,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
         hpreUp.SetLineStyle(3)
         hpreUp.drawOption_ = "hist"
         m.add( hpreUp, "jet +" )
-        hpreDn = controlDataset.getHist( preDir+"/"+name+"DnJec" )
+        hpreDn = controlDataset.getHist( preDir+"/"+name+"Dn" )
         if binning: hpreDn = aux.rebin( hpreDn, binning )
         aux.appendFlowBin( hpreDn )
         hpreDn.Scale( dirInt/preInt )
@@ -376,15 +305,19 @@ def selectionComparison2( dataset, controlDataset, name, samplename, binning, bi
 def multiQcdClosures( dataset, samplename, controlDataset=None ):
     names = aux.getObjectNames( dataset.files[0], "tr", [ROOT.TH1F] )
 
+    names = ["met","genMatch"]
+
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_noGenLep")
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he0", preDir="tr_jControl_he0" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he1", preDir="tr_jControl_he1" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he2", preDir="tr_jControl_he2" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he3", preDir="tr_jControl_he3" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName+"_wnjet", preDir="tr_jControl_wnjet" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highMet", preDir="tr_jControl_highMet" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_mediumMet", preDir="tr_jControl_mediumMet" )
             selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highMet", preDir="tr" )
             selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_jControl_highMet", preDir="tr_jControl" )
             selectionComparison2( dataset, controlDataset, name, samplename, binning, binningName, dirDirs=["tr_highMet", "tr_lowMet", "tr_jControl_highMet","tr_jControl_lowMet"] )
@@ -426,110 +359,63 @@ def metCorrections( dataset, samplename="" ):
             aux.save("metComparison_{}_{}_{}".format(samplename,dir,binningName))
 
 
+def ewkClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_genE", preDir="tr_eControl" ):
+    if not controlDataset: controlDataset = dataset
 
-def qcdClosure( dataset, samplename="", gSet="tr_ht700", cSet="tr_jControl2" ):
-    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
+    f, ef = 1.07/100., 30/100.
+
+    can = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+    hdir = dataset.getHist( dirDir+"/"+name )
+    if not hdir.Integral(): return
+    if binning: hdir = aux.rebin( hdir, binning )
+    aux.appendFlowBin( hdir )
+    hdir.SetYTitle( aux.getYAxisTitle( hdir ) )
+    hdir.SetLineColor(1)
+    hdir.SetMarkerColor(1)
+    hdir.SetMarkerStyle(20)
+    hdir.SetMarkerSize(0.8)
+    hdir.drawOption_ = "pe x0"
+    m.add( hdir, "e#rightarrow#gamma" )
+
+    hpre = controlDataset.getHist( preDir+"/"+name )
+    if not hpre.Integral(): return
+    if binning: hpre = aux.rebin( hpre, binning )
+    aux.appendFlowBin( hpre )
+    hpre.Scale(0.01)
+    hpre.SetYTitle( aux.getYAxisTitle( hpre ) )
+    hpre.SetLineColor(ROOT.kRed)
+    hpre.drawOption_ = "hist e"
+    m.add( hpre, "" )
+
+    hpre_sys = hpre.Clone( aux.randomName() )
+    hpre_sys.SetMarkerSize(0)
+    hpre_sys.SetFillColor(hpre_sys.GetLineColor())
+    hpre_sys.SetFillStyle(3446)
+    hpre_sys.drawOption_ = "e2"
+
+    for bin in range(hpre_sys.GetNbinsX()+2): hpre_sys.SetBinError( bin, hpre_sys.GetBinContent(bin)*ef )
+    m.add( hpre_sys, "Prediction" )
+
+    m.leg.SetX1(0.5)
+    m.leg.SetY1(0.8)
+    m.Draw()
+
+    r = ratio.Ratio("e#rightarrow#gamma/Pred", hdir, hpre, hpre_sys)
+    r.draw(.5,1.5)
+
+    l = aux.Label(sim=True,info=dataset.label)
+    if binningName: binningName = "_"+binningName
+    aux.save( "ewkClosure_{}_{}{}".format(samplename,name,binningName ) )
+
+def ewkClosures( dataset, samplename="", controlDataset=None ):
+    names = aux.getObjectNames( dataset.files[0], "tr_eControl", [ROOT.TH1F] )
+
+    names = ["met"]
 
     for name in names:
-        if not name.endswith(cSet): continue
-
-        hdir = getHistoFromDataset( dataset, name.replace( cSet, gSet ) )
-        hdir.SetLineColor(1)
-        hdir.SetMarkerColor(1)
-        hdir.SetMarkerStyle(20)
-        hdir.drawOption_ = "p"
-
-        hpre = getHistoFromDataset( dataset, name )
-        if cSet=="tr_jControl2" and dataset==data: hpre = getHistoFromDataset( dataHt, name ) # temporary fix
-        scale = hdir.Integral() / hpre.Integral()
-        hpre.Scale( scale )
-        hpre.drawOption_ = "hist"
-
-        for h in hdir, hpre:
-            h.SetYTitle( aux.getYAxisTitle( h ) )
-
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
-            can = ROOT.TCanvas()
-            m = multiplot.Multiplot()
-            mod_dir = hdir
-            mod_pre = hpre
-
-            if binning:
-                mod_dir = aux.rebin(mod_dir, binning)
-                mod_pre = aux.rebin(mod_pre, binning)
-
-            m.add( mod_dir, "#gamma" )
-            m.add( mod_pre, "#gamma-like" )
-
-            if m.Draw():
-
-                r = ratio.Ratio( "#gamma/#gamma-like", mod_dir, mod_pre )
-                r.draw(0.5,1.5)
-                if name  == "h_g_pt__tr_jControl" and binningName == "2":
-                    aux.write2File( r.ratio.Clone(), name.replace("h_","weight_{}_".format(samplename)), "weights.root" )
-            l = aux.Label()
-            aux.save( "qcdClosure_"+name+samplename+binningName )
-
-
-def ewkClosure( dataset, samplename="" ):
-    names = aux.getObjectNames( dataset.files[0], "", [ROOT.TH1F] )
-
-    gSet = "tr_genElectron"
-    cSet = "tr_eControl"
-
-    for name in names:
-        if gSet not in name: continue
-
-        hdir = getHistoFromDataset( dataset, name )
-        hdir.SetLineColor(1)
-        hdir.SetMarkerColor(1)
-        hdir.SetMarkerStyle(20)
-        hdir.drawOption_ = "p"
-
-        hpre = getHistoFromDataset( dataset, name.replace( gSet, cSet ) )
-        scale = hdir.Integral() / hpre.Integral()
-
-        #scale = 0.018/2
-        #scale = 0.006
-        scale_e = scale/3
-        scale_e = 0
-
-        hpre.Scale( scale )
-        hpre_sys = hpre.Clone( aux.randomName() )
-        hpre_sys.SetMarkerSize(0)
-        hpre_sys.SetFillColor(hpre_sys.GetLineColor())
-        hpre_sys.SetFillStyle(3446)
-        hpre_sys.drawOption_ = "e2"
-
-        hpre.drawOption_ = "hist"
-        for h in hdir, hpre:
-            h.SetYTitle( aux.getYAxisTitle( h ) )
-
-        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
-            can = ROOT.TCanvas()
-            m = multiplot.Multiplot()
-            mod_dir = hdir
-            mod_pre = hpre
-            mod_pre_sys = hpre_sys
-
-            if binning:
-                mod_dir = aux.rebin(mod_dir, binning)
-                mod_pre = aux.rebin(mod_pre, binning)
-                mod_pre_sys = aux.rebin(mod_pre_sys, binning)
-            for bin in range(mod_pre_sys.GetNbinsX()+2): mod_pre_sys.SetBinError( bin, mod_pre_sys.GetBinContent(bin)*scale_e/scale )
-
-            m.add( mod_dir, "e#rightarrow#gamma" )
-            m.add( mod_pre, "Normalized #gamma-like e" )
-            #m.add( mod_pre, "{:.2f}% #times #gamma-like e".format(100*scale) )
-            if scale_e: m.add( mod_pre_sys, "" )
-
-            m.leg.SetX1(0.5)
-            m.leg.SetY1(0.8)
-            m.Draw()
-
-            l = aux.Label(sim=True,info=dataset.label)
-            if binningName: binningName = "_"+binningName
-            aux.save( "ewkClosure_{}_{}{}".format(samplename,name,binningName ) )
+            ewkClosure( dataset, controlDataset, name, samplename, binning, binningName )
 
 
 def drawROCs():
@@ -611,37 +497,33 @@ def efficienciesDataMC( dataset_data, dataset_mc, savename="" ):
         aux.save( "efficiencyDataMC_"+savename+name )
 
 
-def efficiency( dataset, name, savename="" ):
+def efficiency( dataset, name, savename="", binning=None, binningName="" ):
     c = ROOT.TCanvas()
     c.SetLogy(0)
-    h = getHistoFromDataset( dataset, name )
-    if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
+    eff = dataset.getHist( name )
+    if eff.UsesWeights(): eff.SetStatisticOption( ROOT.TEfficiency.kFNormal )
 
-    h_pas = h.GetPassedHistogram()
-    h_tot = h.GetTotalHistogram()
-    if "hlt" in name:
-        newBins = []
-        if name == "eff_hlt_pt": newBins = range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000]
-        if name == "eff_hlt_ht": newBins = range(0,1001,40) + [1000,1500,2000]
-        if newBins:
-            h_pas = aux.rebin( h_pas, newBins, False )
-            h_tot = aux.rebin( h_tot, newBins, False )
+    h_pas = eff.GetPassedHistogram()
+    h_tot = eff.GetTotalHistogram()
+    if binning:
+        h_pas = aux.rebin( h_pas, binning, False )
+        h_tot = aux.rebin( h_tot, binning, False )
         eff = ROOT.TEfficiency( h_pas, h_tot )
-    else:
-        eff = h
 
     eff.Draw()
     ROOT.gPad.Update()
     eff.GetPaintedGraph().GetYaxis().SetRangeUser(0., 1.1)
 
-    if "_pt" in name:
+    if name.endswith("eff_hlt_pt"):
         cutValue = 100
-    elif "_ht" in name:
-        cutValue = 600
+    elif name.endswith("eff_hlt_ht") \
+            or name.endswith("eff_hlt_ht_ct") \
+            or name.endswith("eff_hlt_ht_ct_preScaled"):
+        cutValue = 700
     else:
         cutValue = 0
 
-    if cutValue != None:
+    if cutValue:
         bin = h_pas.FindFixBin( cutValue )
         passed = int(h_pas.Integral( bin, -1 ))
         total = int(h_tot.Integral( bin, -1 ))
@@ -674,18 +556,30 @@ def efficiency( dataset, name, savename="" ):
     l = aux.Label(sim="Data" not in dataset.label)
     l.lum.DrawLatexNDC( .1, l.lum.GetY(), dataset.label )
     name = "_"+name.split("/")[-1]
-    aux.save( "efficiency_"+savename+name, log=False )
+    if binningName: binningName = "_"+binningName
+    aux.save( "efficiency_"+savename+name+binningName, log=False )
 
-    h_tot.SetLineColor(2)
-    h_tot.Draw("hist")
-    h_pas.Draw("same e*")
-    aux.save( "efficiency_"+savename+name+"_raw" )
+    if False:
+        h_tot.SetLineColor(2)
+        h_tot.Draw("hist")
+        h_pas.Draw("same e*")
+        aux.save( "efficiency_"+savename+name+"_raw" )
 
 def efficiencies( dataset, savename="" ):
     names = ["triggerStudies/"+x for x in aux.getObjectNames( dataset.files[0], "triggerStudies", [ROOT.TEfficiency] ) ]
 
+    #names = ["triggerStudies/eff_hlt_ht_ct_preScaled"]
+
     for name in names:
         efficiency( dataset, name, savename )
+        if name.endswith("eff_hlt_pt"):
+            efficiency( dataset, name, savename, range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000], "1" )
+        if name.endswith("eff_hlt_ht"):
+            efficiency( dataset, name, savename, range(0,1001,40) + range(1000,1500,2000), "1" )
+        if name.endswith("eff_hlt_ht_ct") or name.endswith("eff_hlt_ht_ct_preScaled"):
+            efficiency( dataset, name, savename, range(450,1001,10), "1" )
+
+
 
 def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
     names = aux.getObjectNames( dataset.files[0] )
@@ -765,7 +659,6 @@ def drawH2s():
     for h2name in names:
         drawH2( data, h2name, "data" )
         drawH2( qcd+gjets, h2name, "gqcd" )
-        #subtractH2( data, qcd+gjets, h2name, "data-gqcd" )
 
 def drawISRsplitting():
     for d in ttjets,wjets,znunu:
@@ -778,48 +671,6 @@ def drawISRsplitting():
     ewkIsrSamplesSplitting( wjets, wg_mg, "w_mg" )
     ewkIsrSamplesSplitting( znunu, zg_130, "zg" )
 
-def checkGJetsQcdNlo():
-    can = ROOT.TCanvas()
-    m = multiplot.Multiplot()
-
-    mc = gjets+qcd+ttjets+ttg+wjets+wg_mg+zg_130+znunu
-
-    name = "h_tremht__tr"
-    cutName = "tr_jControlLeadingJet"
-    binningName = "1"
-
-    h_mc_sr = mc.getHist( name )
-    h_mc_cr = mc.getHist( name.replace("__tr","__"+cutName) )
-
-    h_da_sr = data.getHist( name )
-    h_da_cr = dataHt.getHist( name.replace("__tr","__"+cutName) )
-
-    for h in h_mc_cr,h_da_cr:
-        h.SetLineColor(ROOT.kRed)
-        h.SetMarkerColor(ROOT.kRed)
-    for h in h_mc_sr,h_da_sr:
-        h.SetLineColor(ROOT.kBlack)
-        h.SetMarkerColor(ROOT.kBlack)
-
-    for h in h_mc_sr,h_mc_cr:
-        h.SetLineStyle( 2 )
-    for h in h_mc_cr,h_mc_sr,h_da_cr,h_da_sr:
-        h.drawOption_="hist"
-        h.Scale( 1./h.Integral() )
-        h = aux.rebin( h, aux.getBinnigsFromName( name )["1"] )
-    h_mc_cr = aux.rebin( h_mc_cr, aux.getBinnigsFromName( name )["1"] )
-    h_mc_sr = aux.rebin( h_mc_sr, aux.getBinnigsFromName( name )["1"] )
-    h_da_cr = aux.rebin( h_da_cr, aux.getBinnigsFromName( name )["1"] )
-    h_da_sr = aux.rebin( h_da_sr, aux.getBinnigsFromName( name )["1"] )
-
-    m.add( h_mc_sr, "MC #gamma" )
-    m.add( h_mc_cr, "MC jet" )
-    m.add( h_da_sr, "Data #gamma" )
-    m.add( h_da_cr, "Data jet" )
-
-    m.Draw()
-    can.SetLogy()
-    aux.save("checkGjetsQcdNlo")
 
 def photonPosition( dataset, savename, dir="tr", normalize=False ):
     can = ROOT.TCanvas()
@@ -850,47 +701,135 @@ def photonPosition( dataset, savename, dir="tr", normalize=False ):
     if False: aux.write2File( h2, savename, "gammaPosition.root" )
 
 
+
+def finalPrediction():
+    name = "emht"
+
+    for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+
+        can = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+
+        allDatasets = qcd+ttjets+ttg+wg_mg+znunu+zg_130+gjets #+signal["T5Wg_1550_1500"]
+
+        dataH = allDatasets.getHist("tr/"+name)
+        dataH.SetLineColor(ROOT.kBlack)
+        dataH.SetMarkerColor(ROOT.kBlack)
+        if binning: dataH = aux.rebin( dataH, binning )
+        aux.appendFlowBin( dataH )
+        dataH.SetYTitle( aux.getYAxisTitle( dataH ) )
+        m.add( dataH, "(Pseudo) Data" )
+
+        ewkH = allDatasets.getHist("tr_eControl/"+name)
+        ewkH.Scale(0.01)
+        ewkH.SetLineColor(rwth.green)
+        if binning: ewkH = aux.rebin( ewkH, binning )
+        aux.appendFlowBin( ewkH )
+        m.addStack( ewkH, "e#rightarrow#gamma" )
+
+        qcdH = allDatasets.getHist("tr_jControl/"+name)
+        if binning: qcdH = aux.rebin( qcdH, binning )
+        aux.appendFlowBin( qcdH )
+        qcdH.Scale(dataH.Integral(0,-1,"width")/qcdH.Integral(0,-1,"width"))
+        m.addStack( qcdH, "#gamma/jet" )
+
+        """
+        isrDatasets = wg_mg+zg_130+ttg
+        isrH = isrDatasets.getHist("tr/"+name)
+        if binning: isrH = aux.rebin( isrH, binning )
+        aux.appendFlowBin( isrH )
+        m.addStack( isrH, "#gamma+V" )
+        """
+
+        wgDatasets = wg_mg
+        wgH = wgDatasets.getHist("tr_noGenLep/"+name)
+        if binning: wgH = aux.rebin( wgH, binning )
+        aux.appendFlowBin( wgH )
+        m.addStack( wgH, "#gamma+W" )
+
+        zgDatasets = zg_130
+        zgH = zgDatasets.getHist("tr_noGenLep/"+name)
+        if binning: zgH = aux.rebin( zgH, binning )
+        aux.appendFlowBin( zgH )
+        m.addStack( zgH, "#gamma+Z" )
+
+        ttgDatasets = ttg
+        ttgH = ttgDatasets.getHist("tr_noGenLep/"+name)
+        if binning: ttgH = aux.rebin( ttgH, binning )
+        aux.appendFlowBin( ttgH )
+        m.addStack( ttgH, "#gamma+tt" )
+
+
+
+        #m.maximum = 0.03
+
+        m.Draw()
+        l = aux.Label(sim=True)
+        tot = m.hists[0].GetStack().Last()
+        r = ratio.Ratio("MC/Pred",dataH,tot)
+        r.draw(.5,1.5)
+
+        if binningName: binningName = "_"+binningName
+        saveName = "finalPrediction_{}{}".format( name, binningName )
+        aux.save( saveName )
+
+def significanceMetHt():
+    x = style.style2d()
+    allDatasets = qcd+ttjets+ttg+wg_mg+znunu+zg_130+gjets
+    sigDatasets = signal["T5Wg_1550_100"]
+
+    bkgH = allDatasets.getHist("tr/met_vs_emht")
+    sigH = sigDatasets.getHist("tr/met_vs_emht")
+    for h in bkgH,sigH:
+        h.Rebin2D(2,2)
+
+    significanceH = sigH.Clone(aux.randomName())
+    significanceH.SetTitle(";minimal E_{T}^{miss} (GeV);minimal H_{T} (GeV);Significance")
+    significanceH.GetXaxis().SetRangeUser(0,1000)
+    significanceH.GetZaxis().SetRangeUser(0,4)
+
+    for xbin, ybin in aux.loopH2(sigH):
+        s = sigH.Integral(xbin,-1,ybin,-1)
+        be = ROOT.Double()
+        b = bkgH.IntegralAndError(xbin,-1,ybin,-1,be)
+        if not s or b <= 0: continue
+        sig = s/math.sqrt(b+(b/2)**2+be**2)
+        significanceH.SetBinContent(xbin,ybin,sig)
+
+    significanceH.Draw("colz")
+    aux.save("significanceMax2D_{}".format("test"), log=False)
+
+
 def main():
     pass
     #transitions()
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
+
     #drawSameHistograms( "gqcd_data", [gjets600,gjets400,gjets200, gjets100,gjets40,qcd], [data])
     #drawSameHistograms( "gqcd_dataHt", [gjets600,gjets400,gjets200, gjets100,gjets40,qcd], [dataHt])
-    #drawSameHistograms( "emqcd_data", [emqcd], [data])
-    #drawSameHistograms( "_gjet15_data", [gjets_pt15, qcd], additional=[data])
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[signal["T5Wg_1550_100"],data])
-    #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[signal["T5Wg_1550_100"],signal["T5Wg_1550_1500"]])
-    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data,signal["T5gg_1400_200"], signal["T5gg_1400_1200"]])
-    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[data])
     #drawSameHistograms( "mc_dataHt", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[dataHt])
-    #drawSameHistograms( "_mc_data", bkg=[gjets, qcd, ttjets, ttg, wjets, dy,znunu], additional=[data])
-    #drawSameHistograms( "mc", [gjets, qcd, wjets, ttjets, ttg,znunu], additional=[signal["T5gg_1400_1200"], signal["T5gg_1400_200"]])
-    #drawSameHistograms( "_QCD", bkg=[ qcd2000, qcd1500, qcd1000, qcd700, qcd500, qcd300 ] )
+    #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[signal["T5Wg_1550_100"],signal["T5Wg_1550_1500"]])
 
-    #ewkClosure( ttjets, "tt" )
-    #ewkClosure( wjets, "w" )
-    #ewkClosure( wjets+ttjets, "ewk" )
-    #qcdClosure( qcd+gjets, "_gqcd" )
-    #qcdClosure( data, "_data" )
-    #multiQcdClosures( qcd+gjets, "gqcd" )
-    #multiQcdClosures( zg_130+znunu, "znunu" )
-    #multiQcdClosures( ttg+ttjets, "tt" )
-    #multiQcdClosures( wg_mg+wjets, "w" )
+    #ewkClosures( ttjets, "tt" )
+    #ewkClosures( wjets, "w" )
+    #ewkClosures( wjets+ttjets, "ewk" )
+
+    #multiQcdClosures( gjets+qcd, "gqcd" )
+    #multiQcdClosures( zg_130, "znunu", znunu)
+    #multiQcdClosures( ttg, "tt",ttjets )
+    #multiQcdClosures( wg_mg, "w", wjets )
     #multiQcdClosures( data, "data", dataHt )
     #multiQcdClosures( signal["T5Wg_1550_100"], "signal" )
-    #multiQcdClosures( gjets+qcd+ttjets+ttg+wjets+wg_mg+znunu+zg_130,"mc" )
-    #gjets.label = "GJets Data"
-    #drawSameHistogram( "gjets_qcd", "h_genHt", [qcd], [gjets], scaleToData=True, binning=range(0,3000,20))
-    #checkGJetsQcdNlo()
+    #multiQcdClosures( gjets+qcd+znunu+wjets+ttjets, "mc", gjets+qcd+ttjets+ttg+wg_mg+znunu+zg_130)
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
     #efficiencies( gjets, "gjet_" )
     #efficiencies( data, "singlePhoton" )
     #efficiencies( dataHt, "jetHt" )
-    #efficienciesDataMC( dataHt, ttjets+qcd+gjets+wjets, "jetHt_mc_" )
 
     #drawROCs()
     #drawH2s()
@@ -903,6 +842,10 @@ def main():
     #photonPosition( data, "data" )
 
     #metCorrections( gjets+qcd, "gqcd" )
+
+    #finalPrediction()
+    #significanceMetHt()
+
 
 
 if __name__ == "__main__":

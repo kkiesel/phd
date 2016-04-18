@@ -79,6 +79,9 @@ class Multiplot:
 
             if "p" in h.drawOption_:
                 self.leg.AddEntry( h, h.GetName(), "ep" )
+            elif "e2" in h.drawOption_:
+                h.SetLineColor(0)
+                self.leg.AddEntry( h, h.GetName(), "epf" )
             else:
                 self.leg.AddEntry( h, h.GetName(), "l" )
 

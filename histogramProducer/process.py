@@ -50,15 +50,11 @@ ds={
         "ZJetsToNuNu_HT-400To600_nTuple.root",
         "ZJetsToNuNu_HT-600ToInf_nTuple.root",
         ],
-    "ewk": [
-        "TTJets_nTuple.root",
-        ],
-    "gv": [
-        "TTGJets_nTuple.root",
-        "ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root",
-        "WGJets_MonoPhoton_PtG-130_nTuple.root",
-        "WGToLNuG-madgraphMLM_nTuple.root",
-        ]
+    "tt": ["TTJets_nTuple.root"],
+    "ttg": ["TTGJets_nTuple.root"],
+    "zg": ["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"],
+    "wg": ["WGJets_MonoPhoton_PtG-130_nTuple.root",
+           "WGToLNuG-madgraphMLM_nTuple.root"],
 }
 dir = "/user/kiesel/nTuples/v11/"
 
@@ -69,8 +65,8 @@ dir = "/user/kiesel/nTuples/v11/"
 
 toProcess = ds["gjet"]+ds["qcd"]
 toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
-toProcess = ["TTJets_nTuple.root","TTGJets_nTuple.root"]
-toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
+toProcess = ds["tt"]+ds["ttg"]
+toProcess = ds["w"]+ds["wg"]
 toProcess = ds["sp"]+ds["jh"]
 toProcess = [ x for sublist in ds.values() for x in sublist ]
 
@@ -81,7 +77,7 @@ files = [dir+x for x in toProcess]
 files.sort( key=os.path.getsize, reverse=True )
 
 # adding signal scan
-#files = [ f for f in glob.glob( dir+"T5*00.root") ]
+#files = [ f for f in glob.glob( dir+"T5Wg_*.root") ]
 
 # compile only
 run.run()
