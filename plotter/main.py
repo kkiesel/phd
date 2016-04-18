@@ -497,37 +497,33 @@ def efficienciesDataMC( dataset_data, dataset_mc, savename="" ):
         aux.save( "efficiencyDataMC_"+savename+name )
 
 
-def efficiency( dataset, name, savename="" ):
+def efficiency( dataset, name, savename="", binning=None, binningName="" ):
     c = ROOT.TCanvas()
     c.SetLogy(0)
-    h = dataset.getHist( name )
-    if h.UsesWeights(): h.SetStatisticOption( ROOT.TEfficiency.kFNormal )
+    eff = dataset.getHist( name )
+    if eff.UsesWeights(): eff.SetStatisticOption( ROOT.TEfficiency.kFNormal )
 
-    h_pas = h.GetPassedHistogram()
-    h_tot = h.GetTotalHistogram()
-    if "hlt" in name:
-        newBins = []
-        if name == "eff_hlt_pt": newBins = range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000]
-        if name == "eff_hlt_ht": newBins = range(0,1001,40) + [1000,1500,2000]
-        if newBins:
-            h_pas = aux.rebin( h_pas, newBins, False )
-            h_tot = aux.rebin( h_tot, newBins, False )
+    h_pas = eff.GetPassedHistogram()
+    h_tot = eff.GetTotalHistogram()
+    if binning:
+        h_pas = aux.rebin( h_pas, binning, False )
+        h_tot = aux.rebin( h_tot, binning, False )
         eff = ROOT.TEfficiency( h_pas, h_tot )
-    else:
-        eff = h
 
     eff.Draw()
     ROOT.gPad.Update()
     eff.GetPaintedGraph().GetYaxis().SetRangeUser(0., 1.1)
 
-    if "_pt" in name:
+    if name.endswith("eff_hlt_pt"):
         cutValue = 100
-    elif "_ht" in name:
-        cutValue = 600
+    elif name.endswith("eff_hlt_ht") \
+            or name.endswith("eff_hlt_ht_ct") \
+            or name.endswith("eff_hlt_ht_ct_preScaled"):
+        cutValue = 700
     else:
         cutValue = 0
 
-    if cutValue != None:
+    if cutValue:
         bin = h_pas.FindFixBin( cutValue )
         passed = int(h_pas.Integral( bin, -1 ))
         total = int(h_tot.Integral( bin, -1 ))
@@ -560,18 +556,30 @@ def efficiency( dataset, name, savename="" ):
     l = aux.Label(sim="Data" not in dataset.label)
     l.lum.DrawLatexNDC( .1, l.lum.GetY(), dataset.label )
     name = "_"+name.split("/")[-1]
-    aux.save( "efficiency_"+savename+name, log=False )
+    if binningName: binningName = "_"+binningName
+    aux.save( "efficiency_"+savename+name+binningName, log=False )
 
-    h_tot.SetLineColor(2)
-    h_tot.Draw("hist")
-    h_pas.Draw("same e*")
-    aux.save( "efficiency_"+savename+name+"_raw" )
+    if False:
+        h_tot.SetLineColor(2)
+        h_tot.Draw("hist")
+        h_pas.Draw("same e*")
+        aux.save( "efficiency_"+savename+name+"_raw" )
 
 def efficiencies( dataset, savename="" ):
     names = ["triggerStudies/"+x for x in aux.getObjectNames( dataset.files[0], "triggerStudies", [ROOT.TEfficiency] ) ]
 
+    #names = ["triggerStudies/eff_hlt_ht_ct_preScaled"]
+
     for name in names:
         efficiency( dataset, name, savename )
+        if name.endswith("eff_hlt_pt"):
+            efficiency( dataset, name, savename, range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000], "1" )
+        if name.endswith("eff_hlt_ht"):
+            efficiency( dataset, name, savename, range(0,1001,40) + range(1000,1500,2000), "1" )
+        if name.endswith("eff_hlt_ht_ct") or name.endswith("eff_hlt_ht_ct_preScaled"):
+            efficiency( dataset, name, savename, range(450,1001,10), "1" )
+
+
 
 def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
     names = aux.getObjectNames( dataset.files[0] )
@@ -706,9 +714,9 @@ def main():
     #drawSameHistograms( "mc_dataHt", [gjets, qcd, ttjets, ttg, wjets,wg_mg,znunu,zg_130], additional=[dataHt])
     #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[signal["T5Wg_1550_100"],signal["T5Wg_1550_1500"]])
 
-    #ewkClosure( ttjets, "tt" )
-    #ewkClosure( wjets, "w" )
-    #ewkClosure( wjets+ttjets, "ewk" )
+    #ewkClosures( ttjets, "tt" )
+    #ewkClosures( wjets, "w" )
+    #ewkClosures( wjets+ttjets, "ewk" )
 
     #multiQcdClosures( gjets+qcd, "gqcd" )
     #multiQcdClosures( zg_130, "znunu",znunu )
