@@ -227,6 +227,7 @@ map<string,TH2F> initHistograms2(){
 
   hMap["n_heJets_vs_photonPosition"] = TH2F("","",10, -0.5, 9.5, 10, -0.5, 9.5 );
   hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1 );
+  hMap["met_vs_emht"] = TH2F("", "", 500, 0, 5000, 500, 0, 5000 );
 
   return hMap;
 }
@@ -235,6 +236,8 @@ map<string,TH1F> initHistograms(){
   map<string,TH1F> hMap;
 
   hMap["met"] = TH1F( "", ";E^{miss}_{T} (GeV)", 200, 0, 2000 );
+  hMap["metStar"] = TH1F( "", ";E^{miss}_{T}* (GeV)", 200, 0, 2000 );
+  hMap["metStar2"] = TH1F( "", ";E^{miss}_{T}* (GeV)", 200, 0, 2000 );
   hMap["metUp"] = TH1F( "", ";E^{miss}_{T} up (GeV)", 200, 0, 2000 );
   hMap["metDn"] = TH1F( "", ";E^{miss}_{T} down (GeV)", 200, 0, 2000 );
   hMap["metUpJec"] = TH1F( "", ";E^{miss}_{T} up (GeV)", 200, 0, 2000 );
@@ -341,6 +344,8 @@ void HistogramProducer::fillSelection( string const& s ) {
     hMapMap.at(s).at("genMatch").Fill( genMatch(*selPhotons.at(0)), selW );
     auto mJet = matchedJet(*selPhotons.at(0));
     if(mJet){
+      hMapMap.at(s).at("metStar").Fill( (met->p+selPhotons.at(0)->p-mJet->p).Pt(), selW );
+      hMapMap.at(s).at("metStar2").Fill( (met->p-selPhotons.at(0)->p+mJet->p).Pt(), selW );
       hMapMap.at(s).at("metUpJec").Fill( (met->p+(mJet->p*mJet->uncert)).Pt(), selW );
       hMapMap.at(s).at("metDnJec").Fill( (met->p-(mJet->p*mJet->uncert)).Pt(), selW );
       hMapMap.at(s).at("g_ptStar").Fill( mJet->p.Pt(), selW );
@@ -388,6 +393,8 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap.at(s).at("n_electron").Fill( selElectrons.size(), selW );
   hMapMap.at(s).at("n_muon").Fill( selMuons.size(), selW );
   hMapMap.at(s).at("n_heJet").Fill( selHEJets.size(), selW );
+
+  hMapMap2.at(s).at("met_vs_emht").Fill( met->p.Pt(), ht_g, selW );
 
 } // end fill
 
