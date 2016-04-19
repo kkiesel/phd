@@ -349,10 +349,17 @@ def automaticRebinner( hlist, minEvents=3 ):
 
 def getMinimum( hists ):
     # do not use TH1.GetMinimum(), since it returns the minimum set by SetMinimum()
-    return min( [ h.GetBinContent(h.GetMinimumBin()) for h in hists if not isinstance( h, ROOT.THStack ) ] )
+    return min( [ h.GetBinContent(h.GetMinimumBin()) for h in hists ] )
 
 def setMinMaxForLog():
-    allH = [ i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives() if isinstance(i, ROOT.TH1) ]
+    allStuff = [ i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives()]
+    allH = []
+    for h in allStuff:
+        if isinstance(h, ROOT.THStack):
+            for sh in h.GetHists():
+                allH.append(sh)
+        elif isinstance(h, ROOT.TH1):
+            allH.append(h)
     minC = getMinimum( allH )
     minExp = 1/maxBinWidth(allH[0])
     maxC = max( [ h.GetMaximum() for h in allH ] )
@@ -434,6 +441,17 @@ def metricPrefix( n ):
 
 def loopH2( h2 ):
     return [(xbin,ybin) for xbin in range(h2.GetNbinsX()+2) for ybin in range(h2.GetNbinsX()+2)]
+
+def stdHist(dataset, name, binning=None, xCut=True, cut1=0, cut2=maxint):
+    h = dataset.getHist(name)
+    if isinstance(h, ROOT.TH2):
+        if xCut: h = h.ProjectionY(randomName(), h.GetXaxis().FindFixBin(cut1), h.GetYaxis().FindFixBin(cut2))
+        else:    h = h.ProjectionX(randomName(), h.GetYaxis().FindFixBin(cut1), h.GetXaxis().FindFixBin(cut2))
+    if binning: h = rebin(h, binning)
+    appendFlowBin(h)
+    h.SetYTitle(getYAxisTitle(h))
+    return h
+
 
 class Label:
     # Create labels

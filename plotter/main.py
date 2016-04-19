@@ -799,6 +799,68 @@ def significanceMetHt():
     significanceH.Draw("colz")
     aux.save("significanceMax2D_{}".format("test"), log=False)
 
+def zToMet():
+    names = aux.getObjectNames( zgll.files[0], "tr", [ROOT.TH1F] )
+
+    names = ["met"]
+
+    bfNNToLL = 1.980707905005249 # branching fraction Z(νν)/Z(ll)
+
+
+    for name in names:
+        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+
+            c = ROOT.TCanvas()
+            m = multiplot.Multiplot()
+            h130 = zg_130.getHist("tr/"+name)
+            if binning: h130 = aux.rebin( h130, binning )
+            aux.appendFlowBin( h130 )
+            m.addStack(h130, ">130")
+
+            h0To130 = zgll.getHist("tr_0pt130/"+name)
+            if binning: h0To130 = aux.rebin( h0To130, binning )
+            aux.appendFlowBin( h0To130 )
+            h0To130.Scale(bfNNToLL)
+            m.addStack(h0To130, "<130")
+
+            m.Draw()
+            aux.save("zToMet_{}_{}".format(name,binningName))
+
+            c2 = ROOT.TCanvas()
+            m2 = multiplot.Multiplot()
+            h130.drawOption_ = "hist e"
+            m2.add(h130, ">130")
+
+            h130pt = zgll.getHist("tr_130pt/"+name)
+            h130pt.drawOption_ = "hist e"
+            if binning: h130pt = aux.rebin( h130pt, binning )
+            aux.appendFlowBin( h130pt )
+            h130pt.Scale(bfNNToLL)
+            m2.add(h130pt, ">130")
+
+            m2.Draw()
+            aux.save("zToMetCompare_{}_{}".format(name,binningName))
+
+def htStuff():
+    allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
+    dSets = sum(allDatasets)
+
+    names = ["tr/met_vs_emht","tr_jControl/met_vs_emht"]
+
+    metBinnings = aux.getBinnigsFromName("met")
+    emhtBinnings = aux.getBinnigsFromName("emht")
+
+    for name in names:
+        for binningName, binning in metBinnings.iteritems():
+            for cut1, cut2 in [(0,1e6), (0,2000), (2000,1e6)]:
+                c = ROOT.TCanvas()
+                m = multiplot.Multiplot()
+                for d in allDatasets:
+                    h = aux.stdHist(dSets, name, binning=binning, xCut=False, cut1=cut1, cut2=cut2 )
+                    m.addStack(h)
+                m.Draw()
+                aux.save("htStuff_{}_{}_{}ht{}".format(name.replace("/","__"), binning, cut1, cut2))
+
 
 def main():
     pass
@@ -845,6 +907,12 @@ def main():
 
     #finalPrediction()
     #significanceMetHt()
+
+    #zToMet()
+
+    htStuff()
+
+
 
 
 

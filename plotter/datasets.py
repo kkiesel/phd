@@ -173,6 +173,9 @@ znunu600 = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.20, ROOT.kMagenta+0 , "ZJetsToN
 zg_130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.223, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
 zg_130.label = "#gammaZ(#nu#nu) p_{T}^{#gamma}>130"
 
+zgll = Dataset( "ZGTo2LG", 117.864, ROOT.kMagenta+3, "ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+zgll.label = "#gammaZ(ll)"
+
 znunuSamples = znunu400, znunu600
 for ds in znunuSamples:
     # apply k-factor
