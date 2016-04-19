@@ -841,6 +841,27 @@ def zToMet():
             m2.Draw()
             aux.save("zToMetCompare_{}_{}".format(name,binningName))
 
+def htStuff():
+    allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
+    dSets = sum(allDatasets)
+
+    names = ["tr/met_vs_emht","tr_jControl/met_vs_emht"]
+
+    metBinnings = aux.getBinnigsFromName("met")
+    emhtBinnings = aux.getBinnigsFromName("emht")
+
+    for name in names:
+        for binningName, binning in metBinnings.iteritems():
+            for cut1, cut2 in [(0,1e6), (0,2000), (2000,1e6)]:
+                c = ROOT.TCanvas()
+                m = multiplot.Multiplot()
+                for d in allDatasets:
+                    h = aux.stdHist(dSets, name, binning=binning, xCut=False, cut1=cut1, cut2=cut2 )
+                    m.addStack(h)
+                m.Draw()
+                aux.save("htStuff_{}_{}_{}ht{}".format(name.replace("/","__"), binning, cut1, cut2))
+
+
 def main():
     pass
     #transitions()
@@ -888,6 +909,9 @@ def main():
     #significanceMetHt()
 
     #zToMet()
+
+    htStuff()
+
 
 
 

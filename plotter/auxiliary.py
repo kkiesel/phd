@@ -442,6 +442,17 @@ def metricPrefix( n ):
 def loopH2( h2 ):
     return [(xbin,ybin) for xbin in range(h2.GetNbinsX()+2) for ybin in range(h2.GetNbinsX()+2)]
 
+def stdHist(dataset, name, binning=None, xCut=True, cut1=0, cut2=maxint):
+    h = dataset.getHist(name)
+    if isinstance(h, ROOT.TH2):
+        if xCut: h = h.ProjectionY(randomName(), h.GetXaxis().FindFixBin(cut1), h.GetYaxis().FindFixBin(cut2))
+        else:    h = h.ProjectionX(randomName(), h.GetYaxis().FindFixBin(cut1), h.GetXaxis().FindFixBin(cut2))
+    if binning: h = rebin(h, binning)
+    appendFlowBin(h)
+    h.SetYTitle(getYAxisTitle(h))
+    return h
+
+
 class Label:
     # Create labels
     # Usage:
