@@ -505,14 +505,31 @@ def efficiency( dataset, name, savename="", binning=None, binningName="" ):
 
     h_pas = eff.GetPassedHistogram()
     h_tot = eff.GetTotalHistogram()
+
+    if name.endswith("_preScaled"):
+        eff2 = dataset.getHist( name.replace("_preScaled", "") )
+        h_tot = eff2.GetTotalHistogram()
+
     if binning:
         h_pas = aux.rebin( h_pas, binning, False )
         h_tot = aux.rebin( h_tot, binning, False )
-        eff = ROOT.TEfficiency( h_pas, h_tot )
 
-    eff.Draw()
-    ROOT.gPad.Update()
-    eff.GetPaintedGraph().GetYaxis().SetRangeUser(0., 1.1)
+    if name.endswith("_preScaled"):
+        ratio = h_pas.Clone(aux.randomName())
+        ratio.Divide(h_tot)
+        gr = ROOT.TGraphAsymmErrors(ratio)
+        gr.SetLineColor(1)
+        gr.Draw("ap")
+    else:
+        x = h_pas.Clone(aux.randomName())
+        y = h_tot.Clone(aux.randomName())
+        eff = ROOT.TEfficiency(h_pas, h_tot)
+        h_pas, h_tot = x, y
+        eff.Draw()
+        ROOT.gPad.Update()
+        gr = eff.GetPaintedGraph()
+
+    gr.GetYaxis().SetRangeUser(0., 1.1)
 
     if name.endswith("eff_hlt_pt"):
         cutValue = 100
@@ -523,15 +540,22 @@ def efficiency( dataset, name, savename="", binning=None, binningName="" ):
     else:
         cutValue = 0
 
-    if cutValue:
+    if cutValue or True:
         bin = h_pas.FindFixBin( cutValue )
         passed = int(h_pas.Integral( bin, -1 ))
         total = int(h_tot.Integral( bin, -1 ))
         if not total: return
-        conf = ROOT.TEfficiency().GetConfidenceLevel()
         e = 1.*passed/total
-        e_up = ROOT.TEfficiency.ClopperPearson( total, passed, conf, True )
-        e_dn = ROOT.TEfficiency.ClopperPearson( total, passed, conf, False )
+        if passed<=total:
+            conf = ROOT.TEfficiency().GetConfidenceLevel()
+            e_up = ROOT.TEfficiency.ClopperPearson( total, passed, conf, True )
+            e_dn = ROOT.TEfficiency.ClopperPearson( total, passed, conf, False )
+        else:
+            passed, epassed = aux.integralAndError(h_pas,bin,-1)
+            total, etotal = aux.integralAndError(h_pas,bin,-1)
+            ee = e * math.sqrt( (epassed/passed)**2 + (etotal/total)**2 )
+            e_up = e + ee
+            e_dn = e - ee
         eLabel = ROOT.TLatex( 0.7, .15, "#varepsilon = {:.1f}^{{#plus{:.1f}}}_{{#minus{:.1f}}}%".format(100*e, 100*(e_up-e),100*(e-e_dn) ) )
         eLabel.SetNDC()
         eLabel.Draw()
@@ -540,7 +564,7 @@ def efficiency( dataset, name, savename="", binning=None, binningName="" ):
         l = ROOT.TLine()
         l.SetLineWidth(2)
         l.SetLineColor( ROOT.kRed )
-        xmax = eff.CreateGraph().GetHistogram().GetXaxis().GetXmax()
+        xmax = gr.GetHistogram().GetXaxis().GetXmax()
         l.DrawLine( cutValue, e, xmax, e )
         l.DrawLine( cutValue, e_up, xmax, e_up )
         l.DrawLine( cutValue, e_dn, xmax, e_dn )
@@ -548,8 +572,8 @@ def efficiency( dataset, name, savename="", binning=None, binningName="" ):
         if cutValue > eff.CreateGraph().GetHistogram().GetXaxis().GetXmin():
             # cut line
             l.SetLineStyle(2)
-            ymin = eff.GetPaintedGraph().GetYaxis().GetXmin()
-            ymax = eff.GetPaintedGraph().GetYaxis().GetXmax()
+            ymin = gr.GetYaxis().GetXmin()
+            ymax = gr.GetYaxis().GetXmax()
             l.DrawLine( cutValue, ymin, cutValue, ymax )
 
 
@@ -568,7 +592,7 @@ def efficiency( dataset, name, savename="", binning=None, binningName="" ):
 def efficiencies( dataset, savename="" ):
     names = ["triggerStudies/"+x for x in aux.getObjectNames( dataset.files[0], "triggerStudies", [ROOT.TEfficiency] ) ]
 
-    #names = ["triggerStudies/eff_hlt_ht_ct_preScaled"]
+    #names = ["triggerStudies/eff_hlt_ht_ct2_preScaled"]
 
     for name in names:
         efficiency( dataset, name, savename )
@@ -578,6 +602,10 @@ def efficiencies( dataset, savename="" ):
             efficiency( dataset, name, savename, range(0,1001,40) + range(1000,1500,2000), "1" )
         if name.endswith("eff_hlt_ht_ct") or name.endswith("eff_hlt_ht_ct_preScaled"):
             efficiency( dataset, name, savename, range(450,1001,10), "1" )
+        if name.endswith("eff_hlt_ht_ct2") or name.endswith("eff_hlt_ht_ct2_preScaled"):
+            efficiency( dataset, name, savename, range(500,1001,50), "1" )
+        if "_met_" in name:
+            efficiency( dataset, name, savename, range(0, 100, 5)+range(100,151,10), "1" )
 
 
 
@@ -802,48 +830,44 @@ def significanceMetHt():
 def zToMet():
     names = aux.getObjectNames( zgll.files[0], "tr", [ROOT.TH1F] )
 
-    names = ["met"]
+    #names = ["met"]
 
     bfNNToLL = 1.980707905005249 # branching fraction Z(νν)/Z(ll)
 
 
     for name in names:
+        #for binningName, binning in aux.getBinnigsFromName( name ).iteritems(): print binningName
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
 
             c = ROOT.TCanvas()
             m = multiplot.Multiplot()
-            h130 = zg_130.getHist("tr/"+name)
-            if binning: h130 = aux.rebin( h130, binning )
-            aux.appendFlowBin( h130 )
+            h130 = aux.stdHist(zg_130, "tr/"+name, binning)
             m.addStack(h130, ">130")
 
-            h0To130 = zgll.getHist("tr_0pt130/"+name)
-            if binning: h0To130 = aux.rebin( h0To130, binning )
-            aux.appendFlowBin( h0To130 )
+            h0To130 = aux.stdHist(zgll, "tr_0pt130/"+name, binning)
             h0To130.Scale(bfNNToLL)
-            m.addStack(h0To130, "<130")
+            m.addStack(h0To130, "<130 from Z#rightarrowll")
 
             m.Draw()
             aux.save("zToMet_{}_{}".format(name,binningName))
 
             c2 = ROOT.TCanvas()
             m2 = multiplot.Multiplot()
+            h130 = aux.stdHist(zg_130, "tr/"+name, binning)
             h130.drawOption_ = "hist e"
+            m.addStack(h130, ">130")
             m2.add(h130, ">130")
 
-            h130pt = zgll.getHist("tr_130pt/"+name)
-            h130pt.drawOption_ = "hist e"
-            if binning: h130pt = aux.rebin( h130pt, binning )
-            aux.appendFlowBin( h130pt )
+            h130pt = aux.stdHist(zgll, "tr_130pt/"+name, binning )
             h130pt.Scale(bfNNToLL)
-            m2.add(h130pt, ">130")
+            m2.add(h130pt, ">130 from Z#rightarrowll")
 
             m2.Draw()
             aux.save("zToMetCompare_{}_{}".format(name,binningName))
 
 def htStuff():
     allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
-    dSets = sum(allDatasets)
+    signals = signal["T5Wg_1550_100"], signal["T5Wg_1550_1500"]
 
     names = ["tr/met_vs_emht","tr_jControl/met_vs_emht"]
 
@@ -856,10 +880,44 @@ def htStuff():
                 c = ROOT.TCanvas()
                 m = multiplot.Multiplot()
                 for d in allDatasets:
-                    h = aux.stdHist(dSets, name, binning=binning, xCut=False, cut1=cut1, cut2=cut2 )
-                    m.addStack(h)
+                    h = aux.stdHist(d, name, binning=binning, xCut=False, cut1=cut1, cut2=cut2 )
+                    h.SetXTitle("E_{T}^{miss} (GeV)")
+                    m.addStack(h,d.label)
+                for s in signals:
+                    h = aux.stdHist(s, name, binning=binning, xCut=False, cut1=cut1, cut2=cut2 )
+                    h.drawOption_="hist"
+                    h.SetLineWidth(3)
+                    m.add(h,s.label)
+                m.sortStackByIntegral()
                 m.Draw()
-                aux.save("htStuff_{}_{}_{}ht{}".format(name.replace("/","__"), binning, cut1, cut2))
+                info = "EMH_{T}/GeV"
+                if cut1: info = str(cut1)+"<"+info
+                if cut2<1e5: info = info+"<"+str(cut2)
+                if "<" not in info and ">" not in info: info=""
+                l = aux.Label(sim=True,info=info)
+                aux.save("htStuff_met_{}_{}_{}ht{}".format(name.split("/")[0], binningName, int(cut1), int(cut2)))
+
+        for binningName, binning in emhtBinnings.iteritems():
+            for cut1, cut2 in [(0,1e6), (0,200), (200,1e6)]:
+                c = ROOT.TCanvas()
+                m = multiplot.Multiplot()
+                for d in allDatasets:
+                    h = aux.stdHist(d, name, binning=binning, xCut=True, cut1=cut1, cut2=cut2 )
+                    h.SetXTitle("EMH_{T} (GeV)")
+                    m.addStack(h,d.label)
+                for s in signals:
+                    h = aux.stdHist(s, name, binning=binning, xCut=True, cut1=cut1, cut2=cut2 )
+                    h.drawOption_="hist"
+                    h.SetLineWidth(3)
+                    m.add(h,s.label)
+                m.sortStackByIntegral()
+                m.Draw()
+                info = "E_{T}^{miss}/GeV"
+                if cut1: info = str(cut1)+"<"+info
+                if cut2<1e5: info = info+"<"+str(cut2)
+                if "<" not in info and ">" not in info: info=""
+                l = aux.Label(sim=True,info=info)
+                aux.save("htStuff_emht_{}_{}_{}met{}".format(name.split("/")[0], binningName, int(cut1), int(cut2)))
 
 def htRebinning():
     allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
