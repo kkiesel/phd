@@ -235,7 +235,8 @@ map<string,TH2F> initHistograms2(){
 
   hMap["n_heJets_vs_photonPosition"] = TH2F("","",10, -0.5, 9.5, 10, -0.5, 9.5 );
   hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1 );
-  hMap["met_vs_emht"] = TH2F("", "", 500, 0, 5000, 500, 0, 5000 );
+  hMap["met_vs_emht"] = TH2F("", ";E_{T}^{miss} (GeV);H_{T} (GeV)", 500, 0, 5000, 500, 0, 5000 );
+  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);H_{T} (GeV)", 500, 0, 5000, 500, 0, 5000 );
 
   return hMap;
 }
@@ -403,6 +404,7 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap.at(s).at("n_heJet").Fill( selHEJets.size(), selW );
 
   hMapMap2.at(s).at("met_vs_emht").Fill( met->p.Pt(), ht_g, selW );
+  hMapMap2.at(s).at("metRaw_vs_emht").Fill( met->p_raw.Pt(), ht_g, selW );
 
 } // end fill
 
