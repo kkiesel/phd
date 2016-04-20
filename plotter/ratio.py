@@ -45,7 +45,7 @@ class Ratio:
         self.sysHisto = sysHisto
         self.ratio = numerator.Clone( aux.randomName() )
         self.ratioStat = denominator.Clone( aux.randomName() )
-        self.ratioSys = denominator.Clone( aux.randomName() )
+        self.ratioSys = sysHisto.Clone( aux.randomName() )
         self.totalUncert = denominator.Clone( aux.randomName() )
         self.allowUnsymmetricYaxis = False
 
@@ -57,15 +57,15 @@ class Ratio:
             hist.SetTitleOffset(1.2, "Y")
             hist.SetYTitle( self.title )
 
-        self.ratioSys.SetFillStyle(3254)
-        self.ratioSys.SetMarkerSize(0)
-        self.ratioSys.SetFillColor(46)
-
-        self.totalUncert.SetFillStyle(3002)
+        self.totalUncert.SetFillStyle(3254)
         self.totalUncert.SetMarkerSize(0)
-        self.totalUncert.SetMarkerStyle(0)
-        self.totalUncert.SetFillColor( self.denominator.GetLineColor() )
-        self.totalUncert.SetLineColor(0)
+        self.totalUncert.SetFillColor(46)
+
+        self.ratioSys.SetFillStyle(3002)
+        self.ratioSys.SetMarkerSize(0)
+        self.ratioSys.SetMarkerStyle(0)
+        self.ratioSys.SetFillColor( self.denominator.GetLineColor() )
+        self.ratioSys.SetLineColor(0)
 
         self.ratioStat.SetLineWidth(5)
         self.ratioStat.SetMarkerStyle(0)
@@ -73,11 +73,16 @@ class Ratio:
 
 
     def calculateRatio( self ):
+        for bin in range(self.denominator.GetNbinsX()+2): self.denominator.SetBinError(bin,0)
         self.ratio.Divide( self.denominator )
         self.ratioStat.Divide( self.denominator )
         if self.sysHisto:
             self.ratioSys.Divide( self.denominator )
-            self.totalUncert.Add( self.ratioSys, self.ratioStat, .5, .5 )
+            #self.totalUncert.Add( self.ratioSys, self.ratioStat, .5, .5 )
+            for bin in range(self.denominator.GetNbinsX()+2):
+                self.totalUncert.SetBinContent(bin, 1)
+                self.totalUncert.SetBinError(bin, sqrt(self.ratioSys.GetBinError(bin)**2+self.ratioStat.GetBinError(bin)**2))
+            #self.totalUncert.Add( self.ratioSys, self.ratioStat, .5, .5 )
 
 
     def getYrange( self ):
