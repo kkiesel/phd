@@ -867,7 +867,7 @@ def zToMet():
 
 def htStuff():
     allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
-    dSets = sum(allDatasets)
+    signals = signal["T5Wg_1550_100"], signal["T5Wg_1550_1500"]
 
     names = ["tr/met_vs_emht","tr_jControl/met_vs_emht"]
 
@@ -880,10 +880,44 @@ def htStuff():
                 c = ROOT.TCanvas()
                 m = multiplot.Multiplot()
                 for d in allDatasets:
-                    h = aux.stdHist(dSets, name, binning=binning, xCut=False, cut1=cut1, cut2=cut2 )
-                    m.addStack(h)
+                    h = aux.stdHist(d, name, binning=binning, xCut=False, cut1=cut1, cut2=cut2 )
+                    h.SetXTitle("E_{T}^{miss} (GeV)")
+                    m.addStack(h,d.label)
+                for s in signals:
+                    h = aux.stdHist(s, name, binning=binning, xCut=False, cut1=cut1, cut2=cut2 )
+                    h.drawOption_="hist"
+                    h.SetLineWidth(3)
+                    m.add(h,s.label)
+                m.sortStackByIntegral()
                 m.Draw()
-                aux.save("htStuff_{}_{}_{}ht{}".format(name.replace("/","__"), binning, cut1, cut2))
+                info = "EMH_{T}/GeV"
+                if cut1: info = str(cut1)+"<"+info
+                if cut2<1e5: info = info+"<"+str(cut2)
+                if "<" not in info and ">" not in info: info=""
+                l = aux.Label(sim=True,info=info)
+                aux.save("htStuff_met_{}_{}_{}ht{}".format(name.split("/")[0], binningName, int(cut1), int(cut2)))
+
+        for binningName, binning in emhtBinnings.iteritems():
+            for cut1, cut2 in [(0,1e6), (0,200), (200,1e6)]:
+                c = ROOT.TCanvas()
+                m = multiplot.Multiplot()
+                for d in allDatasets:
+                    h = aux.stdHist(d, name, binning=binning, xCut=True, cut1=cut1, cut2=cut2 )
+                    h.SetXTitle("EMH_{T} (GeV)")
+                    m.addStack(h,d.label)
+                for s in signals:
+                    h = aux.stdHist(s, name, binning=binning, xCut=True, cut1=cut1, cut2=cut2 )
+                    h.drawOption_="hist"
+                    h.SetLineWidth(3)
+                    m.add(h,s.label)
+                m.sortStackByIntegral()
+                m.Draw()
+                info = "E_{T}^{miss}/GeV"
+                if cut1: info = str(cut1)+"<"+info
+                if cut2<1e5: info = info+"<"+str(cut2)
+                if "<" not in info and ">" not in info: info=""
+                l = aux.Label(sim=True,info=info)
+                aux.save("htStuff_emht_{}_{}_{}met{}".format(name.split("/")[0], binningName, int(cut1), int(cut2)))
 
 
 def main():
