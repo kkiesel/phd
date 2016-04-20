@@ -528,10 +528,13 @@ Bool_t HistogramProducer::Process(Long64_t entry)
       }
     }
     for( auto p : *genParticles ) {
-      if( p.pdgId==22 ) zToMetPt = p.p.Pt();
+      if( p.pdgId==22 ) {
+        zToMetPt = p.p.Pt();
+        break;
+      }
     }
-    if (zToMetPt<0) return kTRUE;
   }
+  if (zToMet && zToMetPt<0) return kTRUE;
 
 
   if(isData) fillTriggerStudies();
