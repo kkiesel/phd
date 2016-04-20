@@ -941,10 +941,10 @@ def htRebinning():
         wSum = 0
         for ybin in range(h2QCD.GetNbinsY()+2):
             wSum += h2QCD.GetBinContent(xbin,ybin) * h1GJetHt.GetBinContent(ybin)
-        h1QCQDMetReweighted.SetBinContent(xbin,wSum)
+        h1QCDMetReweighted.SetBinContent(xbin,wSum)
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
-    for h in h1GJetMet,h1QCDMet, h2QCDMetReweighted:
+    for h in h1GJetMet,h1QCDMet, h1QCDMetReweighted:
         h.Scale(1./h.Integral())
 
     m.add(h1GJetMet, "#gamma")
