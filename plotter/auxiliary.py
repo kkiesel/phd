@@ -156,7 +156,9 @@ def rebin2d( h, binEdgesX, binEdgesY ):
         x = h.GetXaxis().GetBinCenter(xbin)
         for ybin in range(h.GetNbinsY()+2):
             y = h.GetYaxis().GetBinCenter(ybin)
-            hnew.Fill(x,y,h.GetBinContent(xbin,ybin));
+            newBin = hnew.FindFixBin(x,y)
+            hnew.SetBinContent(newBin, hnew.GetBinContent(newBin)+h.GetBinContent(xbin,ybin))
+            hnew.SetBinError( newBin, sqrt(hnew.GetBinError(newBin)**2 + h.GetBinError(xbin,ybin)**2 ) )
     return hnew
 
 
