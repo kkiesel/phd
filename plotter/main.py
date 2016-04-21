@@ -922,51 +922,79 @@ def htStuff():
 
 def htRebinning():
     allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
+    allDatasets = gjets, qcd, ttjets, wjets, znunu
+    allDatasets = gjets, qcd
     dSets = sum(allDatasets)
-
-    hName = "met_vs_emht"
-    h2GJet = dSets.getHist("tr/"+hName)
-    h2QCD  = dSets.getHist("tr_jControl/"+hName)
 
     metBinning = aux.getBinnigsFromName("met")["3"]
     emhtBinning = aux.getBinnigsFromName("emht")["1"]
 
+    hName = "metRaw_vs_emht"
+    h2GJet = dSets.getHist("tr_noGenLep/"+hName)
+    h2QCD  = dSets.getHist("tr_jControl/"+hName)
+
     h2GJet = aux.rebin2d( h2GJet, metBinning, emhtBinning )
     h2QCD = aux.rebin2d( h2QCD, metBinning, emhtBinning )
 
-    h1GJetHt = h2GJet.ProjectionY(aux.randomName())
-    h1QCDHt = h2QCD.ProjectionY(aux.randomName())
 
+    # compute weights
+    metCut = 100
+    metCutBin = h2GJet.GetXaxis().FindBin(100)
+    h1GJetHt = h2GJet.ProjectionY(aux.randomName(), 0, metCutBin-1)
+    h1QCDHt = h2QCD.ProjectionY(aux.randomName(), 0, metCutBin-1)
     h1GJetHt.Divide(h1QCDHt)
 
     h1GJetMet = h2GJet.ProjectionX(aux.randomName())
     h1QCDMet = h2QCD.ProjectionX(aux.randomName())
     h1QCDMetReweighted = h1QCDMet.Clone(aux.randomName())
+    h1QCDMetReweightedErr = h1QCDMet.Clone(aux.randomName())
 
     for xbin in range(h2QCD.GetNbinsX()+2):
         wSum = 0
+        wSumErrStat = 0
+        wSumErrSyst = 0
         for ybin in range(h2QCD.GetNbinsY()+2):
             wSum += h2QCD.GetBinContent(xbin,ybin) * h1GJetHt.GetBinContent(ybin)
+            wSumErrStat += ( h2QCD.GetBinError(xbin,ybin) * h1GJetHt.GetBinContent(ybin) )**2
+            wSumErrSyst += ( h2QCD.GetBinContent(xbin,ybin) * h1GJetHt.GetBinError(ybin) )**2
         h1QCDMetReweighted.SetBinContent(xbin,wSum)
+        h1QCDMetReweighted.SetBinError(xbin,math.sqrt(wSumErrStat))
+        h1QCDMetReweightedErr.SetBinContent(xbin,wSum)
+        h1QCDMetReweightedErr.SetBinError(xbin,math.sqrt(wSumErrSyst))
 
-    for h in h1GJetMet,h1QCDMet, h1QCDMetReweighted:
-        h.Scale(h1GJetMet.Integral()/h.Integral())
+    # scale histograms
+    norm = h1GJetMet.Integral()
+    for h in h1GJetMet,h1QCDMet, h1QCDMetReweighted, h1QCDMetReweightedErr:
+        h.Scale(norm/h.Integral(), "width")
+        aux.appendFlowBin( h )
+
+
     # prettify for drawing
     h1GJetMet.SetLineColor(1)
+    h1GJetMet.SetMarkerStyle(20)
     h1GJetMet.drawOption_="pe"
-    for h in h1QCDMet, h1QCDMetReweighted:
+
+    h1QCDMet.SetLineColor(rwth.violett)
+    h1QCDMet.drawOption_ = "hist"
+
+    for h in h1QCDMetReweighted, h1QCDMetReweightedErr:
         h.SetLineColor(ROOT.kRed)
-        h.drawOption_="hist"
-    h1QCDMetReweighted.SetLineStyle(2)
 
-
+    h1QCDMetReweightedErr.SetFillColor(2)
+    h1QCDMetReweightedErr.SetFillStyle(3333)
+    h1QCDMetReweightedErr.drawOption_ = "e2"
 
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
     m.add(h1GJetMet, "#gamma")
     m.add(h1QCDMet, "QCD")
     m.add(h1QCDMetReweighted, "QCD ht corr")
+    m.add(h1QCDMetReweightedErr, "QCD ht corr")
     m.Draw()
+
+    r = ratio.Ratio( "#gamma/jet", h1GJetMet, h1QCDMetReweighted, h1QCDMetReweightedErr )
+    r.draw(0.5,1.5)
+
     aux.save("htReweighting")
 
 
