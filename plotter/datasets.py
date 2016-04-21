@@ -75,8 +75,11 @@ class Dataset:
             else: h0 = h
         return h0
 
+    def getLatexTableHeader( self ):
+        return "\\begin{tabular}{c|c|c}\nPrimary Dataset & cross section (pb) & effective Luminosity (/fb) \\\\\\hline"
+
     def getLatexTableLine( self ):
-        # full samplename & xsec [pb] & effective Luminosity [/fb]i
+        # full samplename & xsec [pb] & effective Luminosity [/fb]
         out = ""
         for lname, xsec, ngen in zip(self.lname,self.xsecs,self.ngens):
             out += "{} & {} & {:.3g} \\\\\n".format( lname.replace("_","\\_"),xsec,0.001*ngen/xsec )
@@ -225,6 +228,10 @@ signal = SampleCollection()
 
 if __name__ == "__main__":
     # print information
-    for i in gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu,zg_130:
+    for i in gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu,zg_130: print i.getLatexTableLine(),
+    print
+
+    print gjets.getLatexTableHeader()
+    for i in gjets40, gjets100, gjets200, gjets400, gjets600, qcd100, qcd200, qcd300, qcd500, qcd700, qcd1000, qcd1500, qcd2000, ttjets, wjets100, wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500, ttg, wg_mg, znunu100, znunu200, znunu400, znunu600, zg_130, zgll:
         print i.getLatexTableLine(),
     print
