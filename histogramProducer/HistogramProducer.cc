@@ -290,6 +290,7 @@ map<string,TH1F> initHistograms(){
 
   // multiplicities
   hMap["n_vertex"] = TH1F( "", ";vertex multiplicity", 61, -0.5, 60.5 );
+  hMap["n_vertex_unw"] = TH1F( "", ";vertex multiplicity", 61, -0.5, 60.5 );
   hMap["n_photon"] = TH1F( "", ";photon multiplicity", 6, -0.5, 5.5 );
   hMap["n_jet"] = TH1F( "", ";jet multiplicity", 16, -0.5, 15.5 );
   hMap["n_bjet"] = TH1F( "", ";b-jet multiplicity", 16, -0.5, 15.5 );
@@ -396,6 +397,7 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap.at(s).at("dphi_met_recoil").Fill( fabs(met->p.DeltaPhi( recoil )), selW );
 
   hMapMap.at(s).at("n_vertex").Fill( *nGoodVertices, selW );
+  hMapMap.at(s).at("n_vertex_unw").Fill( *nGoodVertices );
   hMapMap.at(s).at("n_photon").Fill( selPhotons.size(), selW );
   hMapMap.at(s).at("n_jet").Fill( selJets.size(), selW );
   hMapMap.at(s).at("n_bjet").Fill( selBJets.size(), selW );
