@@ -665,20 +665,19 @@ def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
 
 
 def transitions():
-    drawSameHistogram( "_gjets", "h_genHt", [gjets40,gjets100,gjets200,gjets400,gjets600] )
-    drawSameHistogram( "_gjets_inc15", "h_genHt", [gjets_pt15,gjets40,gjets100], binning=range(0,120) )
-    drawSameHistogram( "_qcd", "h_genHt", [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
-    drawSameHistogram( "_wjets", "h_genHt", [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
-    drawSameHistogram( "_wjets_trans1", "h_genHt", [wjets100,wjets200], binning=range(90,410,1) )
-    drawSameHistogram( "_wjets_trans2", "h_genHt", [wjets200,wjets400], binning=range(190,610,1) )
-    drawSameHistogram( "_wjets_trans3", "h_genHt", [wjets400,wjets600], binning=range(390,810,1) )
-    drawSameHistogram( "_wjets_trans4", "h_genHt", [wjets600,wjets800], binning=range(590,1210,2) )
-    drawSameHistogram( "_wjets_trans5", "h_genHt", [wjets800,wjets1200], binning=range(790,2510,2) )
-    drawSameHistogram( "_wjets_trans6", "h_genHt", [wjets1200,wjets2500], binning=range(1190,3000,2) )
-    drawSameHistogram( "_wjets_trans6", "h_genHt", [wjets1200,wjets2500], binning=range(1200,3000,20) )
-    drawSameHistogram( "_wjets_trans45", "h_genHt", [wjets600,wjets800,wjets1200], binning=range(590,1510,5) )
-    drawSameHistogram( "_wg_500", "h_g_pt__tr", [wg_pt500], [wg_mg], scaleToData=False )
-    drawSameHistogram( "_zg", "h_g_pt__tr", [zg_130], [znunu], scaleToData=False )
+    drawSameHistogram( "gjets", "tr_jControl/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600] )
+    drawSameHistogram( "qcd", "tr_jControl/genHt", [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
+    drawSameHistogram( "wjets", "tr_jControl/genHt", [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
+    drawSameHistogram( "wjets_tr_jControlans1", "tr_jControl/genHt", [wjets100,wjets200], binning=range(90,410,1) )
+    drawSameHistogram( "wjets_tr_jControlans2", "tr_jControl/genHt", [wjets200,wjets400], binning=range(190,610,1) )
+    drawSameHistogram( "wjets_tr_jControlans3", "tr_jControl/genHt", [wjets400,wjets600], binning=range(390,810,1) )
+    drawSameHistogram( "wjets_tr_jControlans4", "tr_jControl/genHt", [wjets600,wjets800], binning=range(590,1210,2) )
+    drawSameHistogram( "wjets_tr_jControlans5", "tr_jControl/genHt", [wjets800,wjets1200], binning=range(790,2510,2) )
+    drawSameHistogram( "wjets_tr_jControlans6", "tr_jControl/genHt", [wjets1200,wjets2500], binning=range(1190,3000,2) )
+    drawSameHistogram( "wjets_tr_jControlans6", "tr_jControl/genHt", [wjets1200,wjets2500], binning=range(1200,3000,20) )
+    drawSameHistogram( "wjets_tr_jControlans45", "tr_jControl/genHt", [wjets600,wjets800,wjets1200], binning=range(590,1510,5) )
+    #drawSameHistogram( "wg_500", "h_g_pt__tr", [wg_pt500], [wg_mg], scaleToData=False )
+    #drawSameHistogram( "_zg", "h_g_pt__tr", [zg_130], [znunu], scaleToData=False )
 
 
 def drawH2s():
