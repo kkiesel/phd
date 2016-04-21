@@ -45,7 +45,7 @@ class Ratio:
         self.sysHisto = sysHisto
         self.ratio = numerator.Clone( aux.randomName() )
         self.ratioStat = denominator.Clone( aux.randomName() )
-        self.ratioSys = sysHisto.Clone( aux.randomName() )
+        self.ratioSys = sysHisto.Clone( aux.randomName() ) if sysHisto else denominator.Clone(aux.randomName())
         self.totalUncert = denominator.Clone( aux.randomName() )
         self.allowUnsymmetricYaxis = False
 
