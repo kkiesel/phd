@@ -311,6 +311,8 @@ def multiQcdClosures( dataset, samplename, controlDataset=None ):
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_noGenLep")
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highHt", preDir="tr_jControl_highHt" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_lowHt", preDir="tr_jControl_lowHt" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he0", preDir="tr_jControl_he0" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he1", preDir="tr_jControl_he1" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he2", preDir="tr_jControl_he2" )
