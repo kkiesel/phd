@@ -924,10 +924,15 @@ def htRebinning():
     allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
     dSets = sum(allDatasets)
 
-    names = ["tr/met_vs_emht","tr_jControl/met_vs_emht"]
+    hName = "met_vs_emht"
+    h2GJet = dSets.getHist("tr/"+hName)
+    h2QCD  = dSets.getHist("tr_jControl/"+hName)
 
-    h2GJet = dSets.getHist("tr/met_vs_emht")
-    h2QCD  = dSets.getHist("tr_jControl/met_vs_emht")
+    metBinning = aux.getBinnigsFromName("met")["3"]
+    emhtBinning = aux.getBinnigsFromName("emht")["1"]
+
+    h2GJet = aux.rebin2d( h2GJet, metBinning, emhtBinning )
+    h2QCD = aux.rebin2d( h2QCD, metBinning, emhtBinning )
 
     h1GJetHt = h2GJet.ProjectionY(aux.randomName())
     h1QCDHt = h2QCD.ProjectionY(aux.randomName())
@@ -943,11 +948,21 @@ def htRebinning():
         for ybin in range(h2QCD.GetNbinsY()+2):
             wSum += h2QCD.GetBinContent(xbin,ybin) * h1GJetHt.GetBinContent(ybin)
         h1QCDMetReweighted.SetBinContent(xbin,wSum)
+
+    for h in h1GJetMet,h1QCDMet, h1QCDMetReweighted:
+        h.Scale(h1GJetMet.Integral()/h.Integral())
+    # prettify for drawing
+    h1GJetMet.SetLineColor(1)
+    h1GJetMet.drawOption_="pe"
+    for h in h1QCDMet, h1QCDMetReweighted:
+        h.SetLineColor(ROOT.kRed)
+        h.drawOption_="hist"
+    h1QCDMetReweighted.SetLineStyle(2)
+
+
+
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
-    for h in h1GJetMet,h1QCDMet, h1QCDMetReweighted:
-        h.Scale(1./h.Integral())
-
     m.add(h1GJetMet, "#gamma")
     m.add(h1QCDMet, "QCD")
     m.add(h1QCDMetReweighted, "QCD ht corr")
@@ -1008,7 +1023,7 @@ def main():
 
     #htStuff()
 
-    htRebinning()
+    #htRebinning()
 
 
 
