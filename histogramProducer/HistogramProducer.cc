@@ -299,6 +299,7 @@ map<string,TH1F> initHistograms(){
   hMap["n_heJet"] = TH1F( "", ";photon-like jet multiplicity", 11, -0.5, 10.5 );
 
   hMap["genMatch"] = TH1F( "", ";pdg id for gen match", 24, -0.5, 23.5 );
+  hMap["genHt"] = TH1F( "", ";H_{T}^{gen}", 3000, 0, 3000 );
 
   return hMap;
 }
@@ -404,6 +405,7 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap.at(s).at("n_electron").Fill( selElectrons.size(), selW );
   hMapMap.at(s).at("n_muon").Fill( selMuons.size(), selW );
   hMapMap.at(s).at("n_heJet").Fill( selHEJets.size(), selW );
+  hMapMap.at(s).at("genHt").Fill( *genHt, selW );
 
   hMapMap2.at(s).at("met_vs_emht").Fill( met->p.Pt(), ht_g, selW );
   hMapMap2.at(s).at("metRaw_vs_emht").Fill( met->p_raw.Pt(), ht_g, selW );
