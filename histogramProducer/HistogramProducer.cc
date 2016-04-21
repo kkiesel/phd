@@ -576,6 +576,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if(zToMet&&zToMetPt<130) fillSelection("tr_0pt130");
     fillSelection("tr");
     if(myHt>2500) fillSelection("tr_highHt");
+    else fillSelection("tr_lowHt");
     auto gMatch = genMatch(*selPhotons.at(0));
     if( gMatch == 11 ) fillSelection("tr_genE");
     else if (gMatch<11 || gMatch>16) fillSelection("tr_noGenLep");
@@ -600,6 +601,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     }
     fillSelection("tr_jControl");
     if(myHt>2500) fillSelection("tr_jControl_highHt");
+    else fillSelection("tr_jControl_lowHt");
     if(selHEJets.size()==0) fillSelection("tr_jControl_he0");
     if(selHEJets.size()==1) fillSelection("tr_jControl_he1");
     if(selHEJets.size()==2) fillSelection("tr_jControl_he2");
