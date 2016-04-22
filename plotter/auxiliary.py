@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import ROOT
 import re
 import math
@@ -442,7 +443,12 @@ def metricPrefix( n ):
     return "{:3.1f}".format(n)
 
 def loopH2( h2 ):
-    return [(xbin,ybin) for xbin in range(h2.GetNbinsX()+2) for ybin in range(h2.GetNbinsX()+2)]
+    return [(xbin,ybin) for xbin in range(h2.GetNbinsX()+2) for ybin in range(h2.GetNbinsY()+2)]
+
+def printH2(h2,flow=True):
+    for xbin, ybin in loopH2(h2):
+        if not flow and ( not xbin or not xbin or xbin==h2.GetNbinsX()+1 or ybin==h2.GetNbinsY()+1 ): continue
+        print xbin, ybin, h2.GetBinContent(xbin,ybin), "±", h2.GetBinError(xbin,ybin)
 
 def stdHist(dataset, name, binning=None, xCut=True, cut1=0, cut2=1e8):
     h = dataset.getHist(name)
