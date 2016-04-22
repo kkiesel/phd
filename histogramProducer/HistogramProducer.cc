@@ -575,14 +575,11 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if(zToMet&&zToMetPt>130) fillSelection("tr_130pt");
     if(zToMet&&zToMetPt<130) fillSelection("tr_0pt130");
     fillSelection("tr");
-    if(myHt>2500) fillSelection("tr_highHt");
-    else fillSelection("tr_lowHt");
     auto gMatch = genMatch(*selPhotons.at(0));
     if( gMatch == 11 ) fillSelection("tr_genE");
-    else if (gMatch<11 || gMatch>16) fillSelection("tr_noGenLep");
-    if(met->p.Pt()>300) fillSelection("tr_highMet");
-    else if(met->p.Pt()>70) fillSelection("tr_mediumMet");
-    else fillSelection("tr_lowMet");
+    else fillSelection("tr_noGenE");
+    if (gMatch<11 || gMatch>16) fillSelection("tr_noGenLep");
+    else fillSelection("tr_genLep");
     if(selHEJets.size()==0) fillSelection("tr_he0");
     if(selHEJets.size()==1) fillSelection("tr_he1");
     if(selHEJets.size()==2) fillSelection("tr_he2");
@@ -600,8 +597,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
       else i++;
     }
     fillSelection("tr_jControl");
-    if(myHt>2500) fillSelection("tr_jControl_highHt");
-    else fillSelection("tr_jControl_lowHt");
     if(selHEJets.size()==0) fillSelection("tr_jControl_he0");
     if(selHEJets.size()==1) fillSelection("tr_jControl_he1");
     if(selHEJets.size()==2) fillSelection("tr_jControl_he2");
@@ -609,9 +604,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     float wnJet=nJetWeighter.getWeight(selHEJets.size());
     selW = originalW * wnJet * *hlt_ht600_pre;
     fillSelection("tr_jControl_wnjet");
-    if(met->p.Pt()>300) fillSelection("tr_jControl_highMet");
-    else if(met->p.Pt()>70) fillSelection("tr_jControl_mediumMet");
-    else fillSelection("tr_jControl_lowMet");
     selW = originalW;
   }
 
