@@ -920,17 +920,16 @@ def htStuff():
                 l = aux.Label(sim=True,info=info)
                 aux.save("htStuff_emht_{}_{}_{}met{}".format(name.split("/")[0], binningName, int(cut1), int(cut2)))
 
-def htRebinning():
-    allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
-    allDatasets = gjets, qcd, ttjets, wjets, znunu
-    allDatasets = gjets, qcd
-    dSets = sum(allDatasets)
+def htRebinning(dSets, name, dirName="tr", predSets=None):
+    if not predSets: predSets = dSets
 
     metBinning = aux.getBinnigsFromName("met")["3"]
     emhtBinning = aux.getBinnigsFromName("emht")["1"]
+
     hName = "metRaw_vs_emht"
-    h2GJet = dSets.getHist("tr_noGenLep/"+hName)
-    h2Qcd  = dSets.getHist("tr_jControl/"+hName)
+    if "Raw" not in hName: name+="_typeI"
+    h2GJet = dSets.getHist(dirName+"/"+hName)
+    h2Qcd  = predSets.getHist("tr_jControl/"+hName)
 
     h2GJet = aux.rebin2d( h2GJet, metBinning, emhtBinning )
     h2Qcd = aux.rebin2d( h2Qcd, metBinning, emhtBinning )
@@ -941,11 +940,7 @@ def htRebinning():
     h1GJetHt = h2GJet.ProjectionY(aux.randomName(), 0, metCutBin)
     h1QcdHt = h2Qcd.ProjectionY(aux.randomName(), 0, metCutBin)
     h1GJetHt.Divide(h1QcdHt)
-
-    h1GJetMet = h2GJet.ProjectionX(aux.randomName())
-    h1QcdMet = h2Qcd.ProjectionX(aux.randomName())
-    wTot = h1GJetMet.Integral(0,metCutBin)/h1QcdMet.Integral(0,metCutBin)
-    h1QcdMet.Scale(wTot)
+    wTot = h2GJet.Integral(0,metCutBin,0,-1)/h2Qcd.Integral(0,metCutBin,0,-1)
 
     h2QcdW = h2Qcd.Clone(aux.randomName())
     h2QcdWsys = h2Qcd.Clone(aux.randomName())
@@ -958,44 +953,70 @@ def htRebinning():
         h2QcdWsys.SetBinContent(xbin, ybin, c*w )
         h2QcdWsys.SetBinError(xbin, ybin, c*we )
 
-    h1QcdMetW = h2QcdW.ProjectionX(aux.randomName())
-    h1QcdMetWsys = h2QcdWsys.ProjectionX(aux.randomName())
 
-    for h in h1GJetMet, h1QcdMet, h1QcdMetW, h1QcdMetWsys:
-        h.Scale(1, "width")
-        aux.appendFlowBin( h )
+    for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 100, 1e6), ("y", 200, 1e6 ), \
+            ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6) ]:
+        if dir=="x":
+            cut1Bin = h2GJet.GetYaxis().FindBin(cut1)
+            cut2Bin = h2GJet.GetYaxis().FindBin(cut2)
+            h1GJetMet = h2GJet.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdMet = h2Qcd.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdMetW = h2QcdW.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdMetWsys = h2QcdWsys.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+        elif dir=="y":
+            cut1Bin = h2GJet.GetXaxis().FindBin(cut1)
+            cut2Bin = h2GJet.GetXaxis().FindBin(cut2)
+            h1GJetMet = h2GJet.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdMet = h2Qcd.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdMetW = h2QcdW.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdMetWsys = h2QcdWsys.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+        else:
+            print "Do not know what to do with", dir
 
-    # prettify for drawing
-    h1GJetMet.SetLineColor(1)
-    h1GJetMet.SetMarkerStyle(20)
-    h1GJetMet.SetMarkerSize(0.8)
-    h1GJetMet.drawOption_="pe"
+        h1QcdMet.Scale(wTot)
 
-    h1QcdMet.SetLineColor(rwth.violett50)
-    h1QcdMet.drawOption_ = "hist"
-    h1QcdMetW.drawOption_ = "hist e"
+        for h in h1GJetMet, h1QcdMet, h1QcdMetW, h1QcdMetWsys:
+            h.Scale(1, "width")
+            aux.appendFlowBin( h )
 
-    for h in h1QcdMetW, h1QcdMetWsys:
-        h.SetLineColor(ROOT.kRed)
+        # prettify for drawing
+        h1GJetMet.SetLineColor(1)
+        h1GJetMet.SetMarkerStyle(20)
+        h1GJetMet.SetMarkerSize(0.8)
+        h1GJetMet.drawOption_="pe"
 
-    h1QcdMetWsys.SetFillColor(2)
-    h1QcdMetWsys.SetMarkerColor(2)
-    h1QcdMetWsys.SetFillStyle(3333)
-    h1QcdMetWsys.drawOption_ = "e2"
+        h1QcdMet.SetLineColor(rwth.violett50)
+        h1QcdMet.drawOption_ = "hist"
+        h1QcdMetW.drawOption_ = "hist e"
 
-    c = ROOT.TCanvas()
-    m = multiplot.Multiplot()
-    m.add(h1GJetMet, "#gamma")
-    m.add(h1QcdMetW, "Jet EMH_{T} weighted")
-    m.add(h1QcdMetWsys, "Jet weight uncert.")
-    m.add(h1QcdMet, "Jet unweighted")
-    m.Draw()
-    l = aux.Label(sim=True, info=dSets.label)
+        for h in h1QcdMetW, h1QcdMetWsys:
+            h.SetLineColor(ROOT.kRed)
 
-    r = ratio.Ratio( "#gamma/jet", h1GJetMet, h1QcdMetW, h1QcdMetWsys )
-    r.draw(0.5,1.5)
+        h1QcdMetWsys.SetFillColor(2)
+        h1QcdMetWsys.SetMarkerColor(2)
+        h1QcdMetWsys.SetFillStyle(3333)
+        h1QcdMetWsys.drawOption_ = "e2"
 
-    aux.save("htReweighting")
+        c = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+        m.add(h1GJetMet, "#gamma")
+        m.add(h1QcdMetW, "Jet EMH_{T} weighted")
+        m.add(h1QcdMetWsys, "Jet weight uncert.")
+        m.add(h1QcdMet, "Jet unweighted")
+
+        info = "E_{T}^{miss}/GeV" if dir=="y" else "H_{T}/GeV"
+        if cut1: info = str(cut1)+"<"+info
+        if cut2<1e5: info = info+"<"+str(cut2)
+        if "<" not in info and ">" not in info: info=""
+        m.leg.SetHeader(info)
+        m.Draw()
+
+        l = aux.Label(sim=True, info=dSets.label)
+
+        r = ratio.Ratio( "#gamma/jet", h1GJetMet, h1QcdMetW, h1QcdMetWsys )
+        r.draw(0.5,1.5)
+
+        aux.save("htReweighting_{}_{}_{}to{}".format(name,dir,int(cut1),int(cut2)))
 
 
 
@@ -1051,7 +1072,11 @@ def main():
 
     #htStuff()
 
-    #htRebinning()
+    #htRebinning(gjets+qcd, "gqcd")
+    #htRebinning(gjets+qcd, "gqcdVSall", gjets+qcd+ttjets+ttg+wjets+wg_mg+zg_130)
+    dirSets = gjets+qcd+wjets+ttjets+znunu
+    dirSets.label = "#gamma/MutiJet,W,#bar{t}t,Z(#nu#nu)"
+    htRebinning(dirSets, "gqcdtwzVSall", "tr_noGenE", gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
 
 
 
