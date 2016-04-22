@@ -235,8 +235,8 @@ map<string,TH2F> initHistograms2(){
 
   hMap["n_heJets_vs_photonPosition"] = TH2F("","",10, -0.5, 9.5, 10, -0.5, 9.5 );
   hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1 );
-  hMap["met_vs_emht"] = TH2F("", ";E_{T}^{miss} (GeV);H_{T} (GeV)", 500, 0, 5000, 500, 0, 5000 );
-  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);H_{T} (GeV)", 500, 0, 5000, 500, 0, 5000 );
+  hMap["met_vs_emht"] = TH2F("", ";E_{T}^{miss} (GeV);EMH_{T} (GeV)", 500, 0, 5000, 500, 0, 5000 );
+  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 500, 0, 5000, 500, 0, 5000 );
 
   return hMap;
 }
@@ -256,7 +256,7 @@ map<string,TH1F> initHistograms(){
   hMap["metRaw"] = TH1F( "", ";uncorrected E^{miss}_{T} (GeV)", 200, 0, 2000 );
   hMap["metParRaw"] = TH1F( "", ";uncorrected E^{miss}_{T} #parallel (GeV)", 400, -2000, 2000 );
   hMap["metPerRaw"] = TH1F( "", ";uncorrected E^{miss #perp  }_{T} (GeV)", 200, 0, 2000 );
-  hMap["mt_g_met"] = TH1F( "", ";m_{T}(p_{T},E^{miss}_{T}) (GeV)", 150, 0, 1500 );
+  hMap["mt_g_met"] = TH1F( "", ";m_{T}(#gamma,E^{miss}_{T}) (GeV)", 150, 0, 1500 );
 
   hMap["tremht"] = TH1F( "", ";EMH_{T}^{trigger-like} (GeV)", 300, 0, 3000 );
   hMap["emht"] = TH1F( "", ";EMH_{T} (GeV)", 300, 0, 3000 );
