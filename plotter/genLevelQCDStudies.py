@@ -59,20 +59,20 @@ def simpleCompare(filename, name, settings, norm=True):
     for iS, (hname, leg) in enumerate( settings ):
         h = aux.getFromFile( filename, hname )
         if not h: continue
-        if norm: h.Scale(1./h.Integral(0,-1))
-#        if "pt" in name:
-#            h = aux.rebin( h, range(100,200,20)+range(200,400,50)+[400, 600])
+        if norm: h.Scale(100000./h.Integral(0,-1)) # normed to arbriraty integral
         h.drawOption_="hist e"
         h.SetLineColor(colors[iS])
         m.add( h, leg )
     m.Draw()
     aux.save("genLevelQCDStudies_"+name )
-    c.SetLogy()
-    aux.save("genLevelQCDStudies_"+name+"_log" )
+
+f1 = "../../CMSSW/genLevelChecks/CMSSW_7_4_14/src/GenWriter/GenWriter/histogrammer/hists_nTuple_all100.root"
+f2 = "../../CMSSW/genLevelChecks/CMSSW_7_4_14/src/GenWriter/GenWriter/histogrammer/hists_slimmedTreeAN.root"
+
 
 
 #singleProcessEta()
-#simpleCompare("emht", [("gjet_emht", "#gamma+Jet"),("qcd_emht", "QCD")])
+simpleCompare(f1, "emht", [("gjet_emht", "#gamma+Jet"),("qcd_emht", "QCD")])
 #simpleCompare("nPart", [("gjet_nPart", "#gamma+Jet"),("qcd_nPart", "QCD")])
 #simpleCompare("o2_eta_gjet", [("gjet_2_etaG", "#gamma"),("gjet_2_etaJ1","j")])
 #simpleCompare("o2_eta_qcd", [("qcd_2_etaJ1", "j1"),("qcd_2_etaJ2","j2")])
@@ -97,10 +97,6 @@ def simpleCompare(filename, name, settings, norm=True):
 #simpleCompare("emht_nPos", [("gjet_emhtCut_3_posG","3 objects"), ("gjet_emhtCut_4_posG", "4 objects"), ("gjet_emhtCut_5_posG", "5 objects")])
 
 #simpleCompare("gjet_nPos", [("gjet_{}_posG".format(i),"{} objects".format(i)) for i in range(2,6)])
-
-f1 = "../../CMSSW/genLevelChecks/CMSSW_7_4_14/src/GenWriter/GenWriter/histogrammer/hists_nTuple_all100.root"
-f2 = "../../CMSSW/genLevelChecks/CMSSW_7_4_14/src/GenWriter/GenWriter/histogrammer/hists_slimmedTreeAN.root"
-
 #for nObjects in range(2,6):
 #    for object in range(1,nObjects+1):
 #        simpleCompare(f1,"gqcd100_n{}_o{}_pt".format(nObjects,object), [("gjet_{}_ptO{}".format(nObjects,object),"obj{}".format(object)),("gjet_{}_ptO{}G".format(nObjects,object),"obj{}, #gamma".format(object)),("gjet_{}_ptO{}J".format(nObjects,object),"obj{}, j".format(object)),("qcd_{}_ptJ{}".format(nObjects,object),"QCD obj{}".format(object))] )
