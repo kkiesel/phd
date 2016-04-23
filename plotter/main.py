@@ -920,6 +920,25 @@ def htStuff():
                 l = aux.Label(sim=True,info=info)
                 aux.save("htStuff_emht_{}_{}_{}met{}".format(name.split("/")[0], binningName, int(cut1), int(cut2)))
 
+def qcdPrediction2d(h2num, h2den, xCut=100):
+    xCutBin = h2num.GetXaxis().FindBin(xCut) - 1
+    h1numY = h2num.ProjectionY(aux.randomName(), 0, xCutBin)
+    h1denY = h2den.ProjectionY(aux.randomName(), 0, xCutBin)
+    h1numY.Divide(h1denY)
+
+    h2denW = h2den.Clone(aux.randomName())
+    h2denWsys = h2den.Clone(aux.randomName())
+    for xbin, ybin in aux.loopH2(h2den):
+        w = h1numY.GetBinContent(ybin)
+        we = h1numY.GetBinError(ybin)
+        c = h2den.GetBinContent(xbin,ybin)
+        h2denW.SetBinContent(xbin, ybin, c*w )
+        h2denW.SetBinError(xbin, ybin, h2den.GetBinError(xbin, ybin) * w )
+        h2denWsys.SetBinContent(xbin, ybin, c*w )
+        h2denWsys.SetBinError(xbin, ybin, c*we )
+    return h2denW, h2denWsys
+
+
 def htRebinning(dSets, name, dirName="tr", predSets=None):
     if not predSets: predSets = dSets
 
@@ -934,25 +953,11 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
     h2GJet = aux.rebin2d( h2GJet, metBinning, emhtBinning )
     h2Qcd = aux.rebin2d( h2Qcd, metBinning, emhtBinning )
 
-    # compute weights
+    h2QcdW, h2QcdWsys = qcdPrediction2d(h2GJet, h2Qcd, 100)
+    # compute total weight for simple total scaling
     metCut = 100
     metCutBin = h2GJet.GetXaxis().FindBin(metCut) - 1
-    h1GJetHt = h2GJet.ProjectionY(aux.randomName(), 0, metCutBin)
-    h1QcdHt = h2Qcd.ProjectionY(aux.randomName(), 0, metCutBin)
-    h1GJetHt.Divide(h1QcdHt)
     wTot = h2GJet.Integral(0,metCutBin,0,-1)/h2Qcd.Integral(0,metCutBin,0,-1)
-
-    h2QcdW = h2Qcd.Clone(aux.randomName())
-    h2QcdWsys = h2Qcd.Clone(aux.randomName())
-    for xbin, ybin in aux.loopH2(h2Qcd):
-        w = h1GJetHt.GetBinContent(ybin)
-        we = h1GJetHt.GetBinError(ybin)
-        c = h2Qcd.GetBinContent(xbin,ybin)
-        h2QcdW.SetBinContent(xbin, ybin, c*w )
-        h2QcdW.SetBinError(xbin, ybin, h2Qcd.GetBinError(xbin, ybin) * w )
-        h2QcdWsys.SetBinContent(xbin, ybin, c*w )
-        h2QcdWsys.SetBinError(xbin, ybin, c*we )
-
 
     for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 100, 1e6), ("y", 200, 1e6 ), \
             ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6) ]:
@@ -991,11 +996,9 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
 
         for h in h1QcdMetW, h1QcdMetWsys:
             h.SetLineColor(ROOT.kRed)
+            if dir == "y": h.SetTitleOffset(1)
 
-        h1QcdMetWsys.SetFillColor(2)
-        h1QcdMetWsys.SetMarkerColor(2)
-        h1QcdMetWsys.SetFillStyle(3333)
-        h1QcdMetWsys.drawOption_ = "e2"
+        aux.drawOpt(h1QcdMetWsys, "sys")
 
         c = ROOT.TCanvas()
         m = multiplot.Multiplot()
