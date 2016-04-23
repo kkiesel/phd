@@ -460,6 +460,19 @@ def stdHist(dataset, name, binning=None, xCut=True, cut1=0, cut2=1e8):
     h.SetYTitle(getYAxisTitle(h))
     return h
 
+def drawOpt(h, style):
+    if style == "data":
+        h.SetLineColor(1)
+        h.SetMarkerStyle(20)
+        h.SetMarkerSize(0.8)
+        h.drawOption_="pe"
+    if style == "sys":
+        c = h.GetLineColor()
+        h.SetFillColor(c)
+        h.SetMarkerColor(c)
+        h.SetFillStyle(3333)
+        h.drawOption_ = "e2"
+
 
 class Label:
     # Create labels
