@@ -874,6 +874,7 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
 
     metBinning = aux.getBinnigsFromName("met")["3"]
     emhtBinning = aux.getBinnigsFromName("emht")["1"]
+    #emhtBinning = range(0,5000,10)
 
     hName = "metRaw_vs_emht"
     if "Raw" not in hName: name+="_typeI"
@@ -914,11 +915,7 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
             h.Scale(1, "width")
             aux.appendFlowBin( h )
 
-        # prettify for drawing
-        h1GJetMet.SetLineColor(1)
-        h1GJetMet.SetMarkerStyle(20)
-        h1GJetMet.SetMarkerSize(0.8)
-        h1GJetMet.drawOption_="pe"
+        aux.drawOpt(h1GJetMet, "data")
 
         h1QcdMet.SetLineColor(rwth.violett50)
         h1QcdMet.drawOption_ = "hist"
@@ -950,6 +947,111 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
         r.draw(0.5,1.5)
 
         aux.save("htReweighting_{}_{}_{}to{}".format(name,dir,int(cut1),int(cut2)))
+
+def finalPrediction():
+    allSets = gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130
+
+    metBinning = aux.getBinnigsFromName("met")["3"]
+    emhtBinning = aux.getBinnigsFromName("emht")["1"]
+
+    hName = "metRaw_vs_emht"
+    h2data = allSets.getHist("tr"+"/"+hName)
+    h2jetControl = allSets.getHist("tr_jControl/"+hName)
+    h2eControl = allSets.getHist("tr_eControl/"+hName)
+    h2ttg = ttg.getHist("tr/"+hName)
+    h2wg = wg_mg.getHist("tr/"+hName)
+    h2zg = zg_130.getHist("tr/"+hName)
+    h2s1 = signal["T5Wg_1550_100"].getHist("tr/"+hName)
+    h2s2 = signal["T5Wg_1550_1500"].getHist("tr/"+hName)
+
+    h2data = aux.rebin2d(h2data, metBinning, emhtBinning)
+    h2jetControl = aux.rebin2d(h2jetControl, metBinning, emhtBinning)
+    h2eControl = aux.rebin2d(h2eControl, metBinning, emhtBinning)
+    h2ttg = aux.rebin2d(h2ttg, metBinning, emhtBinning)
+    h2wg = aux.rebin2d(h2wg, metBinning, emhtBinning)
+    h2zg = aux.rebin2d(h2zg, metBinning, emhtBinning)
+    h2s1 = aux.rebin2d(h2s1, metBinning, emhtBinning)
+    h2s2 = aux.rebin2d(h2s2, metBinning, emhtBinning)
+
+    h2QcdW, h2QcdWsys = qcdPrediction2d(h2data, h2jetControl, 100)
+    h2eControl.Scale(0.01) # fakeRate MC
+
+    for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 100, 1e6), ("y", 200, 1e6 ), \
+            ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6) ]:
+        if dir=="x":
+            cut1Bin = h2data.GetYaxis().FindBin(cut1)
+            cut2Bin = h2data.GetYaxis().FindBin(cut2)
+            h1data = h2data.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdW = h2QcdW.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdWsys = h2QcdWsys.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1e = h2eControl.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1ttg = h2ttg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1wg = h2wg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1zg = h2zg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1s1 = h2s1.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1s2 = h2s2.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+        elif dir=="y":
+            cut1Bin = h2data.GetXaxis().FindBin(cut1)
+            cut2Bin = h2data.GetXaxis().FindBin(cut2)
+            h1data = h2data.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdW = h2QcdW.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1QcdWsys = h2QcdWsys.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1e = h2eControl.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1ttg = h2ttg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1wg = h2wg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1zg = h2zg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1s1 = h2s1.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1s2 = h2s2.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+        else:
+            print "Do not know what to do with", dir
+
+        for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1wg, h1zg, h1s1, h1s2:
+            h.Scale(1, "width")
+            aux.appendFlowBin(h)
+            if dir == "y": h.SetTitleOffset(1)
+
+        h1eSys = aux.getSysHisto(h1e,.3)
+        h1ttgSys = aux.getSysHisto(h1e,.3)
+        h1wgSys = aux.getSysHisto(h1e,.3)
+        h1zgSys = aux.getSysHisto(h1e,.5)
+
+        aux.drawOpt(h1data, "data")
+        h1QcdW.SetLineColor(rwth.blue)
+        h1e.SetLineColor(ROOT.kOrange)
+        h1ttg.SetLineColor(rwth.green)
+        h1wg.SetLineColor(rwth.blue50)
+        h1zg.SetLineColor(ROOT.kRed+2)
+        h1s1.SetLineWidth(3)
+        h1s1.drawOption_ = "hist"
+        h1s2.SetLineWidth(3)
+        h1s2.drawOption_ = "hist"
+
+        c = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+        m.add(h1data, "(Pseudo)Data")
+        m.addStack(h1e, "e#rightarrow#gamma")
+        m.addStack(h1ttg, "t#bar{t}#gamma")
+        m.addStack(h1zg, "Z#gamma")
+        m.addStack(h1wg, "W#gamma")
+        m.addStack(h1QcdW, "#gamma+Jet")
+        m.add(h1s1, signal["T5Wg_1550_100"].label)
+        m.add(h1s2, signal["T5Wg_1550_1500"].label)
+
+        info = "E_{T}^{miss}/GeV" if dir=="y" else "H_{T}/GeV"
+        if cut1: info = str(cut1)+"<"+info
+        if cut2<1e5: info = info+"<"+str(cut2)
+        if "<" not in info and ">" not in info: info=""
+        m.leg.SetHeader(info)
+        m.Draw()
+
+        l = aux.Label(sim=True)
+
+        r = ratio.Ratio("Data/SM", h1data, m.hists[0].GetStack().Last())
+        r.draw(0.5,1.5)
+
+        aux.save("finalPlot_{}_{}to{}".format(dir,int(cut1),int(cut2)),endings=[".root",".C",".pdf"] )
+
+
 
 
 
@@ -998,7 +1100,6 @@ def main():
 
     #metCorrections( gjets+qcd, "gqcd" )
 
-    #finalPrediction()
     #significanceMetHt()
 
     #zToMet()
@@ -1007,9 +1108,10 @@ def main():
 
     #htRebinning(gjets+qcd, "gqcd")
     #htRebinning(gjets+qcd, "gqcdVSall", gjets+qcd+ttjets+ttg+wjets+wg_mg+zg_130)
-    dirSets = gjets+qcd+wjets+ttjets+znunu
-    dirSets.label = "#gamma/MutiJet,W,#bar{t}t,Z(#nu#nu)"
-    htRebinning(dirSets, "gqcdtwzVSall", "tr_noGenE", gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
+    #dirSets = gjets+qcd+wjets+ttjets+znunu
+    #dirSets.label = "#gamma/MutiJet,W,#bar{t}t,Z(#nu#nu)"
+    #htRebinning(dirSets, "gqcdtwzVSall", "tr_noGenE", gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
+    #finalPrediction()
 
 
 
