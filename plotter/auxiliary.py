@@ -473,6 +473,11 @@ def drawOpt(h, style):
         h.SetFillStyle(3333)
         h.drawOption_ = "e2"
 
+def getSysHisto(h, relUncert):
+    hsys = h.Clone(randomName())
+    for bin in range(hsys.GetNbinsX()+2):
+        hsys.SetBinError(bin, relUncert*hsys.GetBinContent(bin))
+    return hsys
 
 class Label:
     # Create labels
