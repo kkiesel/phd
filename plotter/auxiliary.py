@@ -492,6 +492,33 @@ def myMatch( regex, string ):
     m = re.match( regex, string )
     return [ m ] if m else []
 
+def dataCardToLatexTable(filename):
+    import DatacardParser
+    from optparse import OptionParser
+    parser = OptionParser()
+    DatacardParser.addDatacardParserOptions(parser)
+    (options, args) = parser.parse_args()
+    f = open(filename)
+    dc = DatacardParser.parseCard(f,options)
+
+    columns = [(" ", "SM", "Data", "Signal")]
+    for bin in dc.bins:
+        obs = int(dc.obs[bin])
+        vals = {}
+        for p in dc.processes:
+            vals[p] = [dc.exp[bin][p],0]
+        for uncert in dc.systs:
+            for p, err in uncert[4][bin].iteritems():
+                if err>1e-6:
+                    vals[p][1] += (err-1)**2
+        columns.append( [ \
+            bin, \
+            "{}\\pm{}".format(vals['bg'][0], vals['bg'][0]*math.sqrt(vals['bg'][1])), \
+            str(obs), \
+            "{}\\pm{}".format(vals['sig'][0], vals['sig'][0]*math.sqrt(vals['sig'][1]))])
+    content = '\n'.join([' & '.join(x) for x in zip(*columns)])
+    print "\\begin{tabular}{%s}\n"%('c'*len(columns)) + content + "\n\\end{tabular}\n"
+
 class Label:
     # Create labels
     # Usage:
