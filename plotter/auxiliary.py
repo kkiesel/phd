@@ -479,6 +479,10 @@ def getSysHisto(h, relUncert):
         hsys.SetBinError(bin, relUncert*hsys.GetBinContent(bin))
     return hsys
 
+def myMatch( regex, string ):
+    m = re.match( regex, string )
+    return [ m ] if m else []
+
 class Label:
     # Create labels
     # Usage:
