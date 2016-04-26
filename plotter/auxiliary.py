@@ -480,6 +480,8 @@ def getSysHisto(h, relUncert):
         if c > 1e-10:
             e = relUncert*c
         else:
+            # check if option "width" should be used
+            # TODO: check if the weight agrees with the lumi+pu weight
             meanWeight = hsys.Integral(0,-1)/hsys.GetEntries()
             poissonZeroError = 1.14787446444
             e = meanWeight*poissonZeroError
