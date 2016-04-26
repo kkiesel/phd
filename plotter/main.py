@@ -890,14 +890,14 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
             ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6) ]:
         if dir=="x":
             cut1Bin = h2GJet.GetYaxis().FindBin(cut1)
-            cut2Bin = h2GJet.GetYaxis().FindBin(cut2)
+            cut2Bin = h2GJet.GetYaxis().FindBin(cut2-1e-6)
             h1GJetMet = h2GJet.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdMet = h2Qcd.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdMetW = h2QcdW.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdMetWsys = h2QcdWsys.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
         elif dir=="y":
             cut1Bin = h2GJet.GetXaxis().FindBin(cut1)
-            cut2Bin = h2GJet.GetXaxis().FindBin(cut2)
+            cut2Bin = h2GJet.GetXaxis().FindBin(cut2-1e-6)
             h1GJetMet = h2GJet.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdMet = h2Qcd.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdMetW = h2QcdW.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
@@ -976,7 +976,7 @@ def finalPrediction():
             ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6) ]:
         if dir=="x":
             cut1Bin = h2data.GetYaxis().FindBin(cut1)
-            cut2Bin = h2data.GetYaxis().FindBin(cut2)
+            cut2Bin = h2data.GetYaxis().FindBin(cut2-1e-6)
             h1data = h2data.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdW = h2QcdW.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdWsys = h2QcdWsys.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
@@ -988,7 +988,7 @@ def finalPrediction():
             h1s2 = h2s2.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
         elif dir=="y":
             cut1Bin = h2data.GetXaxis().FindBin(cut1)
-            cut2Bin = h2data.GetXaxis().FindBin(cut2)
+            cut2Bin = h2data.GetXaxis().FindBin(cut2-1e-6)
             h1data = h2data.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdW = h2QcdW.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1QcdWsys = h2QcdWsys.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
