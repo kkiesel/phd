@@ -1016,20 +1016,21 @@ def finalPrediction():
                 h1data.SetBinContent(bin,0)
 
         h1eSys = aux.getSysHisto(h1e,.3)
-        h1ttgSys = aux.getSysHisto(h1e,.3)
-        h1wgSys = aux.getSysHisto(h1e,.3)
-        h1zgSys = aux.getSysHisto(h1e,.5)
+        h1ttgSys = aux.getSysHisto(h1ttg,.3)
+        h1wgSys = aux.getSysHisto(h1wg,.3)
+        h1zgSys = aux.getSysHisto(h1zg,.5)
 
         aux.drawOpt(h1data, "data")
-        h1QcdW.SetLineColor(rwth.blue)
-        h1e.SetLineColor(ROOT.kOrange)
-        h1ttg.SetLineColor(rwth.green)
-        h1wg.SetLineColor(rwth.blue50)
-        h1zg.SetLineColor(ROOT.kRed+2)
+        h1QcdW.SetLineColor(rwth.blue75)
+        h1e.SetLineColor(rwth.green)
+        h1ttg.SetLineColor(rwth.bordeaux)
+        h1wg.SetLineColor(rwth.red75)
+        h1zg.SetLineColor(rwth.yellow)
         h1s1.SetLineWidth(3)
         h1s1.drawOption_ = "hist"
         h1s2.SetLineWidth(3)
         h1s2.drawOption_ = "hist"
+        h1s2.SetLineStyle(2)
 
         c = ROOT.TCanvas()
         m = multiplot.Multiplot()
