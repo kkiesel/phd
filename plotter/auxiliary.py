@@ -476,7 +476,14 @@ def drawOpt(h, style):
 def getSysHisto(h, relUncert):
     hsys = h.Clone(randomName())
     for bin in range(hsys.GetNbinsX()+2):
-        hsys.SetBinError(bin, relUncert*hsys.GetBinContent(bin))
+        c = hsys.GetBinContent(bin)
+        if c > 1e-10:
+            e = relUncert*c
+        else:
+            meanWeight = hsys.Integral(0,-1)/hsys.GetEntries()
+            poissonZeroError = 1.14787446444
+            e = meanWeight*poissonZeroError
+        hsys.SetBinError(bin, e)
     return hsys
 
 def myMatch( regex, string ):
