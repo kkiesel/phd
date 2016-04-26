@@ -16,5 +16,5 @@ plotter/plots/
 plotter/plotsPhys14/
 plotter/tmp/
 plotter/smsPlotter/
-
+plotter/AutoDict_*
 utilities/*.pdf
