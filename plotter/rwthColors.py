@@ -83,3 +83,18 @@ for i, (name,(r,g,b)) in enumerate(colors.iteritems()):
     rwth.colors.append( ROOT.TColor(startColor+i, r/255., g/255., b/255.) )
 
 # Usage: histogram.SetLineColor( rwth.blue50 )
+
+if __name__ == "__main__":
+    import re
+    unmodifiedKeys = [ i for i in colors if not re.match(".*\d\d",i)]
+    t = ROOT.TLatex()
+    c = ROOT.TCanvas("","",100,100)
+    for ik, k in enumerate(unmodifiedKeys):
+        exec "c1 = rwth.%s%s"%(k,"")
+        exec "c2 = rwth.%s%s"%(k,"75")
+        exec "c3 = rwth.%s%s"%(k,"50")
+        exec "c4 = rwth.%s%s"%(k,"25")
+        y = .1+0.8*ik/len(unmodifiedKeys)
+        t.DrawLatex(.1,y,k)
+        t.DrawLatex(.3,y,"#lower[.3]{#scale[2]{#color[%s]{#bullet} #color[%s]{#bullet} #color[%s]{#bullet} #color[%s]{#bullet}}}"%(c1,c2,c3,c4))
+    ROOT.gPad.SaveAs("plots/colorsOvierview.pdf")
