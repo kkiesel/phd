@@ -1043,16 +1043,24 @@ def finalPrediction():
         m.add(h1s1, signal["T5Wg_1550_100"].label)
         m.add(h1s2, signal["T5Wg_1550_1500"].label)
 
+        # systematics
+        sysStack = ROOT.THStack()
+        for h in h1QcdWsys, h1eSys, h1ttgSys, h1wgSys, h1zgSys:
+            sysStack.Add(h)
+        sysHist = sysStack.GetStack().Last()
+        aux.drawOpt(sysHist, "sys")
+
         info = "E_{T}^{miss}/GeV" if dir=="y" else "H_{T}/GeV"
         if cut1: info = str(cut1)+"<"+info
         if cut2<1e5: info = info+"<"+str(cut2)
         if "<" not in info and ">" not in info: info=""
         m.leg.SetHeader(info)
         m.Draw()
+        sysHist.Draw("same e2")
 
         l = aux.Label(sim=True)
 
-        r = ratio.Ratio("Data/SM", h1data, m.hists[0].GetStack().Last())
+        r = ratio.Ratio("Data/SM", h1data, m.hists[0].GetStack().Last(), sysHist)
         r.draw(0.5,1.5)
 
         appendix = ""
