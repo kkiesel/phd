@@ -946,13 +946,16 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
 
 def finalPrediction():
     allSets = gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130
+    #allSets += signal["T5Wg_1550_1500"]
+    #allSets = data
+    jetSet = dataHt if allSets == data else allSets
 
     metBinning = aux.getBinnigsFromName("met")["3"]
     emhtBinning = aux.getBinnigsFromName("emht")["1"]
 
     hName = "metRaw_vs_emht"
     h2data = allSets.getHist("tr"+"/"+hName)
-    h2jetControl = allSets.getHist("tr_jControl/"+hName)
+    h2jetControl = jetSet.getHist("tr_jControl/"+hName)
     h2eControl = allSets.getHist("tr_eControl/"+hName)
     h2ttg = ttg.getHist("tr/"+hName)
     h2wg = wg_mg.getHist("tr/"+hName)
@@ -1006,6 +1009,12 @@ def finalPrediction():
             aux.appendFlowBin(h)
             if dir == "y": h.SetTitleOffset(1)
 
+        if allSets == data:
+            if dir=="y": maxi=2000
+            if dir=="x": maxi=200
+            for bin in range(h1data.FindBin(maxi),h1data.GetNbinsX()+2):
+                h1data.SetBinContent(bin,0)
+
         h1eSys = aux.getSysHisto(h1e,.3)
         h1ttgSys = aux.getSysHisto(h1e,.3)
         h1wgSys = aux.getSysHisto(h1e,.3)
@@ -1045,11 +1054,11 @@ def finalPrediction():
         r = ratio.Ratio("Data/SM", h1data, m.hists[0].GetStack().Last())
         r.draw(0.5,1.5)
 
-        aux.save("finalPlot_{}_{}to{}".format(dir,int(cut1),int(cut2)),endings=[".root",".C",".pdf"] )
+        appendix = ""
+        if allSets == data: appendix = "_data"
+        if any([ x.startswith("T5") for x in allSets.names ]): appendix = "_sigCont"
 
-
-
-
+        aux.save("finalPlot{}_{}_{}to{}".format(appendix,dir,int(cut1),int(cut2)))
 
 
 
