@@ -36,6 +36,9 @@ class HistogramProducer : public TSelector {
   void initTriggerStudies();
   void fillTriggerStudies();
 
+  void initUncut();
+  void fillUncut();
+
   int genMatch( const tree::Particle& p ) ;
 
 
@@ -229,6 +232,44 @@ void HistogramProducer::fillTriggerStudies() {
     } // photon loop
   } // ht cross trigger
 }
+
+void HistogramProducer::initUncut() {
+  map<string,TH1F> h;
+  hMapMap["uncut"] = h;
+
+  map<string,TH2F> h2;
+  h2["dr_vs_relpt"] = TH2F( "", ";#DeltaR;p_{T}^{jet}/p_{T}^{#gamma}", 100, 0, 0.5, 300, 0, 3 );
+  h2["dr_vs_relpt_genG"] = TH2F( "", ";#DeltaR;p_{T}^{jet}/p_{T}^{#gamma}", 100, 0, 0.5, 300, 0, 3 );
+  hMapMap2["uncut"] = h2;
+}
+
+void HistogramProducer::fillUncut() {
+  hMapMap["uncut"]["genHt"].Fill( *genHt );
+
+  for( auto& g: *photons ) {
+    if( g.isLoose && !g.hasPixelSeed && g.p.Pt()>100 && fabs(g.p.Eta())<1.4442 ) {
+
+      // search gen match
+      bool genMatch=false;
+      for( auto& gen : *genParticles ) {
+        if( gen.pdgId==22 && gen.isPrompt && gen.fromHardProcess && gen.p.DeltaR(g.p)<0.3) {
+          genMatch=true;
+          break;
+        }
+      }
+
+      for( auto& j: *jets ) {
+        auto dr = g.p.DeltaR(j.p);
+        auto relPt = j.p.Pt()/g.p.Pt();
+        hMapMap2["uncut"]["dr_vs_relpt"].Fill(dr, relPt);
+        if(genMatch) {
+          hMapMap2["uncut"]["dr_vs_relpt_genG"].Fill(dr, relPt);
+        }
+      }
+    }
+  }
+}
+
 
 map<string,TH2F> initHistograms2(){
   map<string,TH2F> hMap;
@@ -452,6 +493,7 @@ void HistogramProducer::Init(TTree *tree)
       gluinoMass = stoi(sm[1]);
   }
   initTriggerStudies();
+  initUncut();
 }
 
 void HistogramProducer::SlaveBegin(TTree *tree)
@@ -505,6 +547,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
   fReader.SetEntry(entry);
+  fillUncut();
 
   float zToMetPt = -1;
   if( zToMet && intermediateGenParticles->size() ) {
