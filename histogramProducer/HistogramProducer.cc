@@ -276,8 +276,13 @@ map<string,TH2F> initHistograms2(){
 
   hMap["n_heJets_vs_photonPosition"] = TH2F("","",10, -0.5, 9.5, 10, -0.5, 9.5 );
   hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1 );
-  hMap["met_vs_emht"] = TH2F("", ";E_{T}^{miss} (GeV);EMH_{T} (GeV)", 500, 0, 5000, 500, 0, 5000 );
-  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 500, 0, 5000, 500, 0, 5000 );
+  hMap["met_vs_emht"] = TH2F("", ";E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["metRawStar_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["metRawStar2_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["metRawUp_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["metRawDn_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["metRaw_vs_tremht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);tr EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
 
   return hMap;
 }
@@ -450,6 +455,17 @@ void HistogramProducer::fillSelection( string const& s ) {
 
   hMapMap2.at(s).at("met_vs_emht").Fill( met->p.Pt(), ht_g, selW );
   hMapMap2.at(s).at("metRaw_vs_emht").Fill( met->p_raw.Pt(), ht_g, selW );
+  if( selPhotons.size() > 0 ) {
+    auto mJet = matchedJet(*selPhotons.at(0));
+    if(mJet){
+      hMapMap2.at(s).at("metRawStar_vs_emht").Fill( (met->p_raw-mJet->p+selPhotons.at(0)->p).Pt(), ht_g, selW );
+      hMapMap2.at(s).at("metRawStar2_vs_emht").Fill( (met->p_raw+mJet->p-selPhotons.at(0)->p).Pt(), ht_g, selW );
+    }
+  }
+  hMapMap2.at(s).at("metRawUp_vs_emht").Fill( met->p_raw.Pt()+met->uncertainty, ht_g, selW );
+  hMapMap2.at(s).at("metRawDn_vs_emht").Fill( met->p_raw.Pt()-met->uncertainty, ht_g, selW );
+  hMapMap2.at(s).at("metRaw_vs_tremht").Fill( met->p_raw.Pt()-met->uncertainty, tremht, selW );
+
 
 } // end fill
 
