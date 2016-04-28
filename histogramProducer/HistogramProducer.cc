@@ -631,6 +631,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if( selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
     fillSelection("tr");
+    if(met->p.Pt()<100) fillSelection("tr_0met100");
     if(zToMet&&zToMetPt>130) fillSelection("tr_130pt");
     if(zToMet&&zToMetPt<130) fillSelection("tr_0pt130");
     fillSelection("tr");
