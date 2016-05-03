@@ -1072,6 +1072,28 @@ def finalPrediction():
 
         aux.save("finalPlot{}_{}_{}to{}".format(appendix,dir,int(cut1),int(cut2)))
 
+def metInfluence( dataset, savename="test", dirs=["tr"] ):
+    c = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+
+    for dir in dirs:
+        for iname, (name,label) in enumerate([(dir+"/met_vs_emht","EMH_{T}"), (dir+"/met_vs_njet","N_{jet}"), (dir+"/met_vs_jetPt","p_{T}(1.jet)"), (dir+"/met_vs_gPt","p_{T}(#gamma)")]):
+            h2 = dataset.getHist(name)
+            metBinning = aux.getBinnigsFromName("met")["3"]
+
+
+            h2 = aux.rebin2d(h2, metBinning)
+            p = h2.ProfileX()
+            p.SetLineColor(iname+1)
+            if "jControl" in dir:
+                p.SetLineStyle(2)
+            if name.endswith("njet"):
+                p.Scale(200)
+                label += "#times 200"
+            m.add(p, label)
+
+    m.Draw()
+    aux.save("metInfluence_"+savename)
 
 
 def main():
@@ -1128,6 +1150,9 @@ def main():
     #finalPrediction()
 
 
+    #metInfluence( gjets, "gjet" )
+    #metInfluence( qcd, "qcd", ["tr_jControl"] )
+    #metInfluence( gjets+qcd, "gqcd", ["tr","tr_jControl"] )
 
 
 
