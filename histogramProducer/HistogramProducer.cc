@@ -277,6 +277,9 @@ map<string,TH2F> initHistograms2(){
 
   hMap["n_heJets_vs_photonPosition"] = TH2F("","",10, -0.5, 9.5, 10, -0.5, 9.5 );
   hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1 );
+  hMap["met_vs_njet"] = TH2F("", ";E_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5 );
+  hMap["met_vs_gPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{jet} (GeV)", 300, 0, 3000, 100, 0, 1000 );
+  hMap["met_vs_jetPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{jet} (GeV)", 300, 0, 3000, 450, 500, 5000 );
   hMap["met_vs_emht"] = TH2F("", ";E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
   hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
   hMap["metRawStar_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
@@ -366,16 +369,16 @@ void HistogramProducer::fillSelection( string const& s ) {
     recoil += j->p;
   }
   TVector3 emrecoil = recoil;
-  float ht_g = ht;
-  float ht_gStar = ht;
+  float emht = ht;
+  float emhtStar = ht;
   for( auto& p : selPhotons ) {
     emrecoil += p->p;
-    ht_g += p->p.Pt();
+    emht += p->p.Pt();
     auto mJet = matchedJet(*p);
-    if(mJet) ht_gStar += mJet->p.Pt();
-    else ht_gStar = p->p.Pt();
+    if(mJet) emhtStar += mJet->p.Pt();
+    else emhtStar = p->p.Pt();
   }
-  float st = ht_g + met->p.Pt();
+  float st = emht + met->p.Pt();
 
   float tremht = 0;
   for( auto& jet : *jets ){
@@ -386,8 +389,8 @@ void HistogramProducer::fillSelection( string const& s ) {
   }
 
   hMapMap.at(s).at("tremht").Fill( tremht, selW );
-  hMapMap.at(s).at("emht").Fill( ht_g, selW );
-  hMapMap.at(s).at("emhtStar").Fill( ht_gStar, selW );
+  hMapMap.at(s).at("emht").Fill( emht, selW );
+  hMapMap.at(s).at("emhtStar").Fill( emhtStar, selW );
   hMapMap.at(s).at("ht").Fill( ht, selW );
   hMapMap.at(s).at("st").Fill( st, selW );
   hMapMap.at(s).at("recoilt").Fill( recoil.Pt(), selW );
@@ -454,17 +457,20 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap.at(s).at("n_heJet").Fill( selHEJets.size(), selW );
   hMapMap.at(s).at("genHt").Fill( *genHt, selW );
 
-  hMapMap2.at(s).at("met_vs_emht").Fill( met->p.Pt(), ht_g, selW );
-  hMapMap2.at(s).at("metRaw_vs_emht").Fill( met->p_raw.Pt(), ht_g, selW );
+  hMapMap2.at(s).at("met_vs_njet").Fill( met->p.Pt(), selJets.size() , selW );
+  if( selJets.size() ) hMapMap2.at(s).at("met_vs_jetPt").Fill( met->p.Pt(), selJets.at(0)->p.Pt() , selW );
+  if( selPhotons.size() ) hMapMap2.at(s).at("met_vs_gPt").Fill( met->p.Pt(), selPhotons.at(0)->p.Pt() , selW );
+  hMapMap2.at(s).at("met_vs_emht").Fill( met->p.Pt(), emht, selW );
+  hMapMap2.at(s).at("metRaw_vs_emht").Fill( met->p_raw.Pt(), emht, selW );
   if( selPhotons.size() > 0 ) {
     auto mJet = matchedJet(*selPhotons.at(0));
     if(mJet){
-      hMapMap2.at(s).at("metRawStar_vs_emht").Fill( (met->p_raw-mJet->p+selPhotons.at(0)->p).Pt(), ht_g, selW );
-      hMapMap2.at(s).at("metRawStar2_vs_emht").Fill( (met->p_raw+mJet->p-selPhotons.at(0)->p).Pt(), ht_g, selW );
+      hMapMap2.at(s).at("metRawStar_vs_emht").Fill( (met->p_raw-mJet->p+selPhotons.at(0)->p).Pt(), emht, selW );
+      hMapMap2.at(s).at("metRawStar2_vs_emht").Fill( (met->p_raw+mJet->p-selPhotons.at(0)->p).Pt(), emht, selW );
     }
   }
-  hMapMap2.at(s).at("metRawUp_vs_emht").Fill( met->p_raw.Pt()+met->uncertainty, ht_g, selW );
-  hMapMap2.at(s).at("metRawDn_vs_emht").Fill( met->p_raw.Pt()-met->uncertainty, ht_g, selW );
+  hMapMap2.at(s).at("metRawUp_vs_emht").Fill( met->p_raw.Pt()+met->uncertainty, emht, selW );
+  hMapMap2.at(s).at("metRawDn_vs_emht").Fill( met->p_raw.Pt()-met->uncertainty, emht, selW );
   hMapMap2.at(s).at("metRaw_vs_tremht").Fill( met->p_raw.Pt()-met->uncertainty, tremht, selW );
 
 
