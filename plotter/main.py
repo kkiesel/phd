@@ -303,11 +303,15 @@ def selectionComparison2( dataset, controlDataset, name, samplename, binning, bi
 def multiQcdClosures( dataset, samplename, controlDataset=None ):
     names = aux.getObjectNames( dataset.files[0], "tr", [ROOT.TH1F] )
 
-    names = ["met","genMatch"]
+    names = ["met","emht"]
 
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_0met100", preDir="tr_jControl_0met100" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_100met", preDir="tr_jControl_100met" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_0emht2000", preDir="tr_jControl_0emht2000" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_2000emht", preDir="tr_jControl_2000emht" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_noGenLep")
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highHt", preDir="tr_jControl_highHt" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_lowHt", preDir="tr_jControl_lowHt" )
