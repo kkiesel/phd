@@ -846,11 +846,14 @@ def htStuff():
                 l = aux.Label(sim=True,info=info)
                 aux.save("htStuff_emht_{}_{}_{}met{}".format(name.split("/")[0], binningName, int(cut1), int(cut2)))
 
-def qcdPrediction2d(h2num, h2den, xCut=100):
+def qcdPrediction2d(h2num, h2den, xCut=100, save=False):
     xCutBin = h2num.GetXaxis().FindBin(xCut) - 1
     h1numY = h2num.ProjectionY(aux.randomName(), 0, xCutBin)
     h1denY = h2den.ProjectionY(aux.randomName(), 0, xCutBin)
     h1numY.Divide(h1denY)
+
+    if save:
+        aux.write2File( h1numY, "weight_emht_gqcd", "weights.root" )
 
     h2denW = h2den.Clone(aux.randomName())
     h2denWsys = h2den.Clone(aux.randomName())
