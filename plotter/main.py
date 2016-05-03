@@ -953,10 +953,7 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
 
         aux.save("htReweighting_{}_{}_{}to{}".format(name,dir,int(cut1),int(cut2)))
 
-def finalPrediction():
-    allSets = gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130
-    #allSets += signal["T5Wg_1550_1500"]
-    #allSets = data
+def finalPrediction(allSets):
     jetSet = dataHt if allSets == data else allSets
 
     metBinning = aux.getBinnigsFromName("met")["3"]
@@ -1067,7 +1064,7 @@ def finalPrediction():
         m.Draw()
         sysHist.Draw("same e2")
 
-        l = aux.Label(sim=True)
+        l = aux.Label(sim=allSets is not data)
 
         r = ratio.Ratio("Data/SM", h1data, m.hists[0].GetStack().Last(), sysHist)
         r.draw(0.5,1.5)
@@ -1153,7 +1150,9 @@ def main():
     #dirSets = gjets+qcd+wjets+ttjets+znunu
     #dirSets.label = "#gamma/MutiJet,W,#bar{t}t,Z(#nu#nu)"
     #htRebinning(dirSets, "gqcdtwzVSall", "tr_noGenE", gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
-    #finalPrediction()
+    #finalPrediction(data)
+    #finalPrediction(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
+    #finalPrediction(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130+signal["T5Wg_1550_1500"])
 
 
     #metInfluence( gjets, "gjet" )
