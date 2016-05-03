@@ -763,14 +763,16 @@ def significanceMetHt():
 def zToMet():
     names = aux.getObjectNames( zgll.files[0], "tr", [ROOT.TH1F] )
 
-    #names = ["met"]
+    names = ["met", "g_pt"]
 
     bfNNToLL = 1.980707905005249 # branching fraction Z(νν)/Z(ll)
 
-
     for name in names:
-        #for binningName, binning in aux.getBinnigsFromName( name ).iteritems(): print binningName
-        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+        binningSettings = aux.getBinnigsFromName( name )
+        if name == "met": binningSettings["10"] = range(0,1000,20)
+        if name == "met": binningSettings["11"] = range(0,1000,100)
+        if name == "g_pt": binningSettings["10"] = range(0,1000,10)
+        for binningName, binning in binningSettings.iteritems():
 
             c = ROOT.TCanvas()
             m = multiplot.Multiplot()
@@ -797,6 +799,7 @@ def zToMet():
 
             m2.Draw()
             aux.save("zToMetCompare_{}_{}".format(name,binningName))
+            del c
 
 def htStuff():
     allDatasets = gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu, zg_130
