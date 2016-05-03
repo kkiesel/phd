@@ -137,10 +137,17 @@ def checkRebinningConsistence( axis, newBinning ):
     for i in newBinning:
         if i not in oldBinning: print "New bin edge is not compatible with old binning", i, "old binning:", oldBinning
 
-def rebin2d( h, binEdgesX, binEdgesY ):
+def rebin2d( h, binEdgesX=None, binEdgesY=None ):
     # Check consistency with old binning
-    checkRebinningConsistence( h.GetXaxis(), binEdgesX )
-    checkRebinningConsistence( h.GetYaxis(), binEdgesY )
+    if binEdgesX:
+        checkRebinningConsistence( h.GetXaxis(), binEdgesX )
+    else:
+        binEdgesX = [ h.GetXaxis().GetBinLowEdge(bin+1) for bin in range(h.GetNbinsX())]
+
+    if binEdgesY:
+        checkRebinningConsistence( h.GetYaxis(), binEdgesY )
+    else:
+        binEdgesY = [ h.GetYaxis().GetBinLowEdge(bin+1) for bin in range(h.GetNbinsY())]
 
     # Create
     import array
