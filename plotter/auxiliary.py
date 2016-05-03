@@ -486,13 +486,14 @@ def getSysHisto(h, relUncert):
         c = hsys.GetBinContent(bin)
         if c > 1e-10:
             e = relUncert*c
-        else:
+            hsys.SetBinError(bin, e)
+        elif hsys.GetBinContent(bin-1) or hsys.GetBinContent(bin+1):
             # check if option "width" should be used
             # TODO: check if the weight agrees with the lumi+pu weight
             meanWeight = hsys.Integral(0,-1)/hsys.GetEntries()
             poissonZeroError = 1.14787446444
             e = meanWeight*poissonZeroError
-        hsys.SetBinError(bin, e)
+            hsys.SetBinError(bin, e)
     return hsys
 
 def myMatch( regex, string ):
