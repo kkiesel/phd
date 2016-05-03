@@ -881,8 +881,8 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
     if not predSets: predSets = dSets
 
     metBinning = aux.getBinnigsFromName("met")["3"]
-    emhtBinning = aux.getBinnigsFromName("emht")["1"]
-    #emhtBinning = range(0,5000,10)
+    emhtBinning = aux.getBinnigsFromName("emht")["2"]
+    #emhtBinning = range(0,3001,10)
 
     hName = "metRaw_vs_emht"
     if "Raw" not in hName: name+="_typeI"
@@ -897,9 +897,8 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
     metCut = 100
     metCutBin = h2GJet.GetXaxis().FindBin(metCut) - 1
     wTot = h2GJet.Integral(0,metCutBin,0,-1)/h2Qcd.Integral(0,metCutBin,0,-1)
-
-    for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 100, 1e6), ("y", 200, 1e6 ), \
-            ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6) ]:
+    for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 0, 90), ("y", 70, 80),("y", 80, 90),("y", 90, 100),("y", 100, 110),  ("y", 110, 120), ("y", 100, 1e6), ("y", 200, 1e6 ), \
+            ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6), ("x",700,710), ("x",710,720),("x",720,730),("x",730,740),("x",740,750), ("x",700,800), ("x",800,900), ("x",900,1000),("x",1000,1100),("x",1100,1200),("x",1200,1300),("x",1300,1500),("x",1500,2000) ]:
         if dir=="x":
             cut1Bin = h2GJet.GetYaxis().FindBin(cut1)
             cut2Bin = h2GJet.GetYaxis().FindBin(cut2-1e-6)
@@ -982,10 +981,15 @@ def finalPrediction(allSets):
     h2s2 = aux.rebin2d(h2s2, metBinning, emhtBinning)
 
     h2QcdW, h2QcdWsys = qcdPrediction2d(h2data, h2jetControl, 100)
-    h2eControl.Scale(0.01) # fakeRate MC
+    if allSets == data:
+        h2eControl.Scale(0.0197) # fakeRate Data
+    else:
+        h2eControl.Scale(0.0107) # fakeRate MC
+    for h in h2ttg, h2wg, h2zg, h2s1, h2s2:
+        h.Scale(0.983) # trigger efficiency, uncertainty: 0.002
 
-    for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 100, 1e6), ("y", 200, 1e6 ), \
-            ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6) ]:
+    for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 0, 90), ("y", 70, 80),("y", 80, 90),("y", 90, 100),("y", 100, 110),  ("y", 110, 120), ("y", 100, 1e6), ("y", 200, 1e6 ), \
+            ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6), ("x",700,800), ("x",800,900), ("x",900,1000),("x",1000,1100),("x",1100,1200),("x",1200,1300),("x",1300,1500),("x",1500,2000) ]:
         if dir=="x":
             cut1Bin = h2data.GetYaxis().FindBin(cut1)
             cut2Bin = h2data.GetYaxis().FindBin(cut2-1e-6)
