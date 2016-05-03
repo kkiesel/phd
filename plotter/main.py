@@ -1024,7 +1024,7 @@ def finalPrediction(allSets):
 
         if allSets == data:
             if dir=="y": maxi=2000
-            if dir=="x": maxi=200
+            if dir=="x": maxi=100
             for bin in range(h1data.FindBin(maxi),h1data.GetNbinsX()+2):
                 h1data.SetBinContent(bin,0)
 
