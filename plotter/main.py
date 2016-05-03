@@ -139,6 +139,8 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_eControl/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_0met100/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_jControl/"+name, stack, additionalHt, binning, binningName )
 
 def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_jControl" ):
