@@ -55,6 +55,7 @@ ds={
     "zg": ["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"],
     "wg": ["WGJets_MonoPhoton_PtG-130_nTuple.root",
            "WGToLNuG-madgraphMLM_nTuple.root"],
+    "signals": ["T5Wg_1550_1500.root","T5Wg_1550_100.root"],
 }
 dir = "/user/kiesel/nTuples/v11/"
 
