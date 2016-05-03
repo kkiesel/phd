@@ -1153,7 +1153,8 @@ def main():
     #htStuff()
 
     #htRebinning(gjets+qcd, "gqcd")
-    #htRebinning(gjets+qcd, "gqcdVSall", gjets+qcd+ttjets+ttg+wjets+wg_mg+zg_130)
+    #htRebinning(gjets400 + gjets600, "gqcd2", "tr", qcd700 + qcd1000 + qcd1500 + qcd2000 )
+    #htRebinning(gjets+qcd, "gqcdVSall", "tr", gjets+qcd+ttjets+ttg+wjets+wg_mg+zg_130)
     #dirSets = gjets+qcd+wjets+ttjets+znunu
     #dirSets.label = "#gamma/MutiJet,W,#bar{t}t,Z(#nu#nu)"
     #htRebinning(dirSets, "gqcdtwzVSall", "tr_noGenE", gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
