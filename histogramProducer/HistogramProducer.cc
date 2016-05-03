@@ -85,6 +85,7 @@ class HistogramProducer : public TSelector {
 
   JetSelector jetSelector;
   Weighter nJetWeighter;
+  Weighter emhtWeighter;
   CutFlowPhoton looseCutFlowPhoton;
 
   double startTime;
@@ -490,6 +491,7 @@ HistogramProducer::HistogramProducer():
   hlt_ht600_pre( fReader, "HLT_PFHT600_v_pre" ),
   jetSelector("../plotter/gammaPosition.root", "gqcd"),
   nJetWeighter("../plotter/weights.root", "weight_n_heJet"),
+  emhtWeighter("../plotter/weights.root", "weight_emht_gqcd"),
   looseCutFlowPhoton( {{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
     {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} }),
   gluinoMass(0),
@@ -664,6 +666,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     float wnJet=nJetWeighter.getWeight(selHEJets.size());
     selW = originalW * wnJet * *hlt_ht600_pre;
     fillSelection("tr_jControl_wnjet");
+    float wEmht = emhtWeighter.getWeight(myHt);
+    selW = originalW * wEmht * *hlt_ht600_pre;
+    fillSelection("tr_jControl_wemht");
     selW = originalW;
   }
 
