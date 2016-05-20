@@ -8,6 +8,7 @@
 #include "TTreeReaderValue.h"
 #include "TH2F.h"
 #include "TEfficiency.h"
+#include "TRandom2.h"
 
 #include "TreeParticles.hpp"
 #include "UserFunctions.h"
@@ -89,6 +90,7 @@ class HistogramProducer : public TSelector {
   CutFlowPhoton looseCutFlowPhoton;
 
   double startTime;
+  TRandom2 rand;
 };
 
 int HistogramProducer::genMatch( const tree::Particle& p ) {
@@ -295,6 +297,8 @@ map<string,TH1F> initHistograms(){
   map<string,TH1F> hMap;
 
   hMap["met"] = TH1F( "", ";E^{miss}_{T} (GeV)", 200, 0, 2000 );
+  hMap["metRandomDn"] = TH1F( "", ";random E^{miss}_{T} (GeV)", 200, 0, 2000 );
+  hMap["metRandom"] = TH1F( "", ";random E^{miss}_{T} (GeV)", 200, 0, 2000 );
   hMap["metStar"] = TH1F( "", ";E^{miss}_{T}* (GeV)", 200, 0, 2000 );
   hMap["metStar2"] = TH1F( "", ";E^{miss}_{T}* (GeV)", 200, 0, 2000 );
   hMap["metUp"] = TH1F( "", ";E^{miss}_{T} up (GeV)", 200, 0, 2000 );
@@ -405,6 +409,13 @@ void HistogramProducer::fillSelection( string const& s ) {
     hMapMap.at(s).at("genMatch").Fill( genMatch(*selPhotons.at(0)), selW );
     auto mJet = matchedJet(*selPhotons.at(0));
     if(mJet){
+      float x = rand.Gaus(0,mJet->uncert);
+      hMapMap.at(s).at("metRandom").Fill( (met->p+x*mJet->p).Pt(), selW );
+      if( met->p*mJet->p > 0 ) { // parallel
+        hMapMap.at(s).at("metRandomDn").Fill( (met->p-fabs(x)*mJet->p).Pt(), selW );
+      } else {
+        hMapMap.at(s).at("metRandomDn").Fill( (met->p+fabs(x)*mJet->p).Pt(), selW );
+      }
       hMapMap.at(s).at("metStar").Fill( (met->p+selPhotons.at(0)->p-mJet->p).Pt(), selW );
       hMapMap.at(s).at("metStar2").Fill( (met->p-selPhotons.at(0)->p+mJet->p).Pt(), selW );
       hMapMap.at(s).at("metUpJec").Fill( (met->p+(mJet->p*mJet->uncert)).Pt(), selW );
@@ -501,7 +512,8 @@ HistogramProducer::HistogramProducer():
   looseCutFlowPhoton( {{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
     {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} }),
   gluinoMass(0),
-  startTime(time(NULL))
+  startTime(time(NULL)),
+  rand()
 {
 }
 
