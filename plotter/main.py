@@ -1105,6 +1105,25 @@ def metInfluence( dataset, savename="test", dirs=["tr"] ):
     m.Draw()
     aux.save("metInfluence_"+savename)
 
+def gammaFakeRatio():
+    metBinning = aux.getBinnigsFromName("met")["1"]
+
+    c = ROOT.TCanvas()
+    hg = gjets.getHist("tr/met")
+    hj = qcd.getHist("tr/met")
+    hg = aux.rebin(hg, metBinning)
+    hj = aux.rebin(hj, metBinning)
+
+    hj.Add(hg)
+    hg.Divide(hj)
+
+    hg.SetLineColor(1)
+    hg.SetYTitle("#gamma+Jet/(#gamma+Jet+QCD)")
+    hg.GetYaxis().SetRangeUser(0,1)
+    hg.Draw("hist e")
+    aux.save("gammaFakeRatio")
+
+
 
 def main():
     pass
@@ -1173,4 +1192,6 @@ if __name__ == "__main__":
     from datasets import *
     #ROOT.gErrorIgnoreLevel = ROOT.kFatal
     main()
+
+    #gammaFakeRatio()
 
