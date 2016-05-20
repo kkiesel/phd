@@ -251,7 +251,7 @@ def selectionComparison( dataset, controlDataset, name, samplename, binning, bin
     r.draw(.5,1.5)
 
     if binningName: binningName = "_"+binningName
-    saveName = "multiQcdClosureCompareSelection_{}_{}_{}{}".format(samplename, dirDir, name, binningName )
+    saveName = "multiQcdClosureCompareSelection_{}_{}_{}{}".format(samplename, dirDir+preDir, name, binningName )
     aux.save( saveName )
 
 def selectionComparison2( dataset, controlDataset, name, samplename, binning, binningName, dirDirs ):
@@ -1087,7 +1087,7 @@ def metInfluence( dataset, savename="test", dirs=["tr"] ):
     m = multiplot.Multiplot()
 
     for dir in dirs:
-        for iname, (name,label) in enumerate([(dir+"/met_vs_emht","EMH_{T}"), (dir+"/met_vs_njet","N_{jet}"), (dir+"/met_vs_jetPt","p_{T}(1.jet)"), (dir+"/met_vs_gPt","p_{T}(#gamma)")]):
+        for iname, (name,label) in enumerate([(dir+"/met_vs_emht","EMH_{T}"), (dir+"/met_vs_njet","N_{jet}"), (dir+"/met_vs_jetPt","p_{T}(1.jet)"), (dir+"/met_vs_gPt","p_{T}(#gamma)"), (dir+"/met_vs_chargedJetPt","chargedjet"), (dir+"/met_vs_charged2JetPt","chargedjet2")]):
             h2 = dataset.getHist(name)
             metBinning = aux.getBinnigsFromName("met")["3"]
 
@@ -1095,8 +1095,13 @@ def metInfluence( dataset, savename="test", dirs=["tr"] ):
             h2 = aux.rebin2d(h2, metBinning)
             p = h2.ProfileX()
             p.SetLineColor(iname+1)
-            if "jControl" in dir:
+            if iname == 5: p.SetLineColor(ROOT.kGreen+4)
+            if dir.endswith("tr_jControl"):
                 p.SetLineStyle(2)
+                label += " jet"
+            if dir.endswith("tr_jControl_wemht"):
+                p.SetLineStyle(3)
+                label += " jet EMH_{T} weighted"
             if name.endswith("njet"):
                 p.Scale(200)
                 label += "#times 200"
@@ -1184,7 +1189,9 @@ def main():
 
     #metInfluence( gjets, "gjet" )
     #metInfluence( qcd, "qcd", ["tr_jControl"] )
-    #metInfluence( gjets+qcd, "gqcd", ["tr","tr_jControl"] )
+    #metInfluence( gjets+qcd, "gqcd", ["tr","tr_jControl","tr_jControl_wemht"] )
+
+    #gammaFakeRatio()
 
 
 
