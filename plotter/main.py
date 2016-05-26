@@ -1335,5 +1335,3 @@ if __name__ == "__main__":
     #ROOT.gErrorIgnoreLevel = ROOT.kFatal
     main()
 
-    #gammaFakeRatio()
-
