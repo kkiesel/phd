@@ -148,6 +148,10 @@ wjets.label = "W#rightarrowl#nu"
 ttg = Dataset( "TTGJets", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8" )
 ttg.label = "#gammat#bar{t}"
 
+# NLO xsec from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#T_X
+tg = Dataset( "TGJets_amcatnlo_madspin", 2.967, ROOT.kOrange+2, "TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8" )
+tg.label = "#gammat"
+
 wg_mc = Dataset( "WGToLNuG-amcatnloFXFX", 489., ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 wg_mg = Dataset( "WGToLNuG-madgraphMLM", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wg_pt500 = Dataset( "WGToLNuG_PtG-500", 0.0117887, ROOT.kRed-1, "WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
