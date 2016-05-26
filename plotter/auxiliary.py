@@ -491,6 +491,18 @@ def metricPrefix( n ):
 def loopH2( h2 ):
     return [(xbin,ybin) for xbin in range(h2.GetNbinsX()+2) for ybin in range(h2.GetNbinsY()+2)]
 
+def loopH3( h3 ):
+    return [(xbin,ybin,zbin) for xbin in range(h3.GetNbinsX()+2) for ybin in range(h3.GetNbinsY()+2) for zbin in range(h3.GetNbinsZ()+2)]
+
+def loopH(h):
+    if isinstance(h,ROOT.TH3):
+        return loopH3(h)
+    elif isinstance(h,ROOT.TH2):
+        return loopH2(h)
+    else:
+        return range(h.GetNbinsX()+2)
+
+
 def printH2(h2,flow=True):
     for xbin, ybin in loopH2(h2):
         if not flow and ( not xbin or not xbin or xbin==h2.GetNbinsX()+1 or ybin==h2.GetNbinsY()+1 ): continue
