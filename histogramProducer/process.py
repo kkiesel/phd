@@ -4,6 +4,7 @@ import multiprocessing
 import glob
 
 import ROOT
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
 # own libray
@@ -65,13 +66,20 @@ dir = "/user/kiesel/nTuples/v11/"
 # Select datasets to process
 #############################################
 
-toProcess = ds["gjet"]+ds["qcd"]
-toProcess = ds["znunu"]+["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"]
-toProcess = ds["tt"]+ds["ttg"]
-toProcess = ds["w"]+ds["wg"]
-toProcess = ds["sp"]+ds["jh"]
-toProcess = [ x for sublist in ds.values() for x in sublist ]
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument('datasets', nargs='+', default=["all"], help="all "+' '.join(ds.keys()))
+args = parser.parse_args()
+
+if args.datasets == ["all"]:
+    toProcess = [ x for sublist in ds.values() for x in sublist ]
+else:
+    toProcess = ds[args.datasets[0]]
+    for n in args.datasets[1:]:
+        toProcess += ds[n]
+
+print toProcess
 #############################################
 #############################################
 
