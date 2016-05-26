@@ -1095,6 +1095,7 @@ def finalPrediction(allSets):
     h2jetControl = jetSet.getHist("tr_jControl/"+hName)
     h2eControl = allSets.getHist("tr_eControl/"+hName)
     h2ttg = ttg.getHist("tr/"+hName)
+    h2tg = tg.getHist("tr/"+hName)
     h2wg = wg_mg.getHist("tr/"+hName)
     h2zg = zg_130.getHist("tr/"+hName)
     h2dy = dy.getHist("tr/"+hName)
@@ -1105,6 +1106,7 @@ def finalPrediction(allSets):
     h2jetControl = aux.rebin2d(h2jetControl, metBinning, emhtBinning)
     h2eControl = aux.rebin2d(h2eControl, metBinning, emhtBinning)
     h2ttg = aux.rebin2d(h2ttg, metBinning, emhtBinning)
+    h2tg = aux.rebin2d(h2tg, metBinning, emhtBinning)
     h2wg = aux.rebin2d(h2wg, metBinning, emhtBinning)
     h2zg = aux.rebin2d(h2zg, metBinning, emhtBinning)
     h2dy = aux.rebin2d(h2dy, metBinning, emhtBinning)
@@ -1116,7 +1118,7 @@ def finalPrediction(allSets):
         h2eControl.Scale(0.0197) # fakeRate Data
     else:
         h2eControl.Scale(0.0107) # fakeRate MC
-    for h in h2ttg, h2wg, h2zg, h2dy, h2s1, h2s2:
+    for h in h2ttg, h2tg, h2wg, h2zg, h2dy, h2s1, h2s2:
         h.Scale(0.983) # trigger efficiency, uncertainty: 0.002
 
     for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 0, 90), ("y", 70, 80),("y", 80, 90),("y", 90, 100),("y", 100, 110),  ("y", 110, 120), ("y", 100, 1e6), ("y", 200, 1e6 ), \
@@ -1129,6 +1131,7 @@ def finalPrediction(allSets):
             h1QcdWsys = h2QcdWsys.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1e = h2eControl.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1ttg = h2ttg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1tg = h2tg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1wg = h2wg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1zg = h2zg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1dy = h2dy.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
@@ -1142,6 +1145,7 @@ def finalPrediction(allSets):
             h1QcdWsys = h2QcdWsys.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1e = h2eControl.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1ttg = h2ttg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1tg = h2tg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1wg = h2wg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1zg = h2zg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1dy = h2dy.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
@@ -1150,7 +1154,7 @@ def finalPrediction(allSets):
         else:
             print "Do not know what to do with", dir
 
-        for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1wg, h1zg, h1dy, h1s1, h1s2:
+        for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1tg, h1wg, h1zg, h1dy, h1s1, h1s2:
             h.Scale(1, "width")
             aux.appendFlowBin(h)
             if dir == "y": h.SetTitleOffset(1)
@@ -1163,6 +1167,7 @@ def finalPrediction(allSets):
 
         h1eSys = aux.getSysHisto(h1e,.3)
         h1ttgSys = aux.getSysHisto(h1ttg,.3)
+        h1tgSys = aux.getSysHisto(h1tg,.3)
         h1wgSys = aux.getSysHisto(h1wg,.3)
         h1zgSys = aux.getSysHisto(h1zg,.5)
         h1dySys = aux.getSysHisto(h1dy,.3)
@@ -1171,6 +1176,7 @@ def finalPrediction(allSets):
         h1QcdW.SetLineColor(rwth.blue75)
         h1e.SetLineColor(rwth.green)
         h1ttg.SetLineColor(rwth.bordeaux)
+        h1tg.SetLineColor(rwth.bordeaux75)
         h1wg.SetLineColor(rwth.red75)
         h1zg.SetLineColor(rwth.yellow)
         h1dy.SetLineColor(rwth.yellow75)
@@ -1186,6 +1192,7 @@ def finalPrediction(allSets):
         m.addStack(h1dy, "DY")
         m.addStack(h1e, "e#rightarrow#gamma")
         m.addStack(h1ttg, "t#bar{t}#gamma")
+        m.addStack(h1tg, "t#gamma")
         m.addStack(h1zg, "Z#gamma")
         m.addStack(h1wg, "W#gamma")
         m.addStack(h1QcdW, "#gamma+Jet")
@@ -1194,7 +1201,7 @@ def finalPrediction(allSets):
 
         # systematics
         sysStack = ROOT.THStack()
-        for h in h1QcdWsys, h1eSys, h1ttgSys, h1wgSys, h1zgSys:
+        for h in h1QcdWsys, h1eSys, h1ttgSys, h1tgSys, h1wgSys, h1zgSys:
             sysStack.Add(h)
         sysHist = sysStack.GetStack().Last()
         aux.drawOpt(sysHist, "sys")
