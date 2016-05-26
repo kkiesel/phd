@@ -1018,8 +1018,16 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
     metCut = 100
     metCutBin = h2GJet.GetXaxis().FindBin(metCut) - 1
     wTot = h2GJet.Integral(0,metCutBin,0,-1)/h2Qcd.Integral(0,metCutBin,0,-1)
-    for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 0, 90), ("y", 70, 80),("y", 80, 90),("y", 90, 100),("y", 100, 110),  ("y", 110, 120), ("y", 100, 1e6), ("y", 200, 1e6 ), \
-            ("x", 0, 1e6), ("x", 0, 2000), ("x", 2000, 1e6), ("x",700,710), ("x",710,720),("x",720,730),("x",730,740),("x",740,750), ("x",700,800), ("x",800,900), ("x",900,1000),("x",1000,1100),("x",1100,1200),("x",1200,1300),("x",1300,1500),("x",1500,2000) ]:
+    for dir, cut1, cut2 in [
+        ("x", 0, 1e6),
+        ("x", 0, 2000),
+        ("x", 0, 900),
+        ("x", 1000, 2000),
+        ("x", 2000, 1e6),
+        ("y", 0, 1e6),
+        ("y", 0, 100),
+        ("y", 100, 1e6),
+        ]:
         if dir=="x":
             cut1Bin = h2GJet.GetYaxis().FindBin(cut1)
             cut2Bin = h2GJet.GetYaxis().FindBin(cut2-1e-6)
@@ -1074,7 +1082,7 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
         r = ratio.Ratio( "#gamma/jet", h1GJetMet, h1QcdMetW, h1QcdMetWsys )
         r.draw(0.5,1.5)
 
-        aux.save("htReweighting_{}_{}_{}to{}".format(name,dir,int(cut1),int(cut2)))
+        aux.save("htReweighting_{}_{}_{}to{}".format(name,dir,int(cut1),int(cut2)), normal=False)
 
 def finalPrediction(allSets):
     jetSet = dataHt if allSets == data else allSets
