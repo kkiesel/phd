@@ -876,6 +876,127 @@ def qcdPrediction2d(h2num, h2den, xCut=100, save=False):
         h2denWsys.SetBinError(xbin, ybin, c*we )
     return h2denW, h2denWsys
 
+def qcdPrediction3d(totalNum, totalDen, xCut=100, save=False):
+
+    xCutBin = totalNum.GetXaxis().FindBin(xCut) - 1
+    for h in totalNum, totalDen:
+        h.GetXaxis().SetRange(0, xCutBin)
+
+    num = totalNum.Project3D("zye")
+    den = totalDen.Project3D("zye2") # different name
+    num.Divide(den)
+
+    if save or True:
+        aux.write2File( num, "weight_emht_vs_pt_gqcd", "weights.root" )
+
+    pre = totalDen.Clone(aux.randomName())
+    preSys = totalDen.Clone(aux.randomName())
+    for xbin, ybin, zbin in aux.loopH3(pre):
+        w = num.GetBinContent(ybin, zbin)
+        we = num.GetBinError(ybin, zbin)
+        c = totalDen.GetBinContent(xbin, ybin, zbin)
+        ce = totalDen.GetBinError(xbin, ybin, zbin)
+        pre.SetBinContent(xbin, ybin, zbin, c*w)
+        pre.SetBinError(xbin, ybin, zbin, ce*w )
+        preSys.SetBinContent(xbin, ybin, zbin, c*w )
+        preSys.SetBinError(xbin, ybin, zbin, c*we )
+    return pre, preSys
+
+def qcdClosure3d(dirSet, name, dirName="tr", preSet=None):
+    if not preSet: preSet = dirSet
+
+    metBinning = aux.getBinnigsFromName("met")["3"]
+    emhtBinning = aux.getBinnigsFromName("emht")["2"]
+    ptBinning = aux.getBinnigsFromName("g_pt")["1"]
+    #metBinning = range(0,400,10)
+    #emhtBinning = [0,1000,3000]
+    #ptBinning = [100,1000]
+    #metBinning = [0,100,400]
+    ptBinning = None
+
+    hName = "metRaw_vs_emht_vs_njet"
+    h3dir = dirSet.getHist(dirName+"/"+hName)
+    h3pre = preSet.getHist("tr_jControl/"+hName)
+
+    h3dir = aux.rebin3d(h3dir, metBinning, emhtBinning, ptBinning)
+    h3pre = aux.rebin3d(h3pre, metBinning, emhtBinning, ptBinning)
+
+    h3w, h3wSys = qcdPrediction3d(h3dir, h3pre, 100)
+
+    # compute total weight for simple total scaling
+    metCut = 100
+    metCutBin = h3dir.GetXaxis().FindBin(metCut) - 1
+    cuts = [
+        ("xyz", 0, -1, 0, -1),
+        ("xyz", 0, 2000, 0, -1),
+        ("xyz", 2000, -1, 0, -1),
+        ("xyz", 0, 800, 0, -1),
+        ("yxz", 0, 100, 0, -1),
+        ("yxz", 100, -1, 0, -1),
+        ("zxy", 0, -1, 0, -1),
+    ]
+    for dir, cut1low, cut1high, cut2low, cut2high in cuts:
+        cut1BinLow = aux.getAxis(h3dir, dir[1]).FindBin(cut1low)
+        cut1BinHigh = aux.getAxis(h3dir, dir[1]).FindBin(cut1high-1e-6) if cut1high > 0 else cut1high
+        cut2BinLow = aux.getAxis(h3dir, dir[2]).FindBin(cut2low)
+        cut2BinHigh = aux.getAxis(h3dir, dir[2]).FindBin(cut2high-1e-6) if cut2high > 0 else cut2high
+        aux.getAxis(h3dir, dir[0]).SetRange()
+        aux.getAxis(h3dir, dir[1]).SetRange(cut1BinLow, cut1BinHigh)
+        aux.getAxis(h3dir, dir[2]).SetRange(cut2BinLow, cut2BinHigh)
+        aux.getAxis(h3w, dir[0]).SetRange()
+        aux.getAxis(h3w, dir[1]).SetRange(cut1BinLow, cut1BinHigh)
+        aux.getAxis(h3w, dir[2]).SetRange(cut2BinLow, cut2BinHigh)
+        aux.getAxis(h3wSys, dir[0]).SetRange()
+        aux.getAxis(h3wSys, dir[1]).SetRange(cut1BinLow, cut1BinHigh)
+        aux.getAxis(h3wSys, dir[2]).SetRange(cut2BinLow, cut2BinHigh)
+        h1dir = h3dir.Project3D(dir[0]+"e_dir")
+        h1w = h3w.Project3D(dir[0]+"e_w")
+        h1wSys = h3wSys.Project3D(dir[0]+"e_we")
+
+        for h in h1dir, h1w, h1wSys:
+            h.SetTitle("")
+            aux.appendFlowBin(h)
+
+        aux.drawOpt(h1dir, "data")
+        h1w.drawOption_ = "hist e"
+        for h in h1w, h1wSys:
+            h.SetLineColor(ROOT.kRed)
+            if dir == "y": h.SetTitleOffset(1)
+
+        aux.drawOpt(h1wSys, "sys")
+
+        c = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+        m.add(h1dir, "#gamma")
+        m.add(h1w, "Jet EMH_{T} weighted")
+        m.add(h1wSys, "Jet weight uncert.")
+
+        info = ""
+        if cut1low: info += "{}<".format(cut1low)
+        if cut1low or cut1high>0: info += aux.getAxis(h3dir,dir[1]).GetTitle().replace(" (GeV)","")
+        if cut1high>0: info += "<{}".format(cut1high)
+        if cut2low or cut2high>0: info += " "
+        if cut2low: info += "{}<".format(cut2low)
+        if cut2low or cut2high>0: info += aux.getAxis(h3dir,dir[2]).GetTitle().replace(" (GeV)","")
+        if cut2high>0: info += "<{}".format(cut2high)
+        m.leg.SetHeader(info)
+        m.Draw()
+
+        l = aux.Label(sim=True, info=dirSet.label)
+
+        r = ratio.Ratio("#gamma/jet", h1dir, h1w, h1wSys)
+        r.draw(0.5,1.5)
+
+        cutName = dir[0] + "_"
+        if cut1low: cutName += str(cut1low)
+        if cut1low or cut1high>0: cutName += dir[1]
+        if cut1high>0: cutName += str(cut1high)
+        if cut2low: cutName += str(cut2low)
+        if cut2low or cut2high>0: cutName += dir[2]
+        if cut2high>0: cutName += str(cut2high)
+
+        aux.save("qcdClosure_3d_{}_{}".format(name, cutName))
+
 
 def htRebinning(dSets, name, dirName="tr", predSets=None):
     if not predSets: predSets = dSets
@@ -1193,7 +1314,7 @@ def main():
 
     #gammaFakeRatio()
 
-
+    #qcdClosure3d(gjets, "test", dirName="tr", preSet=qcd)
 
 if __name__ == "__main__":
     from datasets import *
