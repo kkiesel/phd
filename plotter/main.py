@@ -1097,6 +1097,7 @@ def finalPrediction(allSets):
     h2ttg = ttg.getHist("tr/"+hName)
     h2wg = wg_mg.getHist("tr/"+hName)
     h2zg = zg_130.getHist("tr/"+hName)
+    h2dy = dy.getHist("tr/"+hName)
     h2s1 = signal["T5Wg_1550_100"].getHist("tr/"+hName)
     h2s2 = signal["T5Wg_1550_1500"].getHist("tr/"+hName)
 
@@ -1106,6 +1107,7 @@ def finalPrediction(allSets):
     h2ttg = aux.rebin2d(h2ttg, metBinning, emhtBinning)
     h2wg = aux.rebin2d(h2wg, metBinning, emhtBinning)
     h2zg = aux.rebin2d(h2zg, metBinning, emhtBinning)
+    h2dy = aux.rebin2d(h2dy, metBinning, emhtBinning)
     h2s1 = aux.rebin2d(h2s1, metBinning, emhtBinning)
     h2s2 = aux.rebin2d(h2s2, metBinning, emhtBinning)
 
@@ -1114,7 +1116,7 @@ def finalPrediction(allSets):
         h2eControl.Scale(0.0197) # fakeRate Data
     else:
         h2eControl.Scale(0.0107) # fakeRate MC
-    for h in h2ttg, h2wg, h2zg, h2s1, h2s2:
+    for h in h2ttg, h2wg, h2zg, h2dy, h2s1, h2s2:
         h.Scale(0.983) # trigger efficiency, uncertainty: 0.002
 
     for dir, cut1, cut2 in [ ("y", 0, 1e6), ("y", 0, 100), ("y", 0, 90), ("y", 70, 80),("y", 80, 90),("y", 90, 100),("y", 100, 110),  ("y", 110, 120), ("y", 100, 1e6), ("y", 200, 1e6 ), \
@@ -1129,6 +1131,7 @@ def finalPrediction(allSets):
             h1ttg = h2ttg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1wg = h2wg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1zg = h2zg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1dy = h2dy.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1s1 = h2s1.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1s2 = h2s2.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
         elif dir=="y":
@@ -1161,6 +1164,7 @@ def finalPrediction(allSets):
         h1ttgSys = aux.getSysHisto(h1ttg,.3)
         h1wgSys = aux.getSysHisto(h1wg,.3)
         h1zgSys = aux.getSysHisto(h1zg,.5)
+        h1dySys = aux.getSysHisto(h1dy,.3)
 
         aux.drawOpt(h1data, "data")
         h1QcdW.SetLineColor(rwth.blue75)
@@ -1168,6 +1172,7 @@ def finalPrediction(allSets):
         h1ttg.SetLineColor(rwth.bordeaux)
         h1wg.SetLineColor(rwth.red75)
         h1zg.SetLineColor(rwth.yellow)
+        h1dy.SetLineColor(rwth.yellow75)
         h1s1.SetLineWidth(3)
         h1s1.drawOption_ = "hist"
         h1s2.SetLineWidth(3)
@@ -1177,6 +1182,7 @@ def finalPrediction(allSets):
         c = ROOT.TCanvas()
         m = multiplot.Multiplot()
         m.add(h1data, "(Pseudo)Data")
+        m.addStack(h1dy, "DY")
         m.addStack(h1e, "e#rightarrow#gamma")
         m.addStack(h1ttg, "t#bar{t}#gamma")
         m.addStack(h1zg, "Z#gamma")
