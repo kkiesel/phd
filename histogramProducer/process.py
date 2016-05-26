@@ -52,6 +52,7 @@ ds={
         ],
     "tt": ["TTJets_nTuple.root"],
     "ttg": ["TTGJets_nTuple.root"],
+    "tg": ["TGJets_amcatnlo_madspin_nTuple.root"],
     "zg": ["ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"],
     "wg": ["WGJets_MonoPhoton_PtG-130_nTuple.root",
            "WGToLNuG-madgraphMLM_nTuple.root"],
