@@ -551,6 +551,17 @@ def myMatch( regex, string ):
     m = re.match( regex, string )
     return [ m ] if m else []
 
+def getAxis(h, ax="x"):
+    if ax=="x":
+        return h.GetXaxis()
+    elif ax=="y":
+        return h.GetYaxis()
+    elif ax=="z":
+        return h.GetZaxis()
+    else:
+        print "do not know what do do with ", ax
+
+
 def dataCardToLatexTable(filename):
     import DatacardParser
     from optparse import OptionParser
