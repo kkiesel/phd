@@ -1144,12 +1144,13 @@ def finalPrediction(allSets):
             h1ttg = h2ttg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1wg = h2wg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1zg = h2zg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1dy = h2dy.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1s1 = h2s1.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1s2 = h2s2.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
         else:
             print "Do not know what to do with", dir
 
-        for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1wg, h1zg, h1s1, h1s2:
+        for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1wg, h1zg, h1dy, h1s1, h1s2:
             h.Scale(1, "width")
             aux.appendFlowBin(h)
             if dir == "y": h.SetTitleOffset(1)
