@@ -169,6 +169,45 @@ def rebin2d( h, binEdgesX=None, binEdgesY=None ):
             hnew.SetBinError( newBin, sqrt(hnew.GetBinError(newBin)**2 + h.GetBinError(xbin,ybin)**2 ) )
     return hnew
 
+def rebin3d( h, binEdgesX=None, binEdgesY=None, binEdgesZ=None ):
+    # Check consistency with old binning
+    if binEdgesX:
+        checkRebinningConsistence( h.GetXaxis(), binEdgesX )
+    else:
+        binEdgesX = [ h.GetXaxis().GetBinLowEdge(bin+1) for bin in range(h.GetNbinsX())]
+    if binEdgesY:
+        checkRebinningConsistence( h.GetYaxis(), binEdgesY )
+    else:
+        binEdgesY = [ h.GetYaxis().GetBinLowEdge(bin+1) for bin in range(h.GetNbinsY())]
+    if binEdgesZ:
+        checkRebinningConsistence( h.GetZaxis(), binEdgesZ )
+    else:
+        binEdgesZ = [ h.GetZaxis().GetBinLowEdge(bin+1) for bin in range(h.GetNbinsZ())]
+
+    # Create
+    import array
+    binEdgesXArr = array.array( 'd', binEdgesX )
+    binEdgesYArr = array.array( 'd', binEdgesY )
+    binEdgesZArr = array.array( 'd', binEdgesZ )
+    hnew = ROOT.TH3F(h.GetName(),h.GetTitle(), len(binEdgesX)-1, binEdgesXArr, len(binEdgesY)-1, binEdgesYArr, len(binEdgesZ)-1, binEdgesZArr )
+
+    # GetProperties
+    hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
+    hnew.SetTitle("{};{};{};{}".format(h.GetTitle(),h.GetXaxis().GetTitle(),h.GetYaxis().GetTitle(),h.GetZaxis().GetTitle()))
+
+    # Fill
+    for xbin in range(h.GetNbinsX()+2):
+        x = h.GetXaxis().GetBinCenter(xbin)
+        for ybin in range(h.GetNbinsY()+2):
+            y = h.GetYaxis().GetBinCenter(ybin)
+            for zbin in range(h.GetNbinsZ()+2):
+                z = h.GetZaxis().GetBinCenter(zbin)
+                newBin = hnew.FindFixBin(x,y,z)
+                hnew.SetBinContent(newBin, hnew.GetBinContent(newBin) + h.GetBinContent(xbin,ybin,zbin))
+                hnew.SetBinError(newBin, sqrt(hnew.GetBinError(newBin)**2 + h.GetBinError(xbin,ybin,zbin)**2 ) )
+    return hnew
+
+
 
 def rebin( h, binEdges, scale=True ):
     checkRebinningConsistence( h.GetXaxis(), binEdges )
