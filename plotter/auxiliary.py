@@ -518,6 +518,13 @@ def stdHist(dataset, name, binning=None, xCut=True, cut1=0, cut2=1e8):
     h.SetYTitle(getYAxisTitle(h))
     return h
 
+def integerContent(h):
+    for bin in loopH(h):
+        c = h.GetBinContent(bin)
+        if abs(c-int(c))>1e-6:
+            return False
+    return True
+
 def drawOpt(h, style):
     if style == "data":
         h.SetLineColor(1)
@@ -526,6 +533,8 @@ def drawOpt(h, style):
         h.SetMarkerSize(0.8)
         h.SetBinErrorOption(ROOT.TH1.kPoisson)
         h.drawOption_="e0p0"
+        if integerContent(h):
+            h.Sumw2(False) # kPoisson uncertainties are drawn
     if style == "sys":
         c = h.GetLineColor()
         h.SetFillColor(c)
