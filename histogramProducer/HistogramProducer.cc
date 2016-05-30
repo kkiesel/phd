@@ -318,6 +318,7 @@ map<string,TH1F> initHistograms(){
   hMap["metPerRaw"] = TH1F( "", ";uncorrected E^{miss #perp  }_{T} (GeV)", 200, 0, 2000 );
   hMap["mt_g_met"] = TH1F( "", ";m_{T}(#gamma,E^{miss}_{T}) (GeV)", 150, 0, 1500 );
 
+  hMap["metSig"] = TH1F( "", ";#it{S}", 3000, 0, 3000 );
   hMap["tremht"] = TH1F( "", ";EMH_{T}^{trigger-like} (GeV)", 300, 0, 3000 );
   hMap["emht"] = TH1F( "", ";EMH_{T} (GeV)", 300, 0, 3000 );
   hMap["emhtStar"] = TH1F( "", ";EMH_{T}* (GeV)", 300, 0, 3000 );
@@ -398,6 +399,7 @@ void HistogramProducer::fillSelection( string const& s ) {
     }
   }
 
+  hMapMap.at(s).at("metSig").Fill( met->sig, selW );
   hMapMap.at(s).at("tremht").Fill( tremht, selW );
   hMapMap.at(s).at("emht").Fill( emht, selW );
   hMapMap.at(s).at("emhtStar").Fill( emhtStar, selW );
