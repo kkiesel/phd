@@ -291,6 +291,10 @@ map<string,TH2F> initHistograms2(){
   hMap["metRawUp_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
   hMap["metRawDn_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
   hMap["metRaw_vs_tremht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);tr EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["memht_vs_emht"] = TH2F("", ";EMH_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["mht_vs_emht"] = TH2F("", ";H_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
+  hMap["metRaw_vs_memht"] = TH2F("", ";EMH_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 300, 0, 3000 );
+  hMap["metRaw_vs_mht"] = TH2F("", ";H_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 300, 0, 3000 );
 
   return hMap;
 }
@@ -493,6 +497,10 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap2.at(s).at("metRawDn_vs_emht").Fill( met->p_raw.Pt()-met->uncertainty, emht, selW );
   hMapMap2.at(s).at("metRaw_vs_tremht").Fill( met->p_raw.Pt()-met->uncertainty, tremht, selW );
 
+  hMapMap2.at(s).at("memht_vs_emht").Fill( emrecoil.Pt(), emht, selW );
+  hMapMap2.at(s).at("mht_vs_emht").Fill( recoil.Pt(), emht, selW );
+  hMapMap2.at(s).at("metRaw_vs_memht").Fill( met->p_raw.Pt(), emrecoil.Pt(), selW );
+  hMapMap2.at(s).at("metRaw_vs_mht").Fill( met->p_raw.Pt(), recoil.Pt(), selW );
 
 } // end fill
 
