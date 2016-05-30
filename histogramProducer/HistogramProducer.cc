@@ -541,7 +541,7 @@ void HistogramProducer::Init(TTree *tree)
   fReader.SetTree(tree);
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
-  zToMet = inputName.find("ZGTo2LG") != string::npos;
+  zToMet = inputName.find("ZGTo2LGmod") != string::npos;
 
   std::smatch sm;
   if( regex_match( inputName, sm, regex(".*/T5.*_(\\d+)_(\\d+).root") ) ) {
