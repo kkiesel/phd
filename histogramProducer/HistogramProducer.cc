@@ -738,7 +738,34 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if( genMatch(*selPhotons.at(0)) == 11 ) fillSelection("tr_eControl_genE");
   }
 
+  // endcap selection
+  resetSelection();
+  for( auto& photon : *photons ) {
+    if( photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) > photonsEtaMaxBarrel ) {
+      selPhotons.push_back( &photon );
+    }
+  }
+  defaultSelection();
 
+  myHt=0;
+  for( auto& p : selPhotons ) myHt += p->p.Pt();
+  for( auto& p : selJets ) myHt += p->p.Pt();
+
+  if( selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData) ) {
+    fillSelection("tr_ee");
+  }
+  if( !selPhotons.size() && selHEJets.size() && myHt > 700 && (*hlt_ht600 || !isData) ) {
+    selW *= *hlt_ht600_pre;
+    auto indexToRemove = jetSelector.getJetN(selHEJets.size()-1); // -1, since one jet is erased from list (gets photon proxy)
+    fillSelectedPhotons( *selHEJets.at(indexToRemove) );
+    // clean jets and other he objects
+    selHEJets.erase( selHEJets.begin()+indexToRemove );
+    for( unsigned i=0; i<selJets.size();){
+      if( selPhotons.at(0)->p.DeltaR(selJets.at(i)->p)<0.3 ) selJets.erase(selJets.begin()+i);
+      else i++;
+    }
+    fillSelection("tr_jControl_ee");
+  }
   return kTRUE;
 }
 
