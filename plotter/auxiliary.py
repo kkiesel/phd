@@ -215,7 +215,7 @@ def rebin( h, binEdges, scale=True ):
     binEdgesArr = array.array( 'd', binEdges )
     hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
     hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
-    if scale: hnew.Scale( 1., "width" )
+    #if scale: hnew.Scale( 1., "width" )
     return hnew
 
 def absHistWeighted( origHist ):
