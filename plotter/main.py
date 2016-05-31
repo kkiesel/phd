@@ -857,27 +857,6 @@ def htStuff():
                 l = aux.Label(sim=True,info=info)
                 aux.save("htStuff_emht_{}_{}_{}met{}".format(name.split("/")[0], binningName, int(cut1), int(cut2)))
 
-def qcdPrediction2d(h2num, h2den, xCut=100, save=False):
-    xCutBin = h2num.GetXaxis().FindBin(xCut) - 1
-    h1numY = h2num.ProjectionY(aux.randomName(), 0, xCutBin)
-    h1denY = h2den.ProjectionY(aux.randomName(), 0, xCutBin)
-    h1numY.Divide(h1denY)
-
-    if save:
-        aux.write2File( h1numY, "weight_emht_gqcd", "weights.root" )
-
-    h2denW = h2den.Clone(aux.randomName())
-    h2denWsys = h2den.Clone(aux.randomName())
-    for xbin, ybin in aux.loopH2(h2den):
-        w = h1numY.GetBinContent(ybin)
-        we = h1numY.GetBinError(ybin)
-        c = h2den.GetBinContent(xbin,ybin)
-        h2denW.SetBinContent(xbin, ybin, c*w )
-        h2denW.SetBinError(xbin, ybin, h2den.GetBinError(xbin, ybin) * w )
-        h2denWsys.SetBinContent(xbin, ybin, c*w )
-        h2denWsys.SetBinError(xbin, ybin, c*we )
-    return h2denW, h2denWsys
-
 def qcdPrediction3d(totalNum, totalDen, xCut=100, save=False):
 
     xCutBin = totalNum.GetXaxis().FindBin(xCut) - 1
@@ -999,6 +978,26 @@ def qcdClosure3d(dirSet, name, dirName="tr", preSet=None):
 
         aux.save("qcdClosure_3d_{}_{}".format(name, cutName))
 
+def qcdPrediction2d(h2num, h2den, xCut=100, save=False):
+    xCutBin = h2num.GetXaxis().FindBin(xCut) - 1
+    h1numY = h2num.ProjectionY(aux.randomName(), 0, xCutBin)
+    h1denY = h2den.ProjectionY(aux.randomName(), 0, xCutBin)
+    h1numY.Divide(h1denY)
+
+    if save:
+        aux.write2File( h1numY, "weight_emht_gqcd", "weights.root" )
+
+    h2denW = h2den.Clone(aux.randomName())
+    h2denWsys = h2den.Clone(aux.randomName())
+    for xbin, ybin in aux.loopH2(h2den):
+        w = h1numY.GetBinContent(ybin)
+        we = h1numY.GetBinError(ybin)
+        c = h2den.GetBinContent(xbin,ybin)
+        h2denW.SetBinContent(xbin, ybin, c*w )
+        h2denW.SetBinError(xbin, ybin, h2den.GetBinError(xbin, ybin) * w )
+        h2denWsys.SetBinContent(xbin, ybin, c*w )
+        h2denWsys.SetBinError(xbin, ybin, c*we )
+    return h2denW, h2denWsys
 
 def htRebinning(dSets, name, dirName="tr", predSets=None):
     if not predSets: predSets = dSets
