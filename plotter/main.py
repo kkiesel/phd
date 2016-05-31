@@ -135,6 +135,7 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     if data in additional: additionalHt += [ dataHt ]
 
     #names = ["met"]
+    if data in additional: names.remove("genMatch")
 
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
