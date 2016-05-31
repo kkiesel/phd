@@ -1049,7 +1049,7 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
         h1QcdMet.Scale(wTot)
 
         for h in h1GJetMet, h1QcdMet, h1QcdMetW, h1QcdMetWsys:
-            h.Scale(1, "width")
+            #h.Scale(1, "width")
             aux.appendFlowBin( h )
 
         aux.drawOpt(h1GJetMet, "data")
