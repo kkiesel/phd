@@ -143,6 +143,7 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
             drawSameHistogram( sampleNames, "tr_eControl/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_0met100/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_jControl/"+name, stack, additionalHt, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_ee/"+name, stack, additionalHt, binning, binningName )
 
 def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_jControl" ):
     if not controlDataset: controlDataset = dataset
