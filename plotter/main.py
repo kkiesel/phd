@@ -1252,7 +1252,28 @@ def metInfluence( dataset, savename="test", dirs=["tr"] ):
             m.add(p, label)
 
     m.Draw()
-    aux.save("metInfluence_"+savename)
+    aux.save("metInfluence_"+savename, log=False)
+
+def metDependency( dataset, savename="test", dirs=["tr"] ):
+    for name in ["emht", "njet", "jetPt", "gPt", "charged2JetPt"]:
+        c = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+        for idir, dir in enumerate(dirs):
+            h2 = dataset.getHist(dir+"/metRaw_vs_"+name)
+            yBinning = None
+            if name == "emht": yBinning = aux.getBinnigsFromName("emht")["1"]
+            if name == "jetPt" or "charged" in name: yBinning = aux.getBinnigsFromName("j1_pt")["1"]
+            if name == "gPt": yBinning = aux.getBinnigsFromName("g_pt")["1"]
+
+            h2 = aux.rebin2d(h2, None, yBinning)
+            p = h2.ProfileY()
+            p.SetLineColor(idir+1)
+            p.SetTitleOffset(1)
+            p.SetYTitle("#LT{}#GT".format(h2.GetXaxis().GetTitle()))
+            if name == "njet": p.SetMaximum(120)
+            m.add(p, dir)
+        m.Draw()
+        aux.save("metDependency_{}_{}".format(savename,name), log=False)
 
 def gammaFakeRatio():
     metBinning = aux.getBinnigsFromName("met")["1"]
@@ -1332,8 +1353,10 @@ def main():
 
 
     #metInfluence( gjets, "gjet" )
+    #metInfluence( data, "data" )
     #metInfluence( qcd, "qcd", ["tr_jControl"] )
     #metInfluence( gjets+qcd, "gqcd", ["tr","tr_jControl","tr_jControl_wemht"] )
+    #metDependency( data, "data", ["tr","tr_jControl","tr_jControl_wemht"] )
 
     #gammaFakeRatio()
 
