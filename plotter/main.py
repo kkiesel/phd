@@ -116,8 +116,8 @@ def drawSameHistogram( sampleNames, name, bkg=[], additional=[], binning=None, b
             r = ratio.Ratio( "Data/SM", dataHist, hsm )
             r.draw(0.5,1.5)
 
-            if name  == "h_ht__tr" and binningName == "1":
-                aux.writeWeight( r.ratio, name, sampleNames )
+            if sampleNames == "mc_data" and name  == "tr_jControl/emht" and binningName == "1":
+                aux.write2File( r.ratio, "mc_data_tr_jControl__emht_1", "weights.root" )
 
         info = ""
         l = aux.Label(info="#scale[0.7]{%s}"%info, sim=data not in additional)
