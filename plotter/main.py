@@ -1229,22 +1229,25 @@ def finalPrediction(allSets):
         if allSets == data: appendix = "_data"
         if any([ x.startswith("T5") for x in allSets.names ]): appendix = "_sigCont"
 
-        aux.save("finalPlot{}_{}_{}to{}".format(appendix,dir,int(cut1),int(cut2)))
+        aux.save("finalPlot{}_{}_{}to{}".format(appendix,dir,int(cut1),int(cut2)), normal=False)
 
 def metInfluence( dataset, savename="test", dirs=["tr"] ):
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
     for dir in dirs:
-        for iname, (name,label) in enumerate([(dir+"/met_vs_emht","EMH_{T}"), (dir+"/met_vs_njet","N_{jet}"), (dir+"/met_vs_jetPt","p_{T}(1.jet)"), (dir+"/met_vs_gPt","p_{T}(#gamma)"), (dir+"/met_vs_chargedJetPt","chargedjet"), (dir+"/met_vs_charged2JetPt","chargedjet2")]):
+        for iname, name in enumerate(["emht", "njet", "jetPt", "gPt", "charged2JetPt"]):
+            name = dir+"/metRaw_vs_"+name
             h2 = dataset.getHist(name)
             metBinning = aux.getBinnigsFromName("met")["3"]
-
 
             h2 = aux.rebin2d(h2, metBinning)
             p = h2.ProfileX()
             p.SetLineColor(iname+1)
             if iname == 5: p.SetLineColor(ROOT.kGreen+4)
+            label = h2.GetYaxis().GetTitle().replace(" (GeV)","")
+            if "gPt" in name: label = label.replace("^{jet}","")
+            if "charged" in name: label += "charged"
             if dir.endswith("tr_jControl"):
                 p.SetLineStyle(2)
                 label += " jet"
