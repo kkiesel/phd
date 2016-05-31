@@ -281,10 +281,10 @@ map<string,TH2F> initHistograms2(){
   hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1 );
   hMap["met_vs_emht"] = TH2F("", ";E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
   hMap["metRaw_vs_njet"] = TH2F("", ";E_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5 );
-  hMap["metRaw_vs_gPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{jet} (GeV)", 300, 0, 3000, 100, 0, 1000 );
+  hMap["metRaw_vs_gPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T} (GeV)", 300, 0, 3000, 100, 0, 1000 );
   hMap["metRaw_vs_jetPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000 );
-  hMap["metRaw_vs_chargedJetPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000 );
-  hMap["metRaw_vs_charged2JetPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000 );
+  hMap["metRaw_vs_chargedJetPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{charged jet} (GeV)", 300, 0, 3000, 200, 0, 2000 );
+  hMap["metRaw_vs_charged2JetPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{very charged jet} (GeV)", 300, 0, 3000, 200, 0, 2000 );
   hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
   hMap["metRawStar_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
   hMap["metRawStar2_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000 );
