@@ -403,18 +403,23 @@ def getMinimum( hists ):
 def setMinMaxForLog():
     allStuff = [ i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives()]
     allH = []
+    stacks = []
     for h in allStuff:
         if isinstance(h, ROOT.THStack):
+            stacks.append(h)
             for sh in h.GetHists():
                 allH.append(sh)
         elif isinstance(h, ROOT.TH1):
             allH.append(h)
     minC = getMinimum( allH )
-    minExp = 1/maxBinWidth(allH[0])
+    minExp = 1 #/maxBinWidth(allH[0])
     maxC = max( [ h.GetMaximum() for h in allH ] )
     for i in allH:
         i.SetMaximum( 2.5*maxC )
         i.SetMinimum( .5*max([minC,minExp]) )
+        i.SetMinimum( .1 )
+    for s in stacks:
+        s.SetMinimum( 1 )
     ROOT.gPad.Update()
 
 
