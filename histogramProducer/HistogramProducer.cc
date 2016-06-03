@@ -7,6 +7,7 @@
 #include "TTreeReader.h"
 #include "TTreeReaderValue.h"
 #include "TH2F.h"
+#include "TH3F.h"
 #include "TEfficiency.h"
 #include "TRandom2.h"
 
@@ -77,6 +78,7 @@ class HistogramProducer : public TSelector {
 
   map<string,map<string,TH1F>> hMapMap;
   map<string,map<string,TH2F>> hMapMap2;
+  map<string,map<string,TH3F>> hMapMap3;
   map<string,TEfficiency> effMap;
   map<int,pair<int,int>> rawEff_vs_run;
 
@@ -273,6 +275,15 @@ void HistogramProducer::fillUncut() {
   }
 }
 
+map<string,TH3F> initHistograms3(){
+  map<string,TH3F> hMap;
+
+  hMap["metRaw_vs_emht_vs_pt"] = TH3F("",";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV);p_{T} (GeV)", 200, 0, 2000, 250, 500, 3000, 90, 100, 1000 );
+  hMap["metRaw_vs_emht_vs_ptMax"] = TH3F("",";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV);p_{T} (GeV)", 200, 0, 2000, 250, 500, 3000, 90, 100, 1000 );
+  hMap["metRaw_vs_emht_vs_njet"] = TH3F("",";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV);jet multiplicity", 100, 0, 1000, 250, 500, 3000, 11, -.5, 10.5 );
+
+  return hMap;
+}
 
 map<string,TH2F> initHistograms2(){
   map<string,TH2F> hMap;
@@ -370,6 +381,7 @@ void HistogramProducer::fillSelection( string const& s ) {
   if( !hMapMap.count(s) ) {
     hMapMap[s] = initHistograms();
     hMapMap2[s] = initHistograms2();
+//    hMapMap3[s] = initHistograms3();
   }
 
   // calculate variables
@@ -504,6 +516,18 @@ void HistogramProducer::fillSelection( string const& s ) {
   hMapMap2.at(s).at("metRaw_vs_memht").Fill( met->p_raw.Pt(), emrecoil.Pt(), selW );
   hMapMap2.at(s).at("metRaw_vs_mht").Fill( met->p_raw.Pt(), recoil.Pt(), selW );
 
+/*  if (selPhotons.size()) {
+    float pt = selPhotons.at(0)->p.Pt();
+    hMapMap3.at(s).at("metRaw_vs_emht_vs_pt").Fill( met->p_raw.Pt(), emht, pt, selW );
+    if (selHEJets.size()) {
+      float ptJet1 = selHEJets.at(0)->p.Pt();
+      if (ptJet1 > pt) pt = ptJet1;
+    }
+    hMapMap3.at(s).at("metRaw_vs_emht_vs_ptMax").Fill( met->p_raw.Pt(), emht, pt, selW );
+
+  }
+  hMapMap3.at(s).at("metRaw_vs_emht_vs_njet").Fill( met->p_raw.Pt(), emht, selPhotons.size()+selHEJets.size(), selW );
+*/
 } // end fill
 
 
@@ -782,6 +806,16 @@ void HistogramProducer::Terminate()
     file.cd();
   }
   for( auto& hMapIt : hMapMap2 ) {
+    if( !file.cd(hMapIt.first.c_str()) ) {
+      file.mkdir(hMapIt.first.c_str());
+      file.cd(hMapIt.first.c_str());
+    }
+    for( auto& h : hMapIt.second ) {
+      h.second.Write( h.first.c_str(), TObject::kWriteDelete );
+    }
+    file.cd();
+  }
+  for( auto& hMapIt : hMapMap3 ) {
     if( !file.cd(hMapIt.first.c_str()) ) {
       file.mkdir(hMapIt.first.c_str());
       file.cd(hMapIt.first.c_str());
