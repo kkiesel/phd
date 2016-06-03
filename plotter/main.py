@@ -23,6 +23,8 @@ from rwthColors import rwth
 import auxiliary as aux
 
 intLumi = 2.26e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2577.html
+intLumi = 2.32e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2611.html
+# and here https://twiki.cern.ch/twiki/bin/view/CMS/PdmV2015Analysis#ReReco_at_25_ns
 
 def compare( datasets, name, saveName ):
     m = multiplot.Multiplot()
