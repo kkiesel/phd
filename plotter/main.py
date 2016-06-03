@@ -982,6 +982,15 @@ def qcdClosure3d(dirSet, name, dirName="tr", preSet=None):
 
         aux.save("qcdClosure_3d_{}_{}".format(name, cutName))
 
+def qcdPrediction2dsimple(h2num, h2den, xCut=100, yCut=0):
+    xCutBin = h2num.GetXaxis().FindBin(xCut) - 1
+    h2denW = h2den.Clone(aux.randomName())
+    h2denWsys = h2den.Clone(aux.randomName())
+    ybin = h2num.GetYaxis().FindFixBin(yCut)
+    h2denW.Scale(h2num.Integral(0,-1,ybin,-1)/h2den.Integral(0,-1,ybin,-1))
+    h2denWsys.Scale(h2num.Integral(0,-1,ybin,-1)/h2den.Integral(0,-1,ybin,-1))
+    return h2denW, h2denWsys
+
 def qcdPrediction2d(h2num, h2den, xCut=100, save=False):
     xCutBin = h2num.GetXaxis().FindBin(xCut) - 1
     h1numY = h2num.ProjectionY(aux.randomName(), 0, xCutBin)
@@ -1003,12 +1012,12 @@ def qcdPrediction2d(h2num, h2den, xCut=100, save=False):
         h2denWsys.SetBinError(xbin, ybin, c*we )
     return h2denW, h2denWsys
 
-def htRebinning(dSets, name, dirName="tr", predSets=None):
+def htRebinning(dSets, name, dirName="tr", predSets=None, simpleScale=False):
     if not predSets: predSets = dSets
 
     metBinning = aux.getBinnigsFromName("met")["3"]
     emhtBinning = aux.getBinnigsFromName("emht")["2"]
-    #emhtBinning = range(0,3001,10)
+    emhtBinning = [700,1000,1500,5000]
 
     hName = "metRaw_vs_emht"
     if "Raw" not in hName: name+="_typeI"
@@ -1018,7 +1027,10 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
     h2GJet = aux.rebin2d( h2GJet, metBinning, emhtBinning )
     h2Qcd = aux.rebin2d( h2Qcd, metBinning, emhtBinning )
 
-    h2QcdW, h2QcdWsys = qcdPrediction2d(h2GJet, h2Qcd, 100)
+    if simpleScale:
+        h2QcdW, h2QcdWsys = qcdPrediction2dsimple(h2GJet, h2Qcd, 100)
+    else:
+        h2QcdW, h2QcdWsys = qcdPrediction2d(h2GJet, h2Qcd, 100)
     # compute total weight for simple total scaling
     metCut = 100
     metCutBin = h2GJet.GetXaxis().FindBin(metCut) - 1
@@ -1026,8 +1038,19 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
     for dir, cut1, cut2 in [
         ("x", 0, 1e6),
         ("x", 0, 2000),
-        ("x", 0, 900),
+        ("x", 0, 800),
+        ("x", 0, 1000),
         ("x", 1000, 2000),
+        ("x", 2000, 1e6),
+        ("x", 700, 1e6),
+        ("x", 800, 1e6),
+        ("x", 900, 1e6),
+        ("x", 1000, 1e6),
+        ("x", 1100, 1e6),
+        ("x", 1200, 1e6),
+        ("x", 1300, 1e6),
+        ("x", 1400, 1e6),
+        ("x", 1500, 1e6),
         ("x", 2000, 1e6),
         ("y", 0, 1e6),
         ("y", 0, 100),
@@ -1053,6 +1076,7 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
         h1QcdMet.Scale(wTot)
 
         for h in h1GJetMet, h1QcdMet, h1QcdMetW, h1QcdMetWsys:
+            h.SetYTitle("Events/Bin")
             #h.Scale(1, "width")
             aux.appendFlowBin( h )
 
@@ -1063,6 +1087,7 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
         h1QcdMetW.drawOption_ = "hist e"
 
         for h in h1QcdMetW, h1QcdMetWsys:
+            h.Scale(h1GJetMet.Integral()/h.Integral())
             h.SetLineColor(ROOT.kRed)
             if dir == "y": h.SetTitleOffset(1)
 
@@ -1087,13 +1112,15 @@ def htRebinning(dSets, name, dirName="tr", predSets=None):
         r = ratio.Ratio( "#gamma/jet", h1GJetMet, h1QcdMetW, h1QcdMetWsys )
         r.draw(0.5,1.5)
 
-        aux.save("htReweighting_{}_{}_{}to{}".format(name,dir,int(cut1),int(cut2)), normal=False)
+        simpleString = "_simple" if simpleScale else ""
+        aux.save("htReweighting_{}{}_{}_{}to{}".format(name,simpleString,dir,int(cut1),int(cut2)), normal=False)
 
-def finalPrediction(allSets):
+def finalPrediction(allSets, simpleScale=False):
     jetSet = dataHt if allSets == data else allSets
 
     metBinning = aux.getBinnigsFromName("met")["3"]
     emhtBinning = aux.getBinnigsFromName("emht")["1"]
+    emhtBinning = [700,1000,1500,5000]
 
     hName = "metRaw_vs_emht"
     h2data = allSets.getHist("tr"+"/"+hName)
@@ -1103,6 +1130,7 @@ def finalPrediction(allSets):
     h2tg = tg.getHist("tr/"+hName)
     h2wg = wg_mg.getHist("tr/"+hName)
     h2zg = zg_130.getHist("tr/"+hName)
+    h2dy = dy.getHist("tr/"+hName)
     h2s1 = signal["T5Wg_1550_100"].getHist("tr/"+hName)
     h2s2 = signal["T5Wg_1550_1500"].getHist("tr/"+hName)
 
@@ -1113,25 +1141,46 @@ def finalPrediction(allSets):
     h2tg = aux.rebin2d(h2tg, metBinning, emhtBinning)
     h2wg = aux.rebin2d(h2wg, metBinning, emhtBinning)
     h2zg = aux.rebin2d(h2zg, metBinning, emhtBinning)
+    h2dy = aux.rebin2d(h2dy, metBinning, emhtBinning)
     h2s1 = aux.rebin2d(h2s1, metBinning, emhtBinning)
     h2s2 = aux.rebin2d(h2s2, metBinning, emhtBinning)
 
-    h2QcdW, h2QcdWsys = qcdPrediction2d(h2data, h2jetControl, 100)
+    # subtract mc from numerator (small influence on denominator)
+    num = h2data.Clone(aux.randomName())
+    num.Add(h2ttg, -1)
+    num.Add(h2tg, -1)
+    num.Add(h2wg, -1)
+    num.Add(h2zg, -1)
+    num.Add(h2dy, -1)
+    num.Add(h2eControl, -0.0197)
+
+    if simpleScale:
+        h2QcdW, h2QcdWsys = qcdPrediction2dsimple(num, h2jetControl, 100)
+    else:
+        h2QcdW, h2QcdWsys = qcdPrediction2d(num, h2jetControl, 100)
+
     if allSets == data:
         h2eControl.Scale(0.0197) # fakeRate Data
     else:
         h2eControl.Scale(0.0107) # fakeRate MC
-    for h in h2ttg, h2tg, h2wg, h2zg, h2s1, h2s2:
+    for h in h2ttg, h2tg, h2wg, h2zg, h2dy, h2s1, h2s2:
         h.Scale(0.983) # trigger efficiency, uncertainty: 0.002
 
     for dir, cut1, cut2 in [
         ("x", 0, 1e6),
         ("x", 0, 800),
-        ("x", 0, 900),
         ("x", 0, 1000),
         ("x", 800, 1000),
         ("x", 0, 2000),
         ("x", 0, 1500),
+        ("x", 700, 1e6),
+        ("x", 800, 1e6),
+        ("x", 900, 1e6),
+        ("x", 1000, 1e6),
+        ("x", 1100, 1e6),
+        ("x", 1200, 1e6),
+        ("x", 1300, 1e6),
+        ("x", 1400, 1e6),
         ("x", 1500, 1e6),
         ("x", 2000, 1e6),
         ("y", 0, 1e6),
@@ -1149,6 +1198,7 @@ def finalPrediction(allSets):
             h1tg = h2tg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1wg = h2wg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1zg = h2zg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
+            h1dy = h2dy.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1s1 = h2s1.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
             h1s2 = h2s2.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
         elif dir=="y":
@@ -1162,19 +1212,23 @@ def finalPrediction(allSets):
             h1tg = h2tg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1wg = h2wg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1zg = h2zg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
+            h1dy = h2dy.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1s1 = h2s1.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
             h1s2 = h2s2.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
         else:
             print "Do not know what to do with", dir
 
-        for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1tg, h1wg, h1zg, h1s1, h1s2:
+        for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1tg, h1wg, h1zg, h1dy, h1s1, h1s2:
             #h.Scale(1, "width")
+            h.SetYTitle("Events/Bin")
             aux.appendFlowBin(h)
             if dir == "y": h.SetTitleOffset(1)
+        h1QcdW.Scale(h1data.Integral()/h1QcdW.Integral())
+        h1QcdWsys.Scale(h1data.Integral()/h1QcdWsys.Integral())
 
         if allSets == data:
-            if dir=="y": maxi=2000
-            if dir=="x": maxi=100
+            if dir=="y": maxi=2000e5
+            if dir=="x": maxi=160
             for bin in range(h1data.FindBin(maxi),h1data.GetNbinsX()+2):
                 h1data.SetBinContent(bin,0)
 
@@ -1183,6 +1237,7 @@ def finalPrediction(allSets):
         h1tgSys = aux.getSysHisto(h1tg,.3)
         h1wgSys = aux.getSysHisto(h1wg,.3)
         h1zgSys = aux.getSysHisto(h1zg,.5)
+        h1dySys = aux.getSysHisto(h1dy,.5)
 
         aux.drawOpt(h1data, "data")
         h1QcdW.SetLineColor(rwth.blue75)
@@ -1191,6 +1246,7 @@ def finalPrediction(allSets):
         h1tg.SetLineColor(rwth.bordeaux75)
         h1wg.SetLineColor(rwth.red75)
         h1zg.SetLineColor(rwth.yellow)
+        h1dy.SetLineColor(rwth.yellow50)
         h1s1.SetLineWidth(3)
         h1s1.drawOption_ = "hist"
         h1s2.SetLineWidth(3)
@@ -1200,7 +1256,8 @@ def finalPrediction(allSets):
         c = ROOT.TCanvas()
         m = multiplot.Multiplot()
         m.add(h1data, "(Pseudo)Data")
-        #m.addStack(h1tg, "t#gamma")
+        m.addStack(h1tg, "t#gamma")
+        m.addStack(h1dy, "DY")
         m.addStack(h1e, "e#rightarrow#gamma")
         m.addStack(h1ttg, "t#bar{t}#gamma")
         m.addStack(h1zg, "Z#gamma")
@@ -1211,7 +1268,7 @@ def finalPrediction(allSets):
 
         # systematics
         sysStack = ROOT.THStack()
-        for h in h1QcdWsys, h1eSys, h1ttgSys, h1wgSys, h1zgSys:
+        for h in h1QcdWsys, h1eSys, h1ttgSys, h1wgSys, h1zgSys, h1dy:
             sysStack.Add(h)
         sysHist = sysStack.GetStack().Last()
         aux.drawOpt(sysHist, "sys")
@@ -1233,7 +1290,8 @@ def finalPrediction(allSets):
         if allSets == data: appendix = "_data"
         if any([ x.startswith("T5") for x in allSets.names ]): appendix = "_sigCont"
 
-        aux.save("finalPlot{}_{}_{}to{}".format(appendix,dir,int(cut1),int(cut2)), normal=False)
+        simpleString = "_simple" if simpleScale else ""
+        aux.save("finalPlot{}{}_{}_{}to{}".format(appendix,simpleString,dir,int(cut1),int(cut2)), normal=False)
 
 def metInfluence( dataset, savename="test", dirs=["tr"] ):
     c = ROOT.TCanvas()
@@ -1314,6 +1372,7 @@ def main():
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
 
+    #drawSameHistograms( "gqcd_data", [gjets, qcd], additional=[data])
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[signal["T5Wg_1550_100"],data])
     #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets,wg_mg,zg_130,znunu], additional=[signal["T5Wg_1550_100"],signal["T5Wg_1550_1500"]])
 
@@ -1354,12 +1413,14 @@ def main():
     #htStuff()
 
     #htRebinning(gjets+qcd, "gqcd")
+    #htRebinning(gjets+qcd, "gqcd", simpleScale=True)
     #htRebinning(gjets400 + gjets600, "gqcd2", "tr", qcd700 + qcd1000 + qcd1500 + qcd2000 )
     #htRebinning(gjets+qcd, "gqcdVSall", "tr", gjets+qcd+ttjets+ttg+wjets+wg_mg+zg_130)
     #dirSets = gjets+qcd+wjets+ttjets+znunu
     #dirSets.label = "#gamma/MutiJet,W,#bar{t}t,Z(#nu#nu)"
     #htRebinning(dirSets, "gqcdtwzVSall", "tr_noGenE", gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
     #finalPrediction(data)
+    #finalPrediction(data, simpleScale=True)
     #finalPrediction(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
     #finalPrediction(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130+signal["T5Wg_1550_1500"])
 
