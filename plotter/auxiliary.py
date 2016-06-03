@@ -568,6 +568,7 @@ def myMatch( regex, string ):
     return [ m ] if m else []
 
 def getAxis(h, ax="x"):
+    ax = ax.lower()
     if ax=="x":
         return h.GetXaxis()
     elif ax=="y":
