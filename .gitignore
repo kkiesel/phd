@@ -1,10 +1,10 @@
-
+*.so
 *.pkl
 *.pyc
+*.root
+
 .*
 *~
-
-*.root
 
 histogramProducer/*_cc.d
 histogramProducer/*_cc.so
