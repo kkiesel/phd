@@ -789,44 +789,28 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   return kTRUE;
 }
 
+template<typename T>
+void save2File(const map<string,map<string,T>>& hMaps, TFile& file)
+{
+  for(auto& hMapIt : hMaps) {
+    if (!file.Get(hMapIt.first.c_str())) {
+      file.mkdir(hMapIt.first.c_str());
+      file.cd(hMapIt.first.c_str());
+    }
+    for(auto& h : hMapIt.second) {
+      h.second.Write(h.first.c_str(), TObject::kWriteDelete);
+    }
+    file.cd();
+  }
+}
+
 void HistogramProducer::Terminate()
 {
+  auto outputName = getOutputFilename(fReader.GetTree()->GetCurrentFile()->GetName());
+  TFile file(outputName.c_str(), "RECREATE");
+  save2File(hMapMap, file);
+  save2File(hMapMap2, file);
 
-  auto outputName = getOutputFilename( fReader.GetTree()->GetCurrentFile()->GetName() );
-
-  // save all defined histograms to file
-  TFile file( outputName.c_str(), "RECREATE");
-
-  for( auto& hMapIt : hMapMap ) {
-    file.mkdir(hMapIt.first.c_str());
-    file.cd(hMapIt.first.c_str());
-    for( auto& h : hMapIt.second ) {
-      h.second.Write( h.first.c_str(), TObject::kWriteDelete );
-    }
-    file.cd();
-  }
-  for( auto& hMapIt : hMapMap2 ) {
-    if( !file.cd(hMapIt.first.c_str()) ) {
-      file.mkdir(hMapIt.first.c_str());
-      file.cd(hMapIt.first.c_str());
-    }
-    for( auto& h : hMapIt.second ) {
-      h.second.Write( h.first.c_str(), TObject::kWriteDelete );
-    }
-    file.cd();
-  }
-  for( auto& hMapIt : hMapMap3 ) {
-    if( !file.cd(hMapIt.first.c_str()) ) {
-      file.mkdir(hMapIt.first.c_str());
-      file.cd(hMapIt.first.c_str());
-    }
-    for( auto& h : hMapIt.second ) {
-      h.second.Write( h.first.c_str(), TObject::kWriteDelete );
-    }
-    file.cd();
-  }
-
-  // trigger studies
   file.mkdir("triggerStudies");
   file.cd("triggerStudies");
   for( auto& effIt : effMap ) effIt.second.Write( effIt.first.c_str(), TObject::kWriteDelete );
@@ -834,7 +818,6 @@ void HistogramProducer::Terminate()
   file.cd();
 
   fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write("hCutFlow");
-
   file.Close();
   cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 }
