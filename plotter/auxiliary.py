@@ -402,25 +402,27 @@ def getMinimum(hists):
 
 
 def setMinMaxForLog():
-    allStuff = [ i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives()]
-    allH = []
-    stacks = []
-    for h in allStuff:
+    import style
+    primitivesOnCanvas = [i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives()]
+    histograms = []
+    stackedHistograms = []
+    for h in primitivesOnCanvas:
         if isinstance(h, ROOT.THStack):
-            stacks.append(h)
+            stackedHistograms.append(h)
             for sh in h.GetHists():
-                allH.append(sh)
+                histograms.append(sh)
         elif isinstance(h, ROOT.TH1):
-            allH.append(h)
-    minC = getMinimum( allH )
-    minExp = 1 #/maxBinWidth(allH[0])
-    maxC = max( [ h.GetMaximum() for h in allH ] )
-    for i in allH:
-        i.SetMaximum( 2.5*maxC )
-        i.SetMinimum( .5*max([minC,minExp]) )
-        i.SetMinimum( .1 )
-    for s in stacks:
-        s.SetMinimum( 1 )
+            histograms.append(h)
+    maxC = max([h.GetMaximum() for h in histograms])
+    minC = getMinimum(histograms)
+    unity = 1./maxBinWidth(histograms[0]) if style.divideByBinWidth else 1.
+    minimum = max([unity,minC]) if style.minimumOne else minC
+    minimum /= 9.
+    for i in histograms:
+        i.SetMaximum(2.5*maxC)
+        i.SetMinimum(minimum)
+    for s in stackedHistograms:
+        s.SetMinimum(minimum)
     ROOT.gPad.Update()
 
 
