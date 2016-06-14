@@ -396,9 +396,10 @@ def automaticRebinner( hlist, minEvents=3 ):
 
     print out[::-1]
 
-def getMinimum( hists ):
-    # do not use TH1.GetMinimum(), since it returns the minimum set by SetMinimum()
-    return min( [ h.GetBinContent(h.GetMinimumBin()) for h in hists ] )
+def getMinimum(hists):
+    # Reset fMinimum, else 'GetMinimum' will return setted minimum
+    return min([h.GetMinimum(0) for h in hists if not h.SetMinimum()])
+
 
 def setMinMaxForLog():
     allStuff = [ i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives()]
