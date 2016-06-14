@@ -581,6 +581,15 @@ def getAxis(h, ax="x"):
     else:
         print "do not know what do do with ", ax
 
+def getProjection(h, ax="x", cutBin1=0, cutBin2=-1):
+    ax = ax.lower()
+    if ax == "x":
+        return h.ProjectionX(randomName(), cutBin1, cutBin2)
+    elif ax == "y":
+        return h.ProjectionY(randomName(), cutBin1, cutBin2)
+    else:
+        print "do not know what do do with ", ax
+
 
 def dataCardToLatexTable(filename):
     import DatacardParser
