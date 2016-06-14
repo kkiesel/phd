@@ -1,5 +1,8 @@
 import ROOT
 
+# own style options:
+divideByBinWidth = False
+minimumOne = True
 
 def defaultStyle():
     st = ROOT.TStyle("defaultStyle", "Knut's owns style" )
