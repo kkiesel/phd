@@ -120,16 +120,16 @@ int HistogramProducer::genMatch(const tree::Particle& p) {
 }
 
 void HistogramProducer::initTriggerStudies() {
-  effMap["eff_hlt_pt"] = TEfficiency("", ";p_{T} (GeV);#varepsilon", 250, 0, 1000);
+  effMap["eff_hlt_pt"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
   effMap["eff_hlt_eta"] = TEfficiency("", ";|#eta|;#varepsilon", 15, 0, 1.5);
-  effMap["eff_hlt_ht"] = TEfficiency("", ";EMH_{T} (GeV);#varepsilon", 200, 0, 2000);
-  effMap["eff_hlt_ht_ptMin"] = TEfficiency("", ";EMH_{T} (GeV);#varepsilon", 200, 0, 2000);
-  effMap["eff_hlt_ht_etaMax"] = TEfficiency("", ";EMH_{T} (GeV);#varepsilon", 310, 0, 3.1);
-  effMap["eff_hlt_ht_ct"] = TEfficiency("", ";EMH_{T} (GeV);#varepsilon", 200, 0, 2000);
-  effMap["eff_hlt_ht_ct_preScaled"] = TEfficiency("", ";EMH_{T} (GeV);#varepsilon (prescaled)", 200, 0, 2000);
-  effMap["eff_hlt_ht_ct2"] = TEfficiency("", ";EMH_{T} (GeV);#varepsilon", 200, 0, 2000);
-  effMap["eff_hlt_ht_ct2_preScaled"] = TEfficiency("", ";EMH_{T} (GeV);#varepsilon (prescaled)", 200, 0, 2000);
-  effMap["eff_hlt_nVertex"] = TEfficiency("", ";Vertex multiplicity", 41, -0.5, 40.5);
+  effMap["eff_hlt_ht"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
+  effMap["eff_hlt_ht_ptMin"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
+  effMap["eff_hlt_ht_etaMax"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 310, 0, 3.1);
+  effMap["eff_hlt_ht_ct"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
+  effMap["eff_hlt_ht_ct_preScaled"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon (prescaled)", 200, 0, 2000);
+  effMap["eff_hlt_ht_ct2"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
+  effMap["eff_hlt_ht_ct2_preScaled"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon (prescaled)", 200, 0, 2000);
+  effMap["eff_hlt_nVertex"] = TEfficiency("", ";vertex multiplicity", 41, -0.5, 40.5);
   effMap["eff_hlt_sie"] = TEfficiency("", ";#sigma_{i#etai#eta}", 400, 0, 0.02);
   effMap["eff_hlt_hoe"] = TEfficiency("", ";H/E", 100, 0, 0.15);
   effMap["eff_hlt_r9"] = TEfficiency("", ";r9", 110, 0, 1.1);
@@ -137,9 +137,9 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_nIso"] = TEfficiency("", ";I_{n} (GeV)", 100, 0, 20);
   effMap["eff_hlt_pIso"] = TEfficiency("", ";I_{#gamma} (GeV)", 100, 0, 20);
   effMap["eff_hlt_nJet"] = TEfficiency("", ";uncleaned jet multiplicity", 15, -0.5, 14.5);
-  effMap["eff_hlt_met"] = TEfficiency("", ";E_{T}^{miss} (GeV)", 150, 0, 150);
-  effMap["eff_hlt_met_ct"] = TEfficiency("", ";E_{T}^{miss} (GeV)", 150, 0, 150);
-  effMap["eff_hlt_met_ct2"] = TEfficiency("", ";E_{T}^{miss} (GeV)", 150, 0, 150);
+  effMap["eff_hlt_met"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
+  effMap["eff_hlt_met_ct"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
+  effMap["eff_hlt_met_ct2"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
 }
 
 void HistogramProducer::fillTriggerStudies() {
@@ -242,8 +242,8 @@ void HistogramProducer::initUncut() {
   h1Maps["uncut"] = h;
 
   map<string,TH2F> h2;
-  h2["dr_vs_relpt"] = TH2F("", ";#DeltaR;p_{T}^{jet}/p_{T}^{#gamma}", 100, 0, 0.5, 300, 0, 3);
-  h2["dr_vs_relpt_genG"] = TH2F("", ";#DeltaR;p_{T}^{jet}/p_{T}^{#gamma}", 100, 0, 0.5, 300, 0, 3);
+  h2["dr_vs_relpt"] = TH2F("", ";#DeltaR;#it{p}_{T}^{jet}/#it{p}_{T}^{#gamma}", 100, 0, 0.5, 300, 0, 3);
+  h2["dr_vs_relpt_genG"] = TH2F("", ";#DeltaR;#it{p}_{T}^{jet}/#it{p}_{T}^{#gamma}", 100, 0, 0.5, 300, 0, 3);
   h2Maps["uncut"] = h2;
 }
 
@@ -277,9 +277,9 @@ void HistogramProducer::fillUncut() {
 map<string,TH3F> initHistograms3() {
   map<string,TH3F> hMap;
 
-  hMap["metRaw_vs_emht_vs_pt"] = TH3F("",";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV);p_{T} (GeV)", 200, 0, 2000, 250, 500, 3000, 90, 100, 1000);
-  hMap["metRaw_vs_emht_vs_ptMax"] = TH3F("",";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV);p_{T} (GeV)", 200, 0, 2000, 250, 500, 3000, 90, 100, 1000);
-  hMap["metRaw_vs_emht_vs_njet"] = TH3F("",";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV);jet multiplicity", 100, 0, 1000, 250, 500, 3000, 11, -.5, 10.5);
+  hMap["metRaw_vs_emht_vs_pt"] = TH3F("",";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV);#it{p}_{T} (GeV)", 200, 0, 2000, 250, 500, 3000, 90, 100, 1000);
+  hMap["metRaw_vs_emht_vs_ptMax"] = TH3F("",";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV);#it{p}_{T} (GeV)", 200, 0, 2000, 250, 500, 3000, 90, 100, 1000);
+  hMap["metRaw_vs_emht_vs_njet"] = TH3F("",";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV);jet multiplicity", 100, 0, 1000, 250, 500, 3000, 11, -.5, 10.5);
 
   return hMap;
 }
@@ -289,23 +289,23 @@ map<string,TH2F> initHistograms2() {
 
   hMap["n_heJets_vs_photonPosition"] = TH2F("","",10, -0.5, 9.5, 10, -0.5, 9.5);
   hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1);
-  hMap["met_vs_emht"] = TH2F("", ";E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRaw_vs_njet"] = TH2F("", ";E_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
-  hMap["metRaw_vs_gPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
-  hMap["metRaw_vs_jetPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
-  hMap["metRaw_vs_chargedJetPt"] = TH2F("", ";E_{T}^{miss} (GeV);p_{T}^{charged jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
-  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRaw_vs_tremht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);tr EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRaw_vs_memht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);|#vec{EMH}_{T}| (GeV)", 300, 0, 3000, 300, 0, 3000);
-  hMap["metRaw_vs_mht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);|#vec{H}_{T}| (GeV)", 300, 0, 3000, 1500, 0, 1500);
+  hMap["met_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metRaw_vs_njet"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["metRaw_vs_gPt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
+  hMap["metRaw_vs_jetPt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
+  hMap["metRaw_vs_chargedJetPt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{charged jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
+  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metRaw_vs_tremht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);tr #it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metRaw_vs_memht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);|#vec{EMH}_{T}| (GeV)", 300, 0, 3000, 300, 0, 3000);
+  hMap["metRaw_vs_mht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);|#vec{H}_{T}| (GeV)", 300, 0, 3000, 1500, 0, 1500);
 
-  hMap["memht_vs_emht"] = TH2F("", ";EMH_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["mht_vs_emht"] = TH2F("", ";H_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["memht_vs_emht"] = TH2F("", ";#it{EMH}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["mht_vs_emht"] = TH2F("", ";#it{H}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
 
-  hMap["metRawStarUp_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRawStarDn_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRawUp_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRawDn_vs_emht"] = TH2F("", ";uncorrected E_{T}^{miss} (GeV);EMH_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metRawStarUp_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metRawStarDn_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metRawUp_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metRawDn_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
 
   return hMap;
 }
@@ -313,51 +313,51 @@ map<string,TH2F> initHistograms2() {
 map<string,TH1F> initHistograms() {
   map<string,TH1F> hMap;
 
-  hMap["met"] = TH1F("", ";E^{miss}_{T} (GeV)", 200, 0, 2000);
-  hMap["metRandomDn"] = TH1F("", ";random E^{miss}_{T} (GeV)", 200, 0, 2000);
-  hMap["metRandom"] = TH1F("", ";random E^{miss}_{T} (GeV)", 200, 0, 2000);
-  hMap["metStar"] = TH1F("", ";E^{miss}_{T}* (GeV)", 200, 0, 2000);
-  hMap["metStar2"] = TH1F("", ";E^{miss}_{T}* (GeV)", 200, 0, 2000);
-  hMap["metUp"] = TH1F("", ";E^{miss}_{T} up (GeV)", 200, 0, 2000);
-  hMap["metDn"] = TH1F("", ";E^{miss}_{T} down (GeV)", 200, 0, 2000);
-  hMap["metUpJec"] = TH1F("", ";E^{miss}_{T} up (GeV)", 200, 0, 2000);
-  hMap["metDnJec"] = TH1F("", ";E^{miss}_{T} down (GeV)", 200, 0, 2000);
-  hMap["metPar"] = TH1F("", ";E^{miss}_{T} #parallel (GeV)", 400, -2000, 2000);
-  hMap["metPer"] = TH1F("", ";E^{miss #perp  }_{T} (GeV)", 200, 0, 2000);
-  hMap["metRaw"] = TH1F("", ";uncorrected E^{miss}_{T} (GeV)", 200, 0, 2000);
-  hMap["metParRaw"] = TH1F("", ";uncorrected E^{miss}_{T} #parallel (GeV)", 400, -2000, 2000);
-  hMap["metPerRaw"] = TH1F("", ";uncorrected E^{miss #perp  }_{T} (GeV)", 200, 0, 2000);
-  hMap["mt_g_met"] = TH1F("", ";m_{T}(#gamma,E^{miss}_{T}) (GeV)", 150, 0, 1500);
+  hMap["met"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metRandomDn"] = TH1F("", ";random #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metRandom"] = TH1F("", ";random #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metStar"] = TH1F("", ";#it{E}_{T}^{miss}* (GeV)", 200, 0, 2000);
+  hMap["metStar2"] = TH1F("", ";#it{E}_{T}^{miss}* (GeV)", 200, 0, 2000);
+  hMap["metUp"] = TH1F("", ";#it{E}_{T}^{miss} up (GeV)", 200, 0, 2000);
+  hMap["metDn"] = TH1F("", ";#it{E}_{T}^{miss} down (GeV)", 200, 0, 2000);
+  hMap["metUpJec"] = TH1F("", ";#it{E}_{T}^{miss} up (GeV)", 200, 0, 2000);
+  hMap["metDnJec"] = TH1F("", ";#it{E}_{T}^{miss} down (GeV)", 200, 0, 2000);
+  hMap["metPar"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
+  hMap["metPer"] = TH1F("", ";#it{E}_{T}^{miss #perp  } (GeV)", 200, 0, 2000);
+  hMap["metRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metParRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
+  hMap["metPerRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss #perp  } (GeV)", 200, 0, 2000);
+  hMap["mt_g_met"] = TH1F("", ";m(#gamma,#it{E}_{T}^{miss}_{T}) (GeV)", 150, 0, 1500);
 
   hMap["metSig"] = TH1F("", ";#it{S}", 3000, 0, 3000);
-  hMap["tremht"] = TH1F("", ";EMH_{T}^{trigger-like} (GeV)", 300, 0, 3000);
-  hMap["emht"] = TH1F("", ";EMH_{T} (GeV)", 300, 0, 3000);
-  hMap["emhtNoLep"] = TH1F("", ";lepton cleaned EMH_{T} (GeV)", 300, 0, 3000);
-  hMap["emhtStar"] = TH1F("", ";EMH_{T}* (GeV)", 300, 0, 3000);
-  hMap["ht"] = TH1F("", ";H_{T} (GeV)", 300, 0, 3000);
-  hMap["st"] = TH1F("", ";S_{T} (GeV)", 200, 0, 4000);
+  hMap["tremht"] = TH1F("", ";#it{EMH}_{T}^{trigger-like} (GeV)", 300, 0, 3000);
+  hMap["emht"] = TH1F("", ";#it{EMH}_{T} (GeV)", 300, 0, 3000);
+  hMap["emhtNoLep"] = TH1F("", ";lepton cleaned #it{EMH}_{T} (GeV)", 300, 0, 3000);
+  hMap["emhtStar"] = TH1F("", ";#it{EMH}_{T}* (GeV)", 300, 0, 3000);
+  hMap["ht"] = TH1F("", ";#it{H}_{T} (GeV)", 300, 0, 3000);
+  hMap["st"] = TH1F("", ";#it{S}_{T} (GeV)", 200, 0, 4000);
   hMap["emrecoilt"] = TH1F("", ";#vec{EMH}_{T} (GeV)", 150, 0, 1500);
   hMap["recoilt"] = TH1F("", ";#vec{H}_{T} (GeV)", 150, 0, 1500);
 
   // photon
-  hMap["g_pt"] = TH1F("", ";p_{T} (GeV)", 150, 0, 1500);
-  hMap["g_ptStar"] = TH1F("", ";p_{T}* (GeV)", 150, 0, 1500);
+  hMap["g_pt"] = TH1F("", ";#it{p}_{T} (GeV)", 150, 0, 1500);
+  hMap["g_ptStar"] = TH1F("", ";#it{p}_{T}* (GeV)", 150, 0, 1500);
   hMap["g_eta"] = TH1F("", ";|#eta|", 1500, 0, 1.5);
 
   // he-jet
-  hMap["hej1_pt"] = TH1F("", ";p_{T}^{1.jet} (GeV)", 150, 0, 1500);
+  hMap["hej1_pt"] = TH1F("", ";#it{p}_{T}^{1.jet} (GeV)", 150, 0, 1500);
   hMap["hej1_eta"] = TH1F("", ";|#eta^{1.jet}|", 150, 0, 3);
-  hMap["hej2_pt"] = TH1F("", ";p_{T}^{2.jet} (GeV)", 150, 0, 1500);
+  hMap["hej2_pt"] = TH1F("", ";#it{p}_{T}^{2.jet} (GeV)", 150, 0, 1500);
   hMap["hej2_eta"] = TH1F("", ";|#eta^{2.jet}|", 150, 0, 3);
-  hMap["hej3_pt"] = TH1F("", ";p_{T}^{3.jet} (GeV)", 150, 0, 1500);
+  hMap["hej3_pt"] = TH1F("", ";#it{p}_{T}^{3.jet} (GeV)", 150, 0, 1500);
   hMap["hej3_eta"] = TH1F("", ";|#eta^{3.jet}|", 150, 0, 3);
 
   // angles
-  hMap["dphi_met_g"] = TH1F("", ";|#Delta#phi(E_{T}^{miss},#gamma)|", 70, 0, 3.5);
-  hMap["dphi_met_hej1"] = TH1F("", ";|#Delta#phi(E_{T}^{miss},1.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_hej2"] = TH1F("", ";|#Delta#phi(E_{T}^{miss},2.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_hej3"] = TH1F("", ";|#Delta#phi(E_{T}^{miss},3.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_recoil"] = TH1F("", ";|#Delta#phi(E_{T}^{miss},#Sigma jet)|", 70, 0, 3.5);
+  hMap["dphi_met_g"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},#gamma)|", 70, 0, 3.5);
+  hMap["dphi_met_hej1"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},1.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_hej2"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},2.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_hej3"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},3.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_recoil"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},#Sigma jet)|", 70, 0, 3.5);
   hMap["dphi_g_hej1"] = TH1F("", ";|#Delta#phi(#gamma,1.jet)|", 70, 0, 3.5);
   hMap["dphi_g_hej2"] = TH1F("", ";|#Delta#phi(#gamma,2.jet)|", 70, 0, 3.5);
 
@@ -372,7 +372,7 @@ map<string,TH1F> initHistograms() {
   hMap["n_heJet"] = TH1F("", ";photon-like jet multiplicity", 11, -0.5, 10.5);
 
   hMap["genMatch"] = TH1F("", ";pdg id for gen match", 24, -0.5, 23.5);
-  hMap["genHt"] = TH1F("", ";H_{T}^{gen}", 3000, 0, 3000);
+  hMap["genHt"] = TH1F("", ";#it{H}_{T}^{gen}", 3000, 0, 3000);
 
   return hMap;
 }
