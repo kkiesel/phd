@@ -216,7 +216,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
 
 
     if binningName: binningName = "_"+binningName
-    saveName = "multiQcdClosure_{}_{}_{}{}".format(samplename, dirDir, name, binningName )
+    saveName = "multiQcdClosure_{}_{}_vs_{}_{}{}".format(samplename, dirDir, preDir, name, binningName )
     aux.save( saveName )
 
     if name == "n_heJet" and preDir=="tr_jControl":
@@ -317,6 +317,8 @@ def multiQcdClosures( dataset, samplename, controlDataset=None ):
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_ee" )
+            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_jControl", preDir="tr_jControl_ee" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_0met100", preDir="tr_jControl_0met100" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_100met", preDir="tr_jControl_100met" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_noGenLep")
@@ -886,10 +888,6 @@ def qcdClosure3d(dirSet, name, dirName="tr", preSet=None):
     metBinning = aux.getBinnigsFromName("met")["3"]
     emhtBinning = aux.getBinnigsFromName("emht")["2"]
     ptBinning = aux.getBinnigsFromName("g_pt")["1"]
-    #metBinning = range(0,400,10)
-    #emhtBinning = [0,1000,3000]
-    #ptBinning = [100,1000]
-    #metBinning = [0,100,400]
     ptBinning = None
 
     hName = "metRaw_vs_emht_vs_njet"
@@ -1010,7 +1008,6 @@ def htRebinning(dSets, name, dirName="tr", predSets=None, simpleScale=False):
 
     metBinning = aux.getBinnigsFromName("met")["3"]
     emhtBinning = aux.getBinnigsFromName("emht")["2"]
-    emhtBinning = [700,1000,1500,5000]
 
     hName = "metRaw_vs_emht"
     if "Raw" not in hName: name+="_typeI"
@@ -1111,19 +1108,27 @@ def htRebinning(dSets, name, dirName="tr", predSets=None, simpleScale=False):
 def finalPrediction(allSets, simpleScale=False):
     jetSet = dataHt if allSets == data else allSets
 
-    metBinning = aux.getBinnigsFromName("met")["3"]
-    emhtBinning = aux.getBinnigsFromName("emht")["1"]
-    emhtBinning = [700,1000,1500,5000]
-
     hName = "metRaw_vs_emht"
-    h2data = allSets.getHist("tr"+"/"+hName)
+    m = re.match("(.*)_vs_(.*)", hName)
+    if m:
+        axVars = {"x":m.group(1), "y": m.group(2)}
+    else:
+        print "Could not determine x and y variable from", hName
+
+    metBinning = aux.getBinnigsFromName("met")["3"]
+    emhtBinning = aux.getBinnigsFromName("emht")["2"]
+    #emhtBinning = [0, 800, 1000, 2000 ]
+    #emhtBinning = [0, 100, 120, 130, 140, 150, 200, 250, 300, 400, 500]
+    #emhtBinning = None
+
+    h2data = allSets.getHist("tr/"+hName)
     h2jetControl = jetSet.getHist("tr_jControl/"+hName)
     h2eControl = allSets.getHist("tr_eControl/"+hName)
     h2ttg = ttg.getHist("tr/"+hName)
     h2tg = tg.getHist("tr/"+hName)
     h2wg = wg_mg.getHist("tr/"+hName)
     h2zg = zg_130.getHist("tr/"+hName)
-    h2dy = dy.getHist("tr/"+hName)
+    h2dy = zgll.getHist("tr/"+hName)
     h2s1 = signal["T5Wg_1550_100"].getHist("tr/"+hName)
     h2s2 = signal["T5Wg_1550_1500"].getHist("tr/"+hName)
 
@@ -1159,7 +1164,7 @@ def finalPrediction(allSets, simpleScale=False):
     for h in h2ttg, h2tg, h2wg, h2zg, h2dy, h2s1, h2s2:
         h.Scale(0.983) # trigger efficiency, uncertainty: 0.002
 
-    for dir, cut1, cut2 in [
+    cuts = [
         ("x", 0, 1e6),
         ("x", 0, 800),
         ("x", 0, 1000),
@@ -1179,45 +1184,44 @@ def finalPrediction(allSets, simpleScale=False):
         ("y", 0, 1e6),
         ("y", 0, 100),
         ("y", 100, 1e6),
-        ]:
-        if dir=="x":
-            cut1Bin = h2data.GetYaxis().FindBin(cut1)
-            cut2Bin = h2data.GetYaxis().FindBin(cut2-1e-6)
-            h1data = h2data.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1QcdW = h2QcdW.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1QcdWsys = h2QcdWsys.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1e = h2eControl.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1ttg = h2ttg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1tg = h2tg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1wg = h2wg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1zg = h2zg.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1dy = h2dy.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1s1 = h2s1.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-            h1s2 = h2s2.ProjectionX(aux.randomName(), cut1Bin, cut2Bin)
-        elif dir=="y":
-            cut1Bin = h2data.GetXaxis().FindBin(cut1)
-            cut2Bin = h2data.GetXaxis().FindBin(cut2-1e-6)
-            h1data = h2data.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1QcdW = h2QcdW.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1QcdWsys = h2QcdWsys.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1e = h2eControl.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1ttg = h2ttg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1tg = h2tg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1wg = h2wg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1zg = h2zg.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1dy = h2dy.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1s1 = h2s1.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-            h1s2 = h2s2.ProjectionY(aux.randomName(), cut1Bin, cut2Bin)
-        else:
-            print "Do not know what to do with", dir
+        ]
+    #if emhtBinning: cuts = [ ("x", low, high) for low, high in zip(emhtBinning,emhtBinning[1:]+[1e6]) ]
+
+    if axVars["y"] == "emht" and False:
+        cuts = [("x", 0, 1e6), ("x", 0, 800), ("x", 0, 1000), ("x", 800, 1000), ("x", 1000, 1e6), ("x", 2000, 1e6), ("y", 0, 1e6)]
+    elif axVars["y"] == "mht":
+        cuts = [("x", 0, 10), ("x", 40, 100), ("x", 100, 200), ("x", 200, 300), ("x", 300, 400), ("x", 400, 1e6), ("y", 0, 1e6)]
+    elif axVars["y"] == "gPt":
+        cuts = [("x", 100, 300), ("x", 300, 500), ("x", 500, 1e6), ("y", 0, 1e6)]
+    elif axVars["y"] == "jetPt":
+        cuts = [("x", 100, 400), ("x", 400, 600), ("x", 600, 1e6), ("y", 0, 1e6)]
+    elif axVars["y"] == "njet":
+        cuts = [("x", 0, 2), ("x", 3, 4), ("x", 5, 6), ("x", 7, 1e6), ("y", 0, 1e6)]
+
+    for dir, cut1, cut2 in cuts:
+        parDir = "xy".replace(dir, "") # get the other axis
+        cut1Bin = aux.getAxis(h2data,parDir).FindBin(cut1)
+        cut2Bin = aux.getAxis(h2data,parDir).FindBin(cut2-1e-6)
+        h1data = aux.getProjection(h2data, dir, cut1Bin, cut2Bin)
+        h1QcdW = aux.getProjection(h2QcdW, dir, cut1Bin, cut2Bin)
+        h1QcdWsys = aux.getProjection(h2QcdWsys, dir, cut1Bin, cut2Bin)
+        h1e = aux.getProjection(h2eControl, dir, cut1Bin, cut2Bin)
+        h1ttg = aux.getProjection(h2ttg, dir, cut1Bin, cut2Bin)
+        h1tg = aux.getProjection(h2tg, dir, cut1Bin, cut2Bin)
+        h1wg = aux.getProjection(h2wg, dir, cut1Bin, cut2Bin)
+        h1zg = aux.getProjection(h2zg, dir, cut1Bin, cut2Bin)
+        h1dy = aux.getProjection(h2dy, dir, cut1Bin, cut2Bin)
+        h1s1 = aux.getProjection(h2s1, dir, cut1Bin, cut2Bin)
+        h1s2 = aux.getProjection(h2s2, dir, cut1Bin, cut2Bin)
 
         for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1tg, h1wg, h1zg, h1dy, h1s1, h1s2:
-            #h.Scale(1, "width")
             h.SetYTitle("Events/Bin")
             aux.appendFlowBin(h)
             if dir == "y": h.SetTitleOffset(1)
-        h1QcdW.Scale(h1data.Integral()/h1QcdW.Integral())
-        h1QcdWsys.Scale(h1data.Integral()/h1QcdWsys.Integral())
+        h1QcdW_integral = h1QcdW.Integral()
+        if h1QcdW_integral:
+            h1QcdW.Scale(h1data.Integral()/h1QcdW_integral)
+            h1QcdWsys.Scale(h1data.Integral()/h1QcdW_integral)
 
         if allSets == data:
             if dir=="y": maxi=2000e5
@@ -1246,27 +1250,35 @@ def finalPrediction(allSets, simpleScale=False):
         h1s2.drawOption_ = "hist"
         h1s2.SetLineStyle(2)
 
+        dataLabel = "(Pseudo)Data"
+        if allSets == data: dataLabel = "Data"
+        if allSets == gjets+qcd: dataLabel = "#gammaJet+QCD"
         c = ROOT.TCanvas()
         m = multiplot.Multiplot()
-        m.add(h1data, "(Pseudo)Data")
-        m.addStack(h1tg, "t#gamma")
-        m.addStack(h1dy, "DY")
-        m.addStack(h1e, "e#rightarrow#gamma")
-        m.addStack(h1ttg, "t#bar{t}#gamma")
-        m.addStack(h1zg, "Z#gamma")
-        m.addStack(h1wg, "W#gamma")
-        m.addStack(h1QcdW, "#gamma+Jet")
-        m.add(h1s1, signal["T5Wg_1550_100"].label)
-        m.add(h1s2, signal["T5Wg_1550_1500"].label)
+        m.add(h1data, dataLabel)
+        if allSets == data or True:
+            m.addStack(h1tg, "t#gamma")
+            m.addStack(h1dy, "DY")
+            m.addStack(h1e, "e#rightarrow#gamma")
+            m.addStack(h1ttg, "t#bar{t}#gamma")
+            m.addStack(h1zg, "Z#gamma")
+            m.addStack(h1wg, "W#gamma")
+            m.add(h1s1, signal["T5Wg_1550_100"].label)
+            m.add(h1s2, signal["T5Wg_1550_1500"].label)
+        m.addStack(h1QcdW, "#gammaJet+QCD pred.")
 
         # systematics
         sysStack = ROOT.THStack()
-        for h in h1QcdWsys, h1eSys, h1ttgSys, h1wgSys, h1zgSys, h1dy:
+        if allSets == data or True:
+            systHists = h1QcdWsys, h1eSys, h1ttgSys, h1wgSys, h1zgSys, h1dy
+        else:
+            systHists = [h1QcdWsys]
+        for h in systHists:
             sysStack.Add(h)
         sysHist = sysStack.GetStack().Last()
         aux.drawOpt(sysHist, "sys")
 
-        info = "E_{T}^{miss}/GeV" if dir=="y" else "H_{T}/GeV"
+        info = aux.getAxis(h2data, parDir).GetTitle().replace(" (GeV)","")
         if cut1: info = str(cut1)+"<"+info
         if cut2<1e5: info = info+"<"+str(cut2)
         if "<" not in info and ">" not in info: info=""
@@ -1283,8 +1295,9 @@ def finalPrediction(allSets, simpleScale=False):
         if allSets == data: appendix = "_data"
         if any([ x.startswith("T5") for x in allSets.names ]): appendix = "_sigCont"
 
+        title = "finalPlot"# if allSets == data else "closure"
         simpleString = "_simple" if simpleScale else ""
-        aux.save("finalPlot{}{}_{}_{}to{}".format(appendix,simpleString,dir,int(cut1),int(cut2)), normal=False)
+        aux.save("{}{}{}_{}_{}{}{}".format(title,appendix,simpleString,axVars[dir],int(cut1),axVars[parDir],int(cut2)), normal=False)
 
 def metInfluence( dataset, savename="test", dirs=["tr"] ):
     c = ROOT.TCanvas()
@@ -1354,7 +1367,7 @@ def gammaFakeRatio():
     hg.SetYTitle("#gamma+Jet/(#gamma+Jet+QCD)")
     hg.GetYaxis().SetRangeUser(0,1)
     hg.Draw("hist e")
-    aux.save("gammaFakeRatio")
+    aux.save("gammaFakeRatio",log=False)
 
 
 
@@ -1373,13 +1386,13 @@ def main():
     #ewkClosures( wjets, "w" )
     #ewkClosures( wjets+ttjets, "ewk" )
 
-    #multiQcdClosures( gjets+qcd, "gqcd" )
+    multiQcdClosures( gjets+qcd, "gqcd" )
     #multiQcdClosures( zg_130, "znunu", znunu)
     #multiQcdClosures( ttg, "tt",ttjets )
     #multiQcdClosures( wg_mg, "w", wjets )
     #multiQcdClosures( data, "data", dataHt )
     #multiQcdClosures( signal["T5Wg_1550_100"], "signal" )
-    #multiQcdClosures( gjets+qcd+znunu+wjets+ttjets, "mc", gjets+qcd+ttjets+ttg+wg_mg+znunu+zg_130)
+    #multiQcdClosures( gjets+qcd+znunu+wjets+ttjets+wg_mg+ttg+zg_130, "mc", gjets+qcd+wjets+ttjets+znunu+wg_mg+ttg+zg_130)
 
     #efficiencies( ttjets+qcd+gjets+wjets, "allMC_" )
     #efficiencies( qcd+gjets, "gqcd_" )
@@ -1414,7 +1427,9 @@ def main():
     #htRebinning(dirSets, "gqcdtwzVSall", "tr_noGenE", gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
     #finalPrediction(data)
     #finalPrediction(data, simpleScale=True)
-    #finalPrediction(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130)
+    #finalPrediction(gjets+qcd, simpleScale=True)
+    #finalPrediction(gjets+qcd)
+    #finalPrediction(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130, simpleScale=True)
     #finalPrediction(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130+signal["T5Wg_1550_1500"])
 
 
