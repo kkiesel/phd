@@ -311,8 +311,10 @@ def getValAndErrorStr( val, err, sig=2 ):
 
 def getYAxisTitle( histo ):
     # returns e.g.: "Events / 10 GeV"
+    import style
+    if not style.divideByBinWidth:
+        return "Events / Bin"
     yTitle = "Events"
-
     binW1 = histo.GetXaxis().GetBinWidth(1)
     binW2 = histo.GetXaxis().GetBinWidth(histo.GetNbinsX()+1)
     unit = "GeV" if "GeV" in histo.GetXaxis().GetTitle() else None
