@@ -310,29 +310,19 @@ def selectionComparison2( dataset, controlDataset, name, samplename, binning, bi
 def multiQcdClosures( dataset, samplename, controlDataset=None ):
     names = aux.getObjectNames( dataset.files[0], "tr", [ROOT.TH1F] )
 
-    names = ["met","emht"]
+    #names = ["met","emht"]
 
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_0met100", preDir="tr_jControl_0met100" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_100met", preDir="tr_jControl_100met" )
-            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_0emht2000", preDir="tr_jControl_0emht2000" )
-            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_2000emht", preDir="tr_jControl_2000emht" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_noGenLep")
-            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highHt", preDir="tr_jControl_highHt" )
-            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_lowHt", preDir="tr_jControl_lowHt" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he0", preDir="tr_jControl_he0" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he1", preDir="tr_jControl_he1" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he2", preDir="tr_jControl_he2" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_he3", preDir="tr_jControl_he3" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName+"_wnjet", preDir="tr_jControl_wnjet" )
-            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highMet", preDir="tr_jControl_highMet" )
-            multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_mediumMet", preDir="tr_jControl_mediumMet" )
-            selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_highMet", preDir="tr" )
-            selectionComparison( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_jControl_highMet", preDir="tr_jControl" )
-            selectionComparison2( dataset, controlDataset, name, samplename, binning, binningName, dirDirs=["tr_highMet", "tr_lowMet", "tr_jControl_highMet","tr_jControl_lowMet"] )
-
 
 
 
@@ -422,7 +412,7 @@ def ewkClosure( dataset, controlDataset, name, samplename, binning, binningName,
 def ewkClosures( dataset, samplename="", controlDataset=None ):
     names = aux.getObjectNames( dataset.files[0], "tr_eControl", [ROOT.TH1F] )
 
-    names = ["met"]
+    #names = ["met"]
 
     for name in names:
         for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
