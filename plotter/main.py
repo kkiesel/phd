@@ -161,6 +161,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     if not hdir.Integral(): return
     if binning: hdir = aux.rebin( hdir, binning )
     aux.appendFlowBin( hdir )
+    if style.divideByBinWidth: hdir.Scale(1,"width")
     hdir.SetYTitle( aux.getYAxisTitle( hdir ) )
     hdir.SetLineColor(1)
     hdir.SetMarkerColor(1)
@@ -175,6 +176,7 @@ def multiQcdClosure( dataset, controlDataset, name, samplename, binning, binning
     if binning: hpre = aux.rebin( hpre, binning )
     aux.appendFlowBin( hpre )
     hpre.Scale( dirInt/preInt )
+    if style.divideByBinWidth: hpre.Scale(1,"width")
     scaleErr = dirInt/preInt * math.sqrt( (dirIntErr/dirInt)**2 + (preIntErr/preInt)**2 )
     m.leg.SetHeader("scale = ({:3.1f}#pm{:3.1f})m".format(dirInt/preInt*1000,1000*scaleErr))
     hpre.SetYTitle( aux.getYAxisTitle( hpre ) )
