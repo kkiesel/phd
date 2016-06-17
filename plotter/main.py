@@ -1258,7 +1258,7 @@ def finalPrediction(allSets, simpleScale=False):
         c = ROOT.TCanvas()
         m = multiplot.Multiplot()
         m.add(h1data, dataLabel)
-        if allSets == data or True:
+        if allSets == data:
             m.addStack(h1tg, "t#gamma")
             m.addStack(h1dy, "DY")
             m.addStack(h1e, "e#rightarrow#gamma")
@@ -1271,7 +1271,7 @@ def finalPrediction(allSets, simpleScale=False):
 
         # systematics
         sysStack = ROOT.THStack()
-        if allSets == data or True:
+        if allSets == data:
             systHists = h1QcdWsys, h1eSys, h1ttgSys, h1wgSys, h1zgSys, h1dy
         else:
             systHists = [h1QcdWsys]
@@ -1297,7 +1297,7 @@ def finalPrediction(allSets, simpleScale=False):
         if allSets == data: appendix = "_data"
         if any([ x.startswith("T5") for x in allSets.names ]): appendix = "_sigCont"
 
-        title = "finalPlot"# if allSets == data else "closure"
+        title = "finalPlot" if allSets == data else "closure"
         simpleString = "_simple" if simpleScale else ""
         aux.save("{}{}{}_{}_{}{}{}".format(title,appendix,simpleString,axVars[dir],int(cut1),axVars[parDir],int(cut2)), normal=False)
 
@@ -1388,7 +1388,7 @@ def main():
     #ewkClosures( wjets, "w" )
     #ewkClosures( wjets+ttjets, "ewk" )
 
-    multiQcdClosures( gjets+qcd, "gqcd" )
+    #multiQcdClosures( gjets+qcd, "gqcd" )
     #multiQcdClosures( zg_130, "znunu", znunu)
     #multiQcdClosures( ttg, "tt",ttjets )
     #multiQcdClosures( wg_mg, "w", wjets )
@@ -1439,6 +1439,7 @@ def main():
     #metInfluence( data, "data" )
     #metInfluence( qcd, "qcd", ["tr_jControl"] )
     #metInfluence( gjets+qcd, "gqcd", ["tr","tr_jControl","tr_jControl_wemht"] )
+    #metDependency( gjets+qcd, "gqcd", ["tr","tr_jControl","tr_ee"] )
     #metDependency( data, "data", ["tr","tr_jControl","tr_jControl_wemht"] )
 
     #gammaFakeRatio()
