@@ -87,12 +87,15 @@ class Multiplot:
 
         # change the order for drawing
         self.hists.reverse()
-        self.hists[0].SetMinimum( minimum )
-        self.hists[0].SetMaximum( maximum )
-        self.hists[0].Draw( self.hists[0].drawOption_ )
-
-        for h in self.hists[1:]:
-            h.Draw( "same %s"%h.drawOption_ )
+        first = True
+        for h in self.hists:
+            if first:
+                h.SetMinimum(minimum)
+                h.SetMaximum(maximum)
+                first = False
+            else:
+                h.drawOption_ += "same"
+            h.Draw(h.drawOption_)
 
         self.leg.Draw()
 
