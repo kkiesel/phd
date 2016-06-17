@@ -1218,6 +1218,7 @@ def finalPrediction(allSets, simpleScale=False):
         for h in h1data, h1QcdW, h1QcdWsys, h1e, h1ttg, h1tg, h1wg, h1zg, h1dy, h1s1, h1s2:
             h.SetYTitle("Events/Bin")
             aux.appendFlowBin(h)
+            if style.divideByBinWidth: h.Scale(1, "width")
             if dir == "y": h.SetTitleOffset(1)
         h1QcdW_integral = h1QcdW.Integral()
         if h1QcdW_integral:
