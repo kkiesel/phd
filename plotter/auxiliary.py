@@ -559,6 +559,10 @@ def drawOpt(h, style):
         h.SetFillStyle(3333)
         h.drawOption_ = "e2"
 
+def getPaletteColor(f):
+    # f should be a fraction from 0 to 1, such that the whole palette is used
+    return ROOT.TColor.GetColorPalette(int(f*ROOT.TColor.GetNumberOfColors()))
+
 def getSysHisto(h, relUncert):
     hsys = h.Clone(randomName())
     for bin in range(hsys.GetNbinsX()+2):
