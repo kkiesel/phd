@@ -315,16 +315,17 @@ def getYAxisTitle( histo ):
     if not style.divideByBinWidth:
         return "Events / Bin"
     yTitle = "Events"
-    binW1 = histo.GetXaxis().GetBinWidth(1)
-    binW2 = histo.GetXaxis().GetBinWidth(histo.GetNbinsX()+1)
-    unit = "GeV" if "GeV" in histo.GetXaxis().GetTitle() else None
+    xaxis = histo.GetXaxis()
+    binW = xaxis.GetBinWidth(1)
+    binWmean = (xaxis.GetXmax()-xaxis.GetXmin())/xaxis.GetNbins()
+    unit = "GeV" if "GeV" in xaxis.GetTitle() else None
 
-    if binW1 == binW2: #assume constant bin size
-        if binW1 == 1:
+    if abs(binW-binWmean) < 1e-6: #assume constant bin size
+        if abs(binW-1) < 1e-6:
             return yTitle
 
         # get two significant digits
-        binW = getValAndError( 0, binW1 )[1]
+        binW = getValAndError( 0, binW )[1]
         if binW.is_integer():
             binW = int(binW)
         if unit:
