@@ -1306,7 +1306,7 @@ def metInfluence( dataset, savename="test", dirs=["tr"] ):
     m = multiplot.Multiplot()
 
     for dir in dirs:
-        for iname, name in enumerate(["emht", "njet", "jetPt", "gPt", "charged2JetPt"]):
+        for iname, name in enumerate(["emht", "njet", "jetPt", "gPt", "chargedJetPt"]):
             name = dir+"/metRaw_vs_"+name
             h2 = dataset.getHist(name)
             metBinning = aux.getBinningsFromName("met")["3"]
@@ -1333,7 +1333,7 @@ def metInfluence( dataset, savename="test", dirs=["tr"] ):
     aux.save("metInfluence_"+savename, log=False)
 
 def metDependency( dataset, savename="test", dirs=["tr"] ):
-    for name in ["emht", "njet", "jetPt", "gPt", "charged2JetPt"]:
+    for name in ["emht", "njet", "jetPt", "gPt", "chargedJetPt"]:
         c = ROOT.TCanvas()
         m = multiplot.Multiplot()
         for idir, dir in enumerate(dirs):
