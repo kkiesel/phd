@@ -41,7 +41,7 @@ class Ratio:
 
         self.title = title
         self.numerator = numerator
-        self.denominator = denominator
+        self.denominator = denominator.Clone( aux.randomName() )
         self.sysHisto = sysHisto
         self.ratio = numerator.Clone( aux.randomName() )
         self.ratioStat = denominator.Clone( aux.randomName() )
