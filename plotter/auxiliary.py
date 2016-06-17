@@ -538,14 +538,20 @@ def integerContent(h):
 
 def drawOpt(h, style):
     if style == "data":
-        h.SetLineColor(1)
-        h.SetMarkerColor(1)
+        h.SetLineColor(ROOT.kBlack)
+        h.SetMarkerColor(ROOT.kBlack)
         h.SetMarkerStyle(20)
         h.SetMarkerSize(0.8)
         h.SetBinErrorOption(ROOT.TH1.kPoisson)
         h.drawOption_="e0p0"
         if integerContent(h):
             h.Sumw2(False) # kPoisson uncertainties are drawn
+    if style == "pre":
+        h.SetLineColor(ROOT.kRed)
+        h.drawOption_ = "hist e"
+    if style == "signal":
+        h.SetLineWidth(3)
+        h.drawOption_ = "hist"
     if style == "sys":
         c = h.GetLineColor()
         h.SetFillColor(c)
