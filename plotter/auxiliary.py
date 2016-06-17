@@ -440,7 +440,7 @@ def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
             ROOT.gPad.GetCanvas().SaveAs( folder + name + "_log" + ending )
 
 
-def getBinnigsFromName( name ):
+def getBinningsFromName( name ):
     out = { "": None }
     # get histogram name
     if binCfg.has_section(name):

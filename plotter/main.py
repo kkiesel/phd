@@ -142,7 +142,7 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
         if "genHt" in names: names.remove("genHt")
 
     for name in names:
-        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+        for binningName, binning in aux.getBinningsFromName( name ).iteritems():
             drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_eControl/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_0met100/"+name, stack, additional, binning, binningName )
@@ -315,7 +315,7 @@ def multiQcdClosures( dataset, samplename, controlDataset=None ):
     #names = ["met","emht"]
 
     for name in names:
-        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+        for binningName, binning in aux.getBinningsFromName( name ).iteritems():
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr", preDir="tr_ee" )
             multiQcdClosure( dataset, controlDataset, name, samplename, binning, binningName, dirDir="tr_jControl", preDir="tr_jControl_ee" )
@@ -332,7 +332,7 @@ def multiQcdClosures( dataset, samplename, controlDataset=None ):
 
 def metCorrections( dataset, samplename="" ):
 
-    for binningName, binning in aux.getBinnigsFromName( "met" ).iteritems():
+    for binningName, binning in aux.getBinningsFromName( "met" ).iteritems():
         for dir in "tr", "tr_jControl_wnjet", "tr_jControl","tr_jControl_wnjet":
             can = ROOT.TCanvas()
             m = multiplot.Multiplot()
@@ -419,7 +419,7 @@ def ewkClosures( dataset, samplename="", controlDataset=None ):
     #names = ["met"]
 
     for name in names:
-        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+        for binningName, binning in aux.getBinningsFromName( name ).iteritems():
             ewkClosure( dataset, controlDataset, name, samplename, binning, binningName )
 
 
@@ -620,7 +620,7 @@ def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
     #names = [ "h_g_pt__tr_genPhoton" ]
 
     for name in names:
-        for binningName, binning in aux.getBinnigsFromName( name ).iteritems():
+        for binningName, binning in aux.getBinningsFromName( name ).iteritems():
             can = ROOT.TCanvas()
             m = multiplot.Multiplot()
 
@@ -769,7 +769,7 @@ def zToMet():
     bfNNToLL = 1.980707905005249 # branching fraction Z(νν)/Z(ll)
 
     for name in names:
-        binningSettings = aux.getBinnigsFromName( name )
+        binningSettings = aux.getBinningsFromName( name )
         if name == "met": binningSettings["10"] = range(0,1000,20)
         if name == "met": binningSettings["11"] = range(0,1000,100)
         if name == "g_pt": binningSettings["10"] = range(0,1000,10)
@@ -808,8 +808,8 @@ def htStuff():
 
     names = ["tr/met_vs_emht","tr_jControl/met_vs_emht"]
 
-    metBinnings = aux.getBinnigsFromName("met")
-    emhtBinnings = aux.getBinnigsFromName("emht")
+    metBinnings = aux.getBinningsFromName("met")
+    emhtBinnings = aux.getBinningsFromName("emht")
 
     for name in names:
         for binningName, binning in metBinnings.iteritems():
@@ -885,9 +885,9 @@ def qcdPrediction3d(totalNum, totalDen, xCut=100, save=False):
 def qcdClosure3d(dirSet, name, dirName="tr", preSet=None):
     if not preSet: preSet = dirSet
 
-    metBinning = aux.getBinnigsFromName("met")["3"]
-    emhtBinning = aux.getBinnigsFromName("emht")["2"]
-    ptBinning = aux.getBinnigsFromName("g_pt")["1"]
+    metBinning = aux.getBinningsFromName("met")["3"]
+    emhtBinning = aux.getBinningsFromName("emht")["2"]
+    ptBinning = aux.getBinningsFromName("g_pt")["1"]
     ptBinning = None
 
     hName = "metRaw_vs_emht_vs_njet"
@@ -1006,8 +1006,8 @@ def qcdPrediction2d(h2num, h2den, xCut=100, save=False):
 def htRebinning(dSets, name, dirName="tr", predSets=None, simpleScale=False):
     if not predSets: predSets = dSets
 
-    metBinning = aux.getBinnigsFromName("met")["3"]
-    emhtBinning = aux.getBinnigsFromName("emht")["2"]
+    metBinning = aux.getBinningsFromName("met")["3"]
+    emhtBinning = aux.getBinningsFromName("emht")["2"]
 
     hName = "metRaw_vs_emht"
     if "Raw" not in hName: name+="_typeI"
@@ -1108,18 +1108,19 @@ def htRebinning(dSets, name, dirName="tr", predSets=None, simpleScale=False):
 def finalPrediction(allSets, simpleScale=False):
     jetSet = dataHt if allSets == data else allSets
 
-    hName = "metRaw_vs_emht"
+    hName = "metRaw_vs_jetPt"
     m = re.match("(.*)_vs_(.*)", hName)
     if m:
         axVars = {"x":m.group(1), "y": m.group(2)}
     else:
         print "Could not determine x and y variable from", hName
 
-    metBinning = aux.getBinnigsFromName("met")["3"]
-    emhtBinning = aux.getBinnigsFromName("emht")["2"]
+    metBinning = aux.getBinningsFromName("met")["3"]
+    emhtBinning = aux.getBinningsFromName("emht")["2"]
     #emhtBinning = [0, 800, 1000, 2000 ]
     #emhtBinning = [0, 100, 120, 130, 140, 150, 200, 250, 300, 400, 500]
-    #emhtBinning = None
+    emhtBinning = aux.getBinningsFromName("g_pt")["1"]
+
 
     h2data = allSets.getHist("tr/"+hName)
     h2jetControl = jetSet.getHist("tr_jControl/"+hName)
@@ -1307,7 +1308,7 @@ def metInfluence( dataset, savename="test", dirs=["tr"] ):
         for iname, name in enumerate(["emht", "njet", "jetPt", "gPt", "charged2JetPt"]):
             name = dir+"/metRaw_vs_"+name
             h2 = dataset.getHist(name)
-            metBinning = aux.getBinnigsFromName("met")["3"]
+            metBinning = aux.getBinningsFromName("met")["3"]
 
             h2 = aux.rebin2d(h2, metBinning)
             p = h2.ProfileX()
@@ -1337,9 +1338,9 @@ def metDependency( dataset, savename="test", dirs=["tr"] ):
         for idir, dir in enumerate(dirs):
             h2 = dataset.getHist(dir+"/metRaw_vs_"+name)
             yBinning = None
-            if name == "emht": yBinning = aux.getBinnigsFromName("emht")["1"]
-            if name == "jetPt" or "charged" in name: yBinning = aux.getBinnigsFromName("j1_pt")["1"]
-            if name == "gPt": yBinning = aux.getBinnigsFromName("g_pt")["1"]
+            if name == "emht": yBinning = aux.getBinningsFromName("emht")["1"]
+            if name == "jetPt" or "charged" in name: yBinning = aux.getBinningsFromName("j1_pt")["1"]
+            if name == "gPt": yBinning = aux.getBinningsFromName("g_pt")["1"]
 
             h2 = aux.rebin2d(h2, None, yBinning)
             p = h2.ProfileY()
@@ -1352,7 +1353,7 @@ def metDependency( dataset, savename="test", dirs=["tr"] ):
         aux.save("metDependency_{}_{}".format(savename,name), log=False)
 
 def gammaFakeRatio():
-    metBinning = aux.getBinnigsFromName("met")["1"]
+    metBinning = aux.getBinningsFromName("met")["1"]
 
     c = ROOT.TCanvas()
     hg = gjets.getHist("tr/met")
