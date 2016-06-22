@@ -412,7 +412,7 @@ def setMinMaxForLog():
     for h in primitivesOnCanvas:
         if isinstance(h, ROOT.THStack):
             stackedHistograms.append(h)
-            for sh in h.GetHists():
+            for sh in h.GetStack():
                 histograms.append(sh)
         elif isinstance(h, ROOT.TH1):
             histograms.append(h)
