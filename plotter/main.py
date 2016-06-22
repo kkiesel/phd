@@ -204,6 +204,10 @@ def allSame():
 def allCompare():
     compareDirs("gqcd", "tr", "tr_ee", gjets+qcd)
     compareDirs("gqcd", "tr_tight", "tr_ee", gjets+qcd)
+    compareDirs("data", "tr_tight", "tr_ee", data)
+    compareDirs("ttg", "tr_tight", "tr_ee", ttg)
+    compareDirs("wg", "tr_tight", "tr_ee", wg_mg)
+    compareDirs("zg", "tr_tight", "tr_ee", zg_130)
 
 def allWeighed():
     projectAll2d("gqcd", "met_vs_emht", "tr_tight", "tr_ee", gjets+qcd)
