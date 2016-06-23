@@ -274,38 +274,19 @@ void HistogramProducer::fillUncut() {
   }
 }
 
-map<string,TH3F> initHistograms3() {
-  map<string,TH3F> hMap;
-
-  hMap["metRaw_vs_emht_vs_pt"] = TH3F("",";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV);#it{p}_{T} (GeV)", 200, 0, 2000, 250, 500, 3000, 90, 100, 1000);
-  hMap["metRaw_vs_emht_vs_ptMax"] = TH3F("",";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV);#it{p}_{T} (GeV)", 200, 0, 2000, 250, 500, 3000, 90, 100, 1000);
-  hMap["metRaw_vs_emht_vs_njet"] = TH3F("",";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV);jet multiplicity", 100, 0, 1000, 250, 500, 3000, 11, -.5, 10.5);
-
-  return hMap;
-}
-
 map<string,TH2F> initHistograms2() {
   map<string,TH2F> hMap;
 
-  hMap["n_heJets_vs_photonPosition"] = TH2F("","",10, -0.5, 9.5, 10, -0.5, 9.5);
-  hMap["g_eta_vs_g_phi"] = TH2F("","",100, -1.5, 1.5, 100, -3.1, 3.1);
+  hMap["n_jets_vs_photonPosition"] = TH2F("",";jet multiplicity;#gamma position",10, -0.5, 9.5, 10, -0.5, 9.5);
+  hMap["g_eta_vs_g_phi"] = TH2F("",";|#eta|;|#phi|", 260, 2.6, 2.6, 100, -3.1, 3.1);
   hMap["met_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRaw_vs_njet"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
-  hMap["metRaw_vs_gPt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
-  hMap["metRaw_vs_jetPt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
-  hMap["metRaw_vs_chargedJetPt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{charged jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
-  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRaw_vs_tremht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);tr #it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRaw_vs_memht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);|#vec{EMH}_{T}| (GeV)", 300, 0, 3000, 300, 0, 3000);
-  hMap["metRaw_vs_mht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);|#vec{H}_{T}| (GeV)", 300, 0, 3000, 1500, 0, 1500);
-
+  hMap["met_vs_n_jet"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["met_vs_g_pt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
+  hMap["met_vs_g_e"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{E} (GeV)", 300, 0, 3000, 100, 0, 1000);
+  hMap["met_vs_j1_pt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
+  hMap["met_vs_mht"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);|#vec{H}_{T}| (GeV)", 300, 0, 3000, 1500, 0, 1500);
   hMap["memht_vs_emht"] = TH2F("", ";#it{EMH}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
   hMap["mht_vs_emht"] = TH2F("", ";#it{H}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-
-  hMap["metRawStarUp_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRawStarDn_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRawUp_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRawDn_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
 
   return hMap;
 }
@@ -314,14 +295,6 @@ map<string,TH1F> initHistograms() {
   map<string,TH1F> hMap;
 
   hMap["met"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metRandomDn"] = TH1F("", ";random #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metRandom"] = TH1F("", ";random #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metStar"] = TH1F("", ";#it{E}_{T}^{miss}* (GeV)", 200, 0, 2000);
-  hMap["metStar2"] = TH1F("", ";#it{E}_{T}^{miss}* (GeV)", 200, 0, 2000);
-  hMap["metUp"] = TH1F("", ";#it{E}_{T}^{miss} up (GeV)", 200, 0, 2000);
-  hMap["metDn"] = TH1F("", ";#it{E}_{T}^{miss} down (GeV)", 200, 0, 2000);
-  hMap["metUpJec"] = TH1F("", ";#it{E}_{T}^{miss} up (GeV)", 200, 0, 2000);
-  hMap["metDnJec"] = TH1F("", ";#it{E}_{T}^{miss} down (GeV)", 200, 0, 2000);
   hMap["metPar"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
   hMap["metPer"] = TH1F("", ";#it{E}_{T}^{miss #perp  } (GeV)", 200, 0, 2000);
   hMap["metRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
@@ -336,30 +309,31 @@ map<string,TH1F> initHistograms() {
   hMap["emhtStar"] = TH1F("", ";#it{EMH}_{T}* (GeV)", 300, 0, 3000);
   hMap["ht"] = TH1F("", ";#it{H}_{T} (GeV)", 300, 0, 3000);
   hMap["st"] = TH1F("", ";#it{S}_{T} (GeV)", 200, 0, 4000);
-  hMap["emrecoilt"] = TH1F("", ";#vec{EMH}_{T} (GeV)", 150, 0, 1500);
-  hMap["recoilt"] = TH1F("", ";#vec{H}_{T} (GeV)", 150, 0, 1500);
+  hMap["emrecoilt"] = TH1F("", ";#vec{#it{EMH}}_{T} (GeV)", 150, 0, 1500);
+  hMap["recoilt"] = TH1F("", ";#vec{#it{H}}_{T} (GeV)", 150, 0, 1500);
 
   // photon
   hMap["g_pt"] = TH1F("", ";#it{p}_{T} (GeV)", 150, 0, 1500);
+  hMap["g_e"] = TH1F("", ";#it{E} (GeV)", 150, 0, 1500);
   hMap["g_ptStar"] = TH1F("", ";#it{p}_{T}* (GeV)", 150, 0, 1500);
-  hMap["g_eta"] = TH1F("", ";|#eta|", 1500, 0, 1.5);
+  hMap["g_eta"] = TH1F("", ";|#eta|", 2600, 0, 2.6);
 
   // he-jet
-  hMap["hej1_pt"] = TH1F("", ";#it{p}_{T}^{1.jet} (GeV)", 150, 0, 1500);
-  hMap["hej1_eta"] = TH1F("", ";|#eta^{1.jet}|", 150, 0, 3);
-  hMap["hej2_pt"] = TH1F("", ";#it{p}_{T}^{2.jet} (GeV)", 150, 0, 1500);
-  hMap["hej2_eta"] = TH1F("", ";|#eta^{2.jet}|", 150, 0, 3);
-  hMap["hej3_pt"] = TH1F("", ";#it{p}_{T}^{3.jet} (GeV)", 150, 0, 1500);
-  hMap["hej3_eta"] = TH1F("", ";|#eta^{3.jet}|", 150, 0, 3);
+  hMap["j1_pt"] = TH1F("", ";#it{p}_{T}^{1.jet} (GeV)", 150, 0, 1500);
+  hMap["j1_eta"] = TH1F("", ";|#eta^{1.jet}|", 150, 0, 3);
+  hMap["j2_pt"] = TH1F("", ";#it{p}_{T}^{2.jet} (GeV)", 150, 0, 1500);
+  hMap["j2_eta"] = TH1F("", ";|#eta^{2.jet}|", 150, 0, 3);
+  hMap["j3_pt"] = TH1F("", ";#it{p}_{T}^{3.jet} (GeV)", 150, 0, 1500);
+  hMap["j3_eta"] = TH1F("", ";|#eta^{3.jet}|", 150, 0, 3);
 
   // angles
   hMap["dphi_met_g"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},#gamma)|", 70, 0, 3.5);
-  hMap["dphi_met_hej1"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},1.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_hej2"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},2.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_hej3"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},3.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_recoil"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},#Sigma jet)|", 70, 0, 3.5);
-  hMap["dphi_g_hej1"] = TH1F("", ";|#Delta#phi(#gamma,1.jet)|", 70, 0, 3.5);
-  hMap["dphi_g_hej2"] = TH1F("", ";|#Delta#phi(#gamma,2.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_j1"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},1.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_j2"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},2.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_j3"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},3.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_recoil"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},#vec{#it{H}}_{T})|", 70, 0, 3.5);
+  hMap["dphi_g_j1"] = TH1F("", ";|#Delta#phi(#gamma,1.jet)|", 70, 0, 3.5);
+  hMap["dphi_g_j2"] = TH1F("", ";|#Delta#phi(#gamma,2.jet)|", 70, 0, 3.5);
 
   // multiplicities
   hMap["n_vertex"] = TH1F("", ";vertex multiplicity", 61, -0.5, 60.5);
@@ -382,7 +356,6 @@ void HistogramProducer::fillSelection(string const& s) {
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
     h2Maps[s] = initHistograms2();
-//    h3Maps[s] = initHistograms3();
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
@@ -430,30 +403,18 @@ void HistogramProducer::fillSelection(string const& s) {
   m1->at("emrecoilt").Fill(emrecoil.Pt(), selW);
 
   m1->at("met").Fill(met->p.Pt(), selW);
-  m1->at("metUp").Fill(met->p.Pt()+met->uncertainty, selW);
-  m1->at("metDn").Fill(met->p.Pt()-met->uncertainty, selW);
   m1->at("metRaw").Fill(met->p_raw.Pt(), selW);
 
   if (selPhotons.size() > 0) {
     m1->at("genMatch").Fill(genMatch(*selPhotons.at(0)), selW);
     auto mJet = matchedJet(*selPhotons.at(0));
     if (mJet) {
-      float x = rand.Gaus(0, mJet->uncert);
-      m1->at("metRandom").Fill((met->p+x*mJet->p).Pt(), selW);
-      if (met->p*mJet->p > 0) { // parallel
-        m1->at("metRandomDn").Fill((met->p-fabs(x)*mJet->p).Pt(), selW);
-      } else {
-        m1->at("metRandomDn").Fill((met->p+fabs(x)*mJet->p).Pt(), selW);
-      }
-      m1->at("metStar").Fill((met->p+selPhotons.at(0)->p-mJet->p).Pt(), selW);
-      m1->at("metStar2").Fill((met->p-selPhotons.at(0)->p+mJet->p).Pt(), selW);
-      m1->at("metUpJec").Fill((met->p+(mJet->p*mJet->uncert)).Pt(), selW);
-      m1->at("metDnJec").Fill((met->p-(mJet->p*mJet->uncert)).Pt(), selW);
       m1->at("g_ptStar").Fill(mJet->p.Pt(), selW);
     }
 
     m1->at("mt_g_met").Fill((selPhotons.at(0)->p + met->p).Pt(), selW);
     m1->at("g_pt").Fill(selPhotons.at(0)->p.Pt(), selW);
+    m1->at("g_e").Fill(selPhotons.at(0)->p.Mag(), selW);
     m1->at("g_eta").Fill(fabs(selPhotons.at(0)->p.Eta()), selW);
     float dphi_met_g = fabs(met->p.DeltaPhi(selPhotons.at(0)->p));
     m1->at("dphi_met_g").Fill(dphi_met_g, selW);
@@ -462,27 +423,27 @@ void HistogramProducer::fillSelection(string const& s) {
     m1->at("metParRaw").Fill(met->p_raw.Pt()*cos(met->p_raw.DeltaPhi(selPhotons.at(0)->p)), selW);
     m1->at("metPerRaw").Fill(fabs(met->p_raw.Pt()*sin(met->p_raw.DeltaPhi(selPhotons.at(0)->p))), selW);
     unsigned photonPosition=0;
-    for (;photonPosition<selHEJets.size() && selHEJets.at(photonPosition)->p.Pt() > selPhotons.at(0)->p.Pt();photonPosition++);
-    m2->at("n_heJets_vs_photonPosition").Fill(selHEJets.size(), photonPosition, selW);
+    for (;photonPosition<selJets.size() && selJets.at(photonPosition)->p.Pt() > selPhotons.at(0)->p.Pt();photonPosition++);
+    m2->at("n_jets_vs_photonPosition").Fill(selJets.size(), photonPosition, selW);
     m2->at("g_eta_vs_g_phi").Fill(selPhotons.at(0)->p.Eta(), selPhotons.at(0)->p.Phi(), selW);
   }
 
-  if (selHEJets.size() > 2) {
-    m1->at("hej3_pt").Fill(selHEJets.at(2)->p.Pt(), selW);
-    m1->at("hej3_eta").Fill(fabs(selHEJets.at(2)->p.Eta()), selW);
-    m1->at("dphi_met_hej3").Fill(fabs(met->p.DeltaPhi(selHEJets.at(2)->p)), selW);
+  if (selJets.size() > 2) {
+    m1->at("j3_pt").Fill(selJets.at(2)->p.Pt(), selW);
+    m1->at("j3_eta").Fill(fabs(selJets.at(2)->p.Eta()), selW);
+    m1->at("dphi_met_j3").Fill(fabs(met->p.DeltaPhi(selJets.at(2)->p)), selW);
   }
-  if (selHEJets.size() > 1) {
-    m1->at("hej2_pt").Fill(selHEJets.at(1)->p.Pt(), selW);
-    m1->at("hej2_eta").Fill(fabs(selHEJets.at(1)->p.Eta()), selW);
-    m1->at("dphi_met_hej2").Fill(fabs(met->p.DeltaPhi(selHEJets.at(1)->p)), selW);
-    if (selPhotons.size() > 0) m1->at("dphi_g_hej2").Fill(fabs(selPhotons.at(0)->p.DeltaPhi(selHEJets.at(1)->p)), selW);
+  if (selJets.size() > 1) {
+    m1->at("j2_pt").Fill(selJets.at(1)->p.Pt(), selW);
+    m1->at("j2_eta").Fill(fabs(selJets.at(1)->p.Eta()), selW);
+    m1->at("dphi_met_j2").Fill(fabs(met->p.DeltaPhi(selJets.at(1)->p)), selW);
+    if (selPhotons.size() > 0) m1->at("dphi_g_j2").Fill(fabs(selPhotons.at(0)->p.DeltaPhi(selJets.at(1)->p)), selW);
   }
-  if (selHEJets.size() > 0) {
-    m1->at("hej1_pt").Fill(selHEJets.at(0)->p.Pt(), selW);
-    m1->at("hej1_eta").Fill(fabs(selHEJets.at(0)->p.Eta()), selW);
-    m1->at("dphi_met_hej1").Fill(fabs(met->p.DeltaPhi(selHEJets.at(0)->p)), selW);
-    if (selPhotons.size() > 0) m1->at("dphi_g_hej1").Fill(fabs(selPhotons.at(0)->p.DeltaPhi(selHEJets.at(0)->p)), selW);
+  if (selJets.size() > 0) {
+    m1->at("j1_pt").Fill(selJets.at(0)->p.Pt(), selW);
+    m1->at("j1_eta").Fill(fabs(selJets.at(0)->p.Eta()), selW);
+    m1->at("dphi_met_j1").Fill(fabs(met->p.DeltaPhi(selJets.at(0)->p)), selW);
+    if (selPhotons.size() > 0) m1->at("dphi_g_j1").Fill(fabs(selPhotons.at(0)->p.DeltaPhi(selJets.at(0)->p)), selW);
   }
 
   m1->at("dphi_met_recoil").Fill(fabs(met->p.DeltaPhi(recoil)), selW);
@@ -494,48 +455,20 @@ void HistogramProducer::fillSelection(string const& s) {
   m1->at("n_bjet").Fill(selBJets.size(), selW);
   m1->at("n_electron").Fill(selElectrons.size(), selW);
   m1->at("n_muon").Fill(selMuons.size(), selW);
-  m1->at("n_heJet").Fill(selHEJets.size(), selW);
+  m1->at("n_heJet").Fill(selJets.size(), selW);
   m1->at("genHt").Fill(*genHt, selW);
 
-  m2->at("metRaw_vs_njet").Fill(met->p_raw.Pt(), selJets.size() , selW);
-  if (selJets.size()) m2->at("metRaw_vs_jetPt").Fill(met->p_raw.Pt(), selJets.at(0)->p.Pt() , selW);
-  for (auto j : selJets) {
-    if (j->chf > .9) {
-      m2->at("metRaw_vs_chargedJetPt").Fill(met->p_raw.Pt(), j->p.Pt() , selW);
-      break;
-    }
+  m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size() , selW);
+  if (selJets.size()) m2->at("met_vs_j1_pt").Fill(met->p.Pt(), selJets.at(0)->p.Pt() , selW);
+  if (selPhotons.size()) {
+    m2->at("met_vs_g_pt").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
+    m2->at("met_vs_g_e").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
   }
-  if (selPhotons.size()) m2->at("metRaw_vs_gPt").Fill(met->p_raw.Pt(), selPhotons.at(0)->p.Pt() , selW);
   m2->at("met_vs_emht").Fill(met->p.Pt(), emht, selW);
-  m2->at("metRaw_vs_emht").Fill(met->p_raw.Pt(), emht, selW);
-  if (selPhotons.size() > 0) {
-    auto mJet = matchedJet(*selPhotons.at(0));
-    if (mJet) {
-      m2->at("metRawStarUp_vs_emht").Fill((met->p_raw-mJet->p+selPhotons.at(0)->p).Pt(), emht, selW);
-      m2->at("metRawStarDn_vs_emht").Fill((met->p_raw+mJet->p-selPhotons.at(0)->p).Pt(), emht, selW);
-    }
-  }
-  m2->at("metRawUp_vs_emht").Fill(met->p_raw.Pt()+met->uncertainty, emht, selW);
-  m2->at("metRawDn_vs_emht").Fill(met->p_raw.Pt()-met->uncertainty, emht, selW);
-  m2->at("metRaw_vs_tremht").Fill(met->p_raw.Pt()-met->uncertainty, tremht, selW);
-
+  m2->at("met_vs_mht").Fill(met->p.Pt(), recoil.Pt(), selW);
   m2->at("memht_vs_emht").Fill(emrecoil.Pt(), emht, selW);
   m2->at("mht_vs_emht").Fill(recoil.Pt(), emht, selW);
-  m2->at("metRaw_vs_memht").Fill(met->p_raw.Pt(), emrecoil.Pt(), selW);
-  m2->at("metRaw_vs_mht").Fill(met->p_raw.Pt(), recoil.Pt(), selW);
 
-/*  if (selPhotons.size()) {
-    float pt = selPhotons.at(0)->p.Pt();
-    h3Maps.at(s).at("metRaw_vs_emht_vs_pt").Fill(met->p_raw.Pt(), emht, pt, selW);
-    if (selHEJets.size()) {
-      float ptJet1 = selHEJets.at(0)->p.Pt();
-      if (ptJet1 > pt) pt = ptJet1;
-    }
-    h3Maps.at(s).at("metRaw_vs_emht_vs_ptMax").Fill(met->p_raw.Pt(), emht, pt, selW);
-
-  }
-  h3Maps.at(s).at("metRaw_vs_emht_vs_njet").Fill(met->p_raw.Pt(), emht, selPhotons.size()+selHEJets.size(), selW);
-*/
 } // end fill
 
 
@@ -606,9 +539,6 @@ void HistogramProducer::defaultSelection()
       || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3) continue;
 
     selJets.push_back(&jet);
-    if (jet.p.Pt() > 100 && fabs(jet.p.Eta()) < photonsEtaMaxBarrel) {
-      selHEJets.push_back(&jet);
-    }
     if (jet.bDiscriminator > bTaggingWorkingPoints.at(CSVv2M) && fabs(jet.p.Eta()) < 2.5)
       selBJets.push_back(&jet);
   }
@@ -676,8 +606,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   // set weight
   selW = *mc_weight * *pu_weight;
-  float originalW = selW;
-
 
   // For FastSim CMSSW7X, there are events with large pt jets (pt>sqrt(2))
   // It was recommended for the 2015 analysis to ignore events with objets > 2 times gluino mass
@@ -701,68 +629,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selPhotons) myHt += p->p.Pt();
   for (auto& p : selJets) myHt += p->p.Pt();
 
-  if (selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) fillSelection("tr_hltHT600");
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData)) {
     fillSelection("tr");
     if (selPhotons.at(0)->isTight) fillSelection("tr_tight");
-    if (met->p_raw.Pt() < 100) fillSelection("tr_0met100");
+    if (met->p.Pt() < 100) fillSelection("tr_0met100");
     else                    fillSelection("tr_100met");
-    if (zToMet&&zToMetPt > 130) fillSelection("tr_130pt");
-    if (zToMet&&zToMetPt < 130) fillSelection("tr_0pt130");
     auto gMatch = genMatch(*selPhotons.at(0));
     if (gMatch == 11) fillSelection("tr_genE");
     else              fillSelection("tr_noGenE");
-    //if (gMatch<11 || gMatch>16) fillSelection("tr_noGenLep");
-    //else                        fillSelection("tr_genLep");
-    if (selHEJets.size() == 0) fillSelection("tr_he0");
-    if (selHEJets.size() == 1) fillSelection("tr_he1");
-    if (selHEJets.size() == 2) fillSelection("tr_he2");
-    if (selHEJets.size() == 3) fillSelection("tr_he3");
-  }
-
-  if (!selPhotons.size() && selHEJets.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
-    auto nJets = selHEJets.size();
-    auto selHEJetsCopy = selHEJets;
-    auto selJetsCopy = selJets;
-    for (unsigned ijet=0; ijet < nJets; ijet++) {
-      if (nJets > 8) continue;
-      fillSelectedPhotons(*selHEJets.at(ijet));
-      selHEJets.erase(selHEJets.begin()+ijet);
-      for (unsigned i=0; i<selJets.size();) {
-        if (selPhotons.at(0)->p.DeltaR(selJets.at(i)->p)<0.3) selJets.erase(selJets.begin()+i);
-        else i++;
-      }
-      fillSelection("tr_jControl_jet_"+to_string(ijet)+"of"+to_string(nJets));
-      artificialPhotons.clear();
-      selPhotons.clear();
-      selJets = selJetsCopy;
-      selHEJets = selHEJetsCopy;
-    }
-    auto indexToRemove = jetSelector.getJetN(selHEJets.size()-1); // -1, since one jet is erased from list (gets photon proxy)
-    fillSelectedPhotons(*selHEJets.at(indexToRemove));
-    // clean jets and other he objects
-    selHEJets.erase(selHEJets.begin()+indexToRemove);
-    for (unsigned i=0; i<selJets.size();) {
-      if (selPhotons.at(0)->p.DeltaR(selJets.at(i)->p)<0.3) selJets.erase(selJets.begin()+i);
-      else i++;
-    }
-    fillSelection("tr_jControl");
-    if (met->p_raw.Pt() < 100) fillSelection("tr_jControl_0met100");
-    else                       fillSelection("tr_jControl_100met");
-    if (selHEJets.size() == 0) fillSelection("tr_jControl_he0");
-    if (selHEJets.size() == 1) fillSelection("tr_jControl_he1");
-    if (selHEJets.size() == 2) fillSelection("tr_jControl_he2");
-    if (selHEJets.size() == 3) fillSelection("tr_jControl_he3");
-    float wnJet=nJetWeighter.getWeight(selHEJets.size());
-    selW = originalW * wnJet * *hlt_ht600_pre;
-    fillSelection("tr_jControl_wnjet");
-    float wEmht = emhtWeighter.getWeight(myHt);
-    selW = originalW * wEmht * *hlt_ht600_pre;
-    fillSelection("tr_jControl_wemht");
-    selW = originalW;
-    selW *= *hlt_ht600_pre;
-    fillSelection("tr_jControl_prescale");
-    selW = originalW;
   }
 
   resetSelection();
@@ -778,7 +652,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   defaultSelection();
 
   myHt=0;
-  selW = originalW;
   for (auto& p : selPhotons) myHt += p->p.Pt();
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData)) {
@@ -786,8 +659,11 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (genMatch(*selPhotons.at(0)) == 11) fillSelection("tr_eControl_genE");
   }
 
-  // endcap selection
   resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // endcap selection
+  /////////////////////////////////////////////////////////////////////////////
+
   for (auto& photon : *photons) {
     if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) > photonsEtaMaxBarrel) {
       selPhotons.push_back(&photon);
@@ -802,19 +678,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData)) {
     fillSelection("tr_ee");
   }
-  if (!selPhotons.size() && selHEJets.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
-    selW *= *hlt_ht600_pre;
-    auto indexToRemove = jetSelector.getJetN(selHEJets.size()-1); // -1, since one jet is erased from list (gets photon proxy)
-    fillSelectedPhotons(*selHEJets.at(indexToRemove));
-    // clean jets and other he objects
-    selHEJets.erase(selHEJets.begin()+indexToRemove);
-    for (unsigned i=0; i<selJets.size();) {
-      if (selPhotons.at(0)->p.DeltaR(selJets.at(i)->p)<0.3) selJets.erase(selJets.begin()+i);
-      else i++;
-    }
-    fillSelection("tr_jControl_ee");
-  }
-
   return kTRUE;
 }
 
