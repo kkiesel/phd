@@ -3,7 +3,6 @@ import copy
 import auxiliary as aux
 import os.path
 
-from main import intLumi
 
 path = "../histogramProducer/"
 
@@ -68,7 +67,7 @@ class Dataset:
             h = aux.getFromFile( self.files[i], name )
             if isinstance( h, ROOT.TH1 ):
                 if self.xsecs[i]:
-                    h.Scale( intLumi * self.xsecs[i] / self.ngens[i] )
+                    h.Scale( aux.intLumi * self.xsecs[i] / self.ngens[i] )
                 h.SetLineColor( self.color )
                 h.SetMarkerColor( self.color )
             if h0: h0.Add( h )

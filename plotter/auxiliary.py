@@ -412,7 +412,7 @@ def setMinMaxForLog():
     for h in primitivesOnCanvas:
         if isinstance(h, ROOT.THStack):
             stackedHistograms.append(h)
-            for sh in h.GetHists():
+            for sh in h.GetStack():
                 histograms.append(sh)
         elif isinstance(h, ROOT.TH1):
             histograms.append(h)
@@ -631,6 +631,9 @@ def dataCardToLatexTable(filename):
     content = '\n'.join([' & '.join(x) for x in zip(*columns)])
     print "\\begin{tabular}{%s}\n"%('c'*len(columns)) + content + "\n\\end{tabular}\n"
 
+intLumi = 2.32e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2611.html
+# and here https://twiki.cern.ch/twiki/bin/view/CMS/PdmV2015Analysis#ReReco_at_25_ns
+
 class Label:
     # Create labels
     # Usage:
@@ -638,7 +641,6 @@ class Label:
     # * With Labels(False), the method is only initiated and labels can be modified before calling the 'draw' method
 
     cmsEnergy = 13 #TeV
-    from main import intLumi
 
     def draw( self ):
         varDict = vars( self )
@@ -654,7 +656,7 @@ class Label:
         else:
             self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}" )
         self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status )
-        self.lum = ROOT.TLatex( .63, .95, "%.2f fb^{-1} (%s TeV)"%(self.intLumi/1000., self.cmsEnergy) )
+        self.lum = ROOT.TLatex( .63, .95, "%.2f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
         if info: self.info = ROOT.TLatex( .2, .95, info )
 
         if drawAll:
