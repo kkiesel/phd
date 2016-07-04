@@ -75,7 +75,7 @@ parser.add_argument('datasets', nargs='+', default=["all"], help="all "+' '.join
 args = parser.parse_args()
 
 if args.datasets == ["all"]:
-    toProcess = [ x for sublist in ds.values() for x in sublist ]
+    toProcess = [x for sublist in ds.values() for x in sublist]
 else:
     toProcess = ds[args.datasets[0]]
     for n in args.datasets[1:]:
@@ -86,7 +86,7 @@ print toProcess
 #############################################
 
 files = [dir+x for x in toProcess]
-files.sort( key=os.path.getsize, reverse=True )
+files.sort(key=os.path.getsize, reverse=True)
 
 # adding signal scan
 #files = [ f for f in glob.glob( dir+"T5Wg_*.root") ]
@@ -95,4 +95,4 @@ files.sort( key=os.path.getsize, reverse=True )
 run.run()
 
 p = multiprocessing.Pool()
-p.map( run.run, files )
+p.map(run.run, files)
