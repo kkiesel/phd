@@ -678,6 +678,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     else              fillSelection("tr_noGenE");
   }
 
+  if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
+    fillSelection("tr_jControl");
+  }
+
   resetSelection();
   /////////////////////////////////////////////////////////////////////////////
   // electron sample
@@ -717,6 +721,47 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData)) {
     fillSelection("tr_ee");
   }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // low pt selection
+  /////////////////////////////////////////////////////////////////////////////
+
+  for (auto& photon : *photons) {
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 40 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel) {
+      selPhotons.push_back(&photon);
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  for (auto& p : selPhotons) myHt += p->p.Pt();
+  for (auto& p : selJets) myHt += p->p.Pt();
+
+  if (selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
+    fillSelection("tr_lowPt");
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // low pt ee selection
+  /////////////////////////////////////////////////////////////////////////////
+
+  for (auto& photon : *photons) {
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 40 && fabs(photon.p.Eta()) > photonsEtaMaxBarrel) {
+      selPhotons.push_back(&photon);
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  for (auto& p : selPhotons) myHt += p->p.Pt();
+  for (auto& p : selJets) myHt += p->p.Pt();
+
+  if (selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
+    fillSelection("tr_lowPt_ee");
+  }
+
   return kTRUE;
 }
 
