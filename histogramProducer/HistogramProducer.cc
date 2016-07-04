@@ -281,13 +281,20 @@ map<string,TH2F> initHistograms2() {
   hMap["n_jets_vs_photonPosition"] = TH2F("",";jet multiplicity;#gamma position",10, -0.5, 9.5, 10, -0.5, 9.5);
   hMap["g_eta_vs_g_phi"] = TH2F("",";|#eta|;|#phi|", 260, 2.6, 2.6, 100, -3.1, 3.1);
   hMap["met_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
   hMap["met_vs_n_jet"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["met_vs_n_obj"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["metRaw_vs_n_jet"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["metRaw_vs_n_obj"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
   hMap["met_vs_g_pt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
+  hMap["metRaw_vs_g_pt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
   hMap["met_vs_g_e"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{E} (GeV)", 300, 0, 3000, 100, 0, 1000);
   hMap["met_vs_j1_pt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
   hMap["met_vs_mht"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);|#vec{H}_{T}| (GeV)", 300, 0, 3000, 1500, 0, 1500);
   hMap["memht_vs_emht"] = TH2F("", ";#it{EMH}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
   hMap["mht_vs_emht"] = TH2F("", ";#it{H}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["razor"] = TH2F("",";M_{R} (GeV);R^{2}", 500, 0, 5000, 200, 0, 2);
+  hMap["st_vs_n_jet"] = TH2F("",";S_{T} (GeV);jet multiplicity", 300, 0, 3000, 10, -.5, 9.5);
 
   return hMap;
 }
@@ -296,7 +303,11 @@ map<string,TH1F> initHistograms() {
   map<string,TH1F> hMap;
 
   hMap["met"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metPar"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
+  hMap["metParUp"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
+  hMap["metParDn"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
   hMap["metPer"] = TH1F("", ";#it{E}_{T}^{miss #perp  } (GeV)", 200, 0, 2000);
   hMap["metRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metParRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
@@ -407,26 +418,31 @@ void HistogramProducer::fillSelection(string const& s) {
   m1->at("metRaw").Fill(met->p_raw.Pt(), selW);
 
   if (selPhotons.size() > 0) {
-    m1->at("genMatch").Fill(genMatch(*selPhotons.at(0)), selW);
-    auto mJet = matchedJet(*selPhotons.at(0));
+    auto g = selPhotons.at(0);
+    m1->at("genMatch").Fill(genMatch(*g), selW);
+    m1->at("metUp").Fill((met->p+g->sigmaPt/g->p.Pt()*g->p).Pt(), selW);
+    m1->at("metDn").Fill((met->p-g->sigmaPt/g->p.Pt()*g->p).Pt(), selW);
+    auto mJet = matchedJet(*g);
     if (mJet) {
       m1->at("g_ptStar").Fill(mJet->p.Pt(), selW);
     }
 
-    m1->at("mt_g_met").Fill((selPhotons.at(0)->p + met->p).Pt(), selW);
-    m1->at("g_pt").Fill(selPhotons.at(0)->p.Pt(), selW);
-    m1->at("g_e").Fill(selPhotons.at(0)->p.Mag(), selW);
-    m1->at("g_eta").Fill(fabs(selPhotons.at(0)->p.Eta()), selW);
-    float dphi_met_g = fabs(met->p.DeltaPhi(selPhotons.at(0)->p));
+    m1->at("mt_g_met").Fill((g->p + met->p).Pt(), selW);
+    m1->at("g_pt").Fill(g->p.Pt(), selW);
+    m1->at("g_e").Fill(g->p.Mag(), selW);
+    m1->at("g_eta").Fill(fabs(g->p.Eta()), selW);
+    float dphi_met_g = fabs(met->p.DeltaPhi(g->p));
     m1->at("dphi_met_g").Fill(dphi_met_g, selW);
     m1->at("metPar").Fill(met->p.Pt()*cos(dphi_met_g), selW);
+    m1->at("metParUp").Fill(met->p.Pt()*cos(dphi_met_g)+g->sigmaPt, selW);
+    m1->at("metParDn").Fill(met->p.Pt()*cos(dphi_met_g)-g->sigmaPt, selW);
     m1->at("metPer").Fill(fabs(met->p.Pt()*sin(dphi_met_g)), selW);
-    m1->at("metParRaw").Fill(met->p_raw.Pt()*cos(met->p_raw.DeltaPhi(selPhotons.at(0)->p)), selW);
-    m1->at("metPerRaw").Fill(fabs(met->p_raw.Pt()*sin(met->p_raw.DeltaPhi(selPhotons.at(0)->p))), selW);
+    m1->at("metParRaw").Fill(met->p_raw.Pt()*cos(met->p_raw.DeltaPhi(g->p)), selW);
+    m1->at("metPerRaw").Fill(fabs(met->p_raw.Pt()*sin(met->p_raw.DeltaPhi(g->p))), selW);
     unsigned photonPosition=0;
-    for (;photonPosition<selJets.size() && selJets.at(photonPosition)->p.Pt() > selPhotons.at(0)->p.Pt();photonPosition++);
+    for (;photonPosition<selJets.size() && selJets.at(photonPosition)->p.Pt() > g->p.Pt();photonPosition++);
     m2->at("n_jets_vs_photonPosition").Fill(selJets.size(), photonPosition, selW);
-    m2->at("g_eta_vs_g_phi").Fill(selPhotons.at(0)->p.Eta(), selPhotons.at(0)->p.Phi(), selW);
+    m2->at("g_eta_vs_g_phi").Fill(g->p.Eta(), g->p.Phi(), selW);
   }
 
   if (selJets.size() > 2) {
@@ -459,16 +475,37 @@ void HistogramProducer::fillSelection(string const& s) {
   m1->at("n_heJet").Fill(selJets.size(), selW);
   m1->at("genHt").Fill(*genHt, selW);
 
-  m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size() , selW);
+  m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size(), selW);
+  m2->at("met_vs_n_obj").Fill(met->p.Pt(), selJets.size()+selPhotons.size(), selW);
+  m2->at("metRaw_vs_n_jet").Fill(met->p_raw.Pt(), selJets.size(), selW);
+  m2->at("metRaw_vs_n_obj").Fill(met->p_raw.Pt(), selJets.size()+selPhotons.size(), selW);
   if (selJets.size()) m2->at("met_vs_j1_pt").Fill(met->p.Pt(), selJets.at(0)->p.Pt() , selW);
   if (selPhotons.size()) {
     m2->at("met_vs_g_pt").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
+    m2->at("metRaw_vs_g_pt").Fill(met->p_raw.Pt(), selPhotons.at(0)->p.Pt() , selW);
     m2->at("met_vs_g_e").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
+  } else {
+    m2->at("metRaw_vs_g_pt").Fill(met->p_raw.Pt(), 0., selW);
   }
   m2->at("met_vs_emht").Fill(met->p.Pt(), emht, selW);
+  m2->at("metRaw_vs_emht").Fill(met->p_raw.Pt(), emht, selW);
   m2->at("met_vs_mht").Fill(met->p.Pt(), recoil.Pt(), selW);
   m2->at("memht_vs_emht").Fill(emrecoil.Pt(), emht, selW);
   m2->at("mht_vs_emht").Fill(recoil.Pt(), emht, selW);
+
+  // razor
+  std::vector<TVector3> razorObjects;
+  for (auto j: *jets) {
+    razorObjects.push_back(j.p);
+  }
+
+  auto megaJets = megajets(razorObjects);
+  auto razorVar = razorVariables(megaJets, met->p);
+  m2->at("razor").Fill(razorVar.first, razorVar.second, selW);
+
+  // st stuff
+  m2->at("st_vs_n_jet").Fill(st, selJets.size(), selW);
+
 
 } // end fill
 
