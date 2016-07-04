@@ -62,6 +62,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Bool_t> hlt_photon90_ht500;
   TTreeReaderValue<Bool_t> hlt_photon90;
   TTreeReaderValue<Bool_t> hlt_ht600;
+  TTreeReaderValue<Bool_t> hlt_ht800;
   TTreeReaderValue<Int_t> hlt_ht600_pre;
 
   vector<tree::Photon*> selPhotons;
@@ -489,6 +490,7 @@ HistogramProducer::HistogramProducer():
   hlt_photon90_ht500(fReader, "HLT_Photon90_CaloIdL_PFHT500_v"),
   hlt_photon90(fReader, "HLT_Photon90_v"),
   hlt_ht600(fReader, "HLT_PFHT600_v"),
+  hlt_ht800(fReader, "HLT_PFHT800_v"),
   hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
   jetSelector("../plotter/gammaPosition.root", "gqcd"),
   nJetWeighter("../plotter/weights.root", "weight_n_heJet"),
