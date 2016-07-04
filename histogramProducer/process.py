@@ -61,7 +61,7 @@ ds={
            "WGToLNuG-madgraphMLM_nTuple.root"],
     "signals": ["T5Wg_1550_1500.root","T5Wg_1550_100.root"],
 }
-dir = "/user/kiesel/nTuples/v11/"
+dir = "/user/kiesel/nTuples/v12/"
 
 
 #############################################
