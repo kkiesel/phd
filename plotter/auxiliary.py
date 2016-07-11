@@ -603,6 +603,17 @@ def getProjection(h, ax="x", cutBin1=0, cutBin2=-1):
     else:
         print "do not know what do do with ", ax
 
+def getSystFromDifference(h1, h2):
+    out = h1.Clone(randomName())
+    drawOpt(out, "sys")
+    for bin in range(out.GetNbinsX()+2):
+        c1 = h1.GetBinContent(bin)
+        c2 = h2.GetBinContent(bin)
+        e1 = h1.GetBinError(bin)
+        e2 = h2.GetBinError(bin)
+        out.SetBinContent(bin, 0.5*(c1+c2))
+        out.SetBinError(bin, 0.5*abs(c1-c2))
+    return out
 
 def dataCardToLatexTable(filename):
     import DatacardParser
