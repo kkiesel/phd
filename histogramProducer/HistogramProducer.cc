@@ -281,7 +281,11 @@ map<string,TH2F> initHistograms2() {
   hMap["n_jets_vs_photonPosition"] = TH2F("",";jet multiplicity;#gamma position",10, -0.5, 9.5, 10, -0.5, 9.5);
   hMap["g_eta_vs_g_phi"] = TH2F("",";|#eta|;|#phi|", 260, 2.6, 2.6, 100, -3.1, 3.1);
   hMap["met_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metPar_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss} #parallel (GeV);#it{EMH}_{T} (GeV)", 600, -3000, 3000, 450, 500, 5000);
+  hMap["metPer_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss #perp  } (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
   hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metParRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} #parallel (GeV);#it{EMH}_{T} (GeV)", 600, -3000, 3000, 450, 500, 5000);
+  hMap["metPerRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss #perp  } (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
   hMap["met_vs_n_jet"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
   hMap["met_vs_n_obj"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
   hMap["metRaw_vs_n_jet"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
@@ -439,6 +443,10 @@ void HistogramProducer::fillSelection(string const& s) {
     m1->at("metPer").Fill(fabs(met->p.Pt()*sin(dphi_met_g)), selW);
     m1->at("metParRaw").Fill(met->p_raw.Pt()*cos(met->p_raw.DeltaPhi(g->p)), selW);
     m1->at("metPerRaw").Fill(fabs(met->p_raw.Pt()*sin(met->p_raw.DeltaPhi(g->p))), selW);
+    m2->at("metPar_vs_emht").Fill(met->p.Pt()*cos(dphi_met_g), emht, selW);
+    m2->at("metPer_vs_emht").Fill(met->p.Pt()*sin(dphi_met_g), emht, selW);
+    m2->at("metParRaw_vs_emht").Fill(met->p_raw.Pt()*cos(dphi_met_g), emht, selW);
+    m2->at("metPerRaw_vs_emht").Fill(met->p_raw.Pt()*sin(dphi_met_g), emht, selW);
     unsigned photonPosition=0;
     for (;photonPosition<selJets.size() && selJets.at(photonPosition)->p.Pt() > g->p.Pt();photonPosition++);
     m2->at("n_jets_vs_photonPosition").Fill(selJets.size(), photonPosition, selW);
