@@ -10,6 +10,7 @@
 #include "TH3F.h"
 #include "TEfficiency.h"
 #include "TRandom2.h"
+#include "TChain.h"
 
 #include "TreeParticles.hpp"
 #include "UserFunctions.h"
@@ -80,6 +81,7 @@ class HistogramProducer : public TSelector {
   map<string,map<string,TH2F>> h2Maps;
   map<string,map<string,TH3F>> h3Maps;
   map<string,TEfficiency> effMap;
+  map<string,TTree*> treeMap;
   map<int,pair<int,int>> rawEff_vs_run;
 
   bool isData;
@@ -369,22 +371,29 @@ map<string,TH1F> initHistograms() {
 
 void HistogramProducer::fillSelection(string const& s) {
 
+  float m;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
     h2Maps[s] = initHistograms2();
+    treeMap[s] = new TTree("simpleTree", "");
+    treeMap[s]->Branch("met", &m);
+    treeMap[s]->Branch("weight", &selW);
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
 
-  // calculate variables
-  float ht = 0;
-  float emhtNoLep = 0;
-  TVector3 recoil(0,0,0);
-  for (auto& j : selJets) {
-    ht += j->p.Pt();
-    recoil += j->p;
-    if (!j->hasPhotonMatch && !j->hasElectronMatch && !j->hasMuonMatch) {
-      emhtNoLep += j->p.Pt();
+  m = met->p.Pt();
+  treeMap[s]->Fill();
+
+  auto g = thisPhoton;
+  tree::Jet* thisJet = 0;
+  TVector3 metUp;
+  TVector3 metDn;
+  for (auto& jet : *jets ) {
+    if (jet.p.DeltaR(*g)<0.1) {
+      thisJet = &jet;
+      metUp = met->p + thisJet->uncert*thisJet->p;
+      metDn = met->p - thisJet->uncert*thisJet->p;
     }
   }
   TVector3 emrecoil = recoil;
@@ -794,6 +803,11 @@ void HistogramProducer::Terminate()
   TFile file(outputName.c_str(), "RECREATE");
   save2File(h1Maps, file);
   save2File(h2Maps, file);
+  for (auto& metsMapIt : treeMap) {
+    file.cd(metsMapIt.first.c_str());
+    metsMapIt.second->Write("simpleTree", TObject::kWriteDelete);
+    file.cd();
+  }
 
   file.mkdir("triggerStudies");
   file.cd("triggerStudies");
