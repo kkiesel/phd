@@ -10,7 +10,7 @@
 #include "TH3F.h"
 #include "TEfficiency.h"
 #include "TRandom2.h"
-#include "TChain.h"
+#include "TTree.h"
 
 #include "TreeParticles.hpp"
 #include "UserFunctions.h"
@@ -65,6 +65,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Bool_t> hlt_ht600;
   TTreeReaderValue<Bool_t> hlt_ht800;
   TTreeReaderValue<Int_t> hlt_ht600_pre;
+//  TTreeReaderValue<std::string> modelName;
 
   vector<tree::Photon*> selPhotons;
   vector<tree::Jet*> selJets;
@@ -76,6 +77,7 @@ class HistogramProducer : public TSelector {
   vector<tree::Photon> artificialPhotons;
 
   float selW = 1.; // weight
+  float sampleW = 1.;
 
   map<string,map<string,TH1F>> h1Maps;
   map<string,map<string,TH2F>> h2Maps;
@@ -371,31 +373,49 @@ map<string,TH1F> initHistograms() {
 
 void HistogramProducer::fillSelection(string const& s) {
 
-  float m;
+  float tree_m, tree_mRaw, tree_w, tree_emht;
+  UInt_t tree_njet, tree_genMatch;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
     h2Maps[s] = initHistograms2();
     treeMap[s] = new TTree("simpleTree", "");
-    treeMap[s]->Branch("met", &m);
-    treeMap[s]->Branch("weight", &selW);
+    treeMap[s]->Branch("met", &tree_m);
+    treeMap[s]->Branch("metRaw", &tree_mRaw);
+    treeMap[s]->Branch("emht", &tree_emht);
+    treeMap[s]->Branch("weight", &tree_w);
+    treeMap[s]->Branch("njet", &tree_njet, "njet/i");
+    treeMap[s]->Branch("genMatch", &tree_genMatch, "genMatch/i");
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
 
-  m = met->p.Pt();
-  treeMap[s]->Fill();
-
-  auto g = thisPhoton;
-  tree::Jet* thisJet = 0;
-  TVector3 metUp;
-  TVector3 metDn;
-  for (auto& jet : *jets ) {
-    if (jet.p.DeltaR(*g)<0.1) {
-      thisJet = &jet;
-      metUp = met->p + thisJet->uncert*thisJet->p;
-      metDn = met->p - thisJet->uncert*thisJet->p;
+  tree_m = met->p.Pt();
+  tree_mRaw = met->p.Pt();
+  tree_w = selW * sampleW;
+  tree_genMatch = true;
+  if (!isData and jets->size()) {
+    tree_genMatch = false;
+    auto& p = jets->at(0).p;
+    for (auto& gj : *genJets) {
+      if (gj.p.DeltaR(p)<0.5 and p.Pt()/gj.p.Pt()<3) {
+        tree_genMatch = true;
+        break;
+      }
     }
   }
+
+  // calculate variables
+  float ht = 0;
+  float emhtNoLep = 0;
+  TVector3 recoil(0,0,0);
+  for (auto& j : selJets) {
+    ht += j->p.Pt();
+    recoil += j->p;
+    if (!j->hasPhotonMatch && !j->hasElectronMatch && !j->hasMuonMatch) {
+      emhtNoLep += j->p.Pt();
+    }
+  }
+
   TVector3 emrecoil = recoil;
   float emht = ht;
   float emhtStar = ht;
@@ -407,6 +427,9 @@ void HistogramProducer::fillSelection(string const& s) {
     if (mJet) emhtStar += mJet->p.Pt();
     else emhtStar = p->p.Pt();
   }
+  tree_emht = emht;
+  tree_njet = selJets.size();
+  treeMap[s]->Fill();
   float st = emht + met->p.Pt();
 
   float tremht = 0;
@@ -428,7 +451,7 @@ void HistogramProducer::fillSelection(string const& s) {
   m1->at("emrecoilt").Fill(emrecoil.Pt(), selW);
 
   m1->at("met").Fill(met->p.Pt(), selW);
-  m1->at("metRaw").Fill(met->p_raw.Pt(), selW);
+  m1->at("metRaw").Fill(met->p.Pt(), selW);
 
   if (selPhotons.size() > 0) {
     auto g = selPhotons.at(0);
@@ -450,12 +473,12 @@ void HistogramProducer::fillSelection(string const& s) {
     m1->at("metParUp").Fill(met->p.Pt()*cos(dphi_met_g)+g->sigmaPt, selW);
     m1->at("metParDn").Fill(met->p.Pt()*cos(dphi_met_g)-g->sigmaPt, selW);
     m1->at("metPer").Fill(fabs(met->p.Pt()*sin(dphi_met_g)), selW);
-    m1->at("metParRaw").Fill(met->p_raw.Pt()*cos(met->p_raw.DeltaPhi(g->p)), selW);
-    m1->at("metPerRaw").Fill(fabs(met->p_raw.Pt()*sin(met->p_raw.DeltaPhi(g->p))), selW);
+    m1->at("metParRaw").Fill(met->p.Pt()*cos(met->p.DeltaPhi(g->p)), selW);
+    m1->at("metPerRaw").Fill(fabs(met->p.Pt()*sin(met->p.DeltaPhi(g->p))), selW);
     m2->at("metPar_vs_emht").Fill(met->p.Pt()*cos(dphi_met_g), emht, selW);
     m2->at("metPer_vs_emht").Fill(met->p.Pt()*sin(dphi_met_g), emht, selW);
-    m2->at("metParRaw_vs_emht").Fill(met->p_raw.Pt()*cos(dphi_met_g), emht, selW);
-    m2->at("metPerRaw_vs_emht").Fill(met->p_raw.Pt()*sin(dphi_met_g), emht, selW);
+    m2->at("metParRaw_vs_emht").Fill(met->p.Pt()*cos(dphi_met_g), emht, selW);
+    m2->at("metPerRaw_vs_emht").Fill(met->p.Pt()*sin(dphi_met_g), emht, selW);
     unsigned photonPosition=0;
     for (;photonPosition<selJets.size() && selJets.at(photonPosition)->p.Pt() > g->p.Pt();photonPosition++);
     m2->at("n_jets_vs_photonPosition").Fill(selJets.size(), photonPosition, selW);
@@ -494,18 +517,18 @@ void HistogramProducer::fillSelection(string const& s) {
 
   m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size(), selW);
   m2->at("met_vs_n_obj").Fill(met->p.Pt(), selJets.size()+selPhotons.size(), selW);
-  m2->at("metRaw_vs_n_jet").Fill(met->p_raw.Pt(), selJets.size(), selW);
-  m2->at("metRaw_vs_n_obj").Fill(met->p_raw.Pt(), selJets.size()+selPhotons.size(), selW);
+  m2->at("metRaw_vs_n_jet").Fill(met->p.Pt(), selJets.size(), selW);
+  m2->at("metRaw_vs_n_obj").Fill(met->p.Pt(), selJets.size()+selPhotons.size(), selW);
   if (selJets.size()) m2->at("met_vs_j1_pt").Fill(met->p.Pt(), selJets.at(0)->p.Pt() , selW);
   if (selPhotons.size()) {
     m2->at("met_vs_g_pt").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
-    m2->at("metRaw_vs_g_pt").Fill(met->p_raw.Pt(), selPhotons.at(0)->p.Pt() , selW);
+    m2->at("metRaw_vs_g_pt").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
     m2->at("met_vs_g_e").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
   } else {
-    m2->at("metRaw_vs_g_pt").Fill(met->p_raw.Pt(), 0., selW);
+    m2->at("metRaw_vs_g_pt").Fill(met->p.Pt(), 0., selW);
   }
   m2->at("met_vs_emht").Fill(met->p.Pt(), emht, selW);
-  m2->at("metRaw_vs_emht").Fill(met->p_raw.Pt(), emht, selW);
+  m2->at("metRaw_vs_emht").Fill(met->p.Pt(), emht, selW);
   m2->at("met_vs_mht").Fill(met->p.Pt(), recoil.Pt(), selW);
   m2->at("memht_vs_emht").Fill(emrecoil.Pt(), emht, selW);
   m2->at("mht_vs_emht").Fill(recoil.Pt(), emht, selW);
@@ -546,6 +569,7 @@ HistogramProducer::HistogramProducer():
   hlt_ht600(fReader, "HLT_PFHT600_v"),
   hlt_ht800(fReader, "HLT_PFHT800_v"),
   hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
+//  modelName(fReader, "modelName"),
   jetSelector("../plotter/gammaPosition.root", "gqcd"),
   nJetWeighter("../plotter/weights.root", "weight_n_heJet"),
   emhtWeighter("../plotter/weights.root", "weight_emht_gqcd"),
@@ -563,6 +587,11 @@ void HistogramProducer::Init(TTree *tree)
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
   zToMet = inputName.find("ZGTo2LGmod") != string::npos;
+
+  float lumi = 2.32e3; // pb^{-1}
+  float nGen = ((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"))->GetBinContent(2);
+  sampleW = isData ? 1. : lumi * sampleCrossSection(inputName) / nGen;
+
 
   std::smatch sm;
   if (regex_match(inputName, sm, regex(".*/T5.*_(\\d+)_(\\d+).root"))) {
@@ -622,6 +651,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   resetSelection();
   fReader.SetEntry(entry);
   fillUncut();
+//  cout << *modelName << endl;
 
   float zToMetPt = -1;
   if (zToMet && intermediateGenParticles->size()) {
@@ -687,6 +717,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData)) {
     fillSelection("tr");
+    if (selPhotons.at(0)->isTrue and selPhotons.at(0)->isTrueAlternative) fillSelection("tr_true");
     if (selPhotons.at(0)->isTight) fillSelection("tr_tight");
     if (met->p.Pt() < 100) fillSelection("tr_0met100");
     else                    fillSelection("tr_100met");
