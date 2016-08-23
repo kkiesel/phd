@@ -116,7 +116,7 @@ qcd1500 = Dataset( "QCD_HT1500to2000", 119.9, ROOT.kBlue+1, "QCD_HT1500to2000_Tu
 qcd2000 = Dataset( "QCD_HT2000toInf", 25.24,  ROOT.kBlue, "QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 
 qcd = qcd100 + qcd200 + qcd300 + qcd500 + qcd700 + qcd1000 + qcd1500 + qcd2000
-qcd = qcd300 + qcd500 + qcd700 + qcd1000 + qcd1500 + qcd2000
+qcd = qcd500 + qcd700 + qcd1000 + qcd1500 + qcd2000
 qcd.label = "Multijet"
 
 # electroweak
