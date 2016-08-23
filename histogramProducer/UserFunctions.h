@@ -149,3 +149,58 @@ class JetSelector {
     map<unsigned,TH1D> hMap;
 };
 
+float sampleCrossSection(const string& inputFileName) {
+  auto startPos = inputFileName.rfind("/");
+  auto endPos = inputFileName.find("_nTuple.root");
+  string sampleName = "";
+  if (endPos != string::npos) {
+    sampleName = inputFileName.substr(startPos+1, endPos-startPos-1);
+  }
+
+  map<string,float> xs = {
+    {"GJets_HT-40To100", 20790},
+    {"GJets_HT-100To200", 9238},
+    {"GJets_HT-200To400", 2305},
+    {"GJets_HT-400To600", 274.4},
+    {"GJets_HT-600ToInf", 93.46},
+    {"QCD_HT100to200", 27990000},
+    {"QCD_HT200to300", 1712000},
+    {"QCD_HT300to500", 347700},
+    {"QCD_HT500to700", 32100},
+    {"QCD_HT700to1000", 6831},
+    {"QCD_HT1000to1500", 1207},
+    {"QCD_HT1500to2000", 119.9},
+    {"QCD_HT2000toInf", 25.24},
+    {"TTJets", 670.3},
+    {"WJetsToLNu_HT-100To200", 1345.*1.21},
+    {"WJetsToLNu_HT-200To400", 359.7*1.21},
+    {"WJetsToLNu_HT-400To600", 48.91*1.21},
+    {"WJetsToLNu_HT-600To800", 12.05*1.21},
+    {"WJetsToLNu_HT-800To1200", 5.501*1.21},
+    {"WJetsToLNu_HT-1200To2500", 1.329*1.21},
+    {"WJetsToLNu_HT-2500ToInf", 0.03216*1.21},
+    {"WJetsToLNu_HT-600ToInf", 18.77*1.21},
+    {"TTGJets", 3.697},
+    {"TGJets_amcatnlo_madspin", 2.967},
+    {"WGToLNuG-amcatnloFXFX", 489.},
+    {"WGToLNuG-madgraphMLM", 405.271},
+    {"WGToLNuG_PtG-500", 0.0117887},
+    {"ZJetsToNuNu_HT-100To200", 280.47*1.23},
+    {"ZJetsToNuNu_HT-200To400", 78.36*1.23},
+    {"ZJetsToNuNu_HT-400To600", 10.94*1.23},
+    {"ZJetsToNuNu_HT-600ToInf", 4.20*1.23},
+    {"ZNuNuGJets_MonoPhoton_PtG-130", 0.223},
+    {"ZGTo2LG", 117.864},
+    {"ZGTo2LGmod", 117.864},
+    {"DYJetsToLL_M-50", 6025.2},
+    {"WGJets_MonoPhoton_PtG-130", 0.834} // source: jlange
+  };
+  if (xs.count(sampleName)) {
+    return xs.at(sampleName);
+  } else {
+    cout << "No cross section defined for " << inputFileName << endl;
+    return -1;
+  }
+}
+
+
