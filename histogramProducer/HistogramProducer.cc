@@ -373,7 +373,7 @@ map<string,TH1F> initHistograms() {
 
 void HistogramProducer::fillSelection(string const& s) {
 
-  float tree_m, tree_mRaw, tree_w, tree_emht;
+  float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt;
   UInt_t tree_njet, tree_genMatch;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
@@ -383,6 +383,7 @@ void HistogramProducer::fillSelection(string const& s) {
     treeMap[s]->Branch("metRaw", &tree_mRaw);
     treeMap[s]->Branch("emht", &tree_emht);
     treeMap[s]->Branch("weight", &tree_w);
+    treeMap[s]->Branch("pt", &tree_pt, "pt");
     treeMap[s]->Branch("njet", &tree_njet, "njet/i");
     treeMap[s]->Branch("genMatch", &tree_genMatch, "genMatch/i");
   }
@@ -393,6 +394,7 @@ void HistogramProducer::fillSelection(string const& s) {
   tree_mRaw = met->p.Pt();
   tree_w = selW * sampleW;
   tree_genMatch = true;
+  tree_pt = 0;
   if (!isData and jets->size()) {
     tree_genMatch = false;
     auto& p = jets->at(0).p;
@@ -402,6 +404,9 @@ void HistogramProducer::fillSelection(string const& s) {
         break;
       }
     }
+  }
+  if (selPhotons.size()) {
+    tree_pt = selPhotons.at(0)->p.Pt();
   }
 
   // calculate variables
