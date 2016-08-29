@@ -338,6 +338,9 @@ def getYAxisTitle( histo ):
         else:
             return yTitle
 
+def setYAxisTitle(h):
+    h.SetYTitle(getYAxisTitle(h))
+
 def getROC( hSig, hBkg, highX=True ):
     # highX: signal is at high values of the variable
 
