@@ -86,10 +86,20 @@ class Dataset:
 
 
 # data
-data = Dataset("SinglePhoton_Run2015D-16Dec2015-v1", 0, ROOT.kBlack ) + Dataset("SinglePhoton_Run2015C_25ns-16Dec2015-v1", 0, ROOT.kBlack )
+data = Dataset("SinglePhoton_Run2016B-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016C-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016D-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016E-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016F-PromptReco-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016G-PromptReco-v1", 0, ROOT.kBlack )
 data.label = "Data"
 
-dataHt = Dataset("JetHT_Run2015D-16Dec2015-v1", 0, ROOT.kBlack ) + Dataset("JetHT_Run2015C_25ns-16Dec2015-v1", 0, ROOT.kBlack )
+dataHt = Dataset("JetHT_Run2016B-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016C-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016D-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016E-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016F-PromptReco-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016G-PromptReco-v1", 0, ROOT.kBlack )
 dataHt.label = "Data (JetHt)"
 
 # k-factors from twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
