@@ -479,13 +479,8 @@ HistogramProducer::HistogramProducer():
   hlt_ht600(fReader, "HLT_PFHT600_v"),
   hlt_ht800(fReader, "HLT_PFHT800_v"),
   hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
-//  modelName(fReader, "modelName"),
-  jetSelector("../plotter/gammaPosition.root", "gqcd"),
-  nJetWeighter("../plotter/weights.root", "weight_n_heJet"),
-  emhtWeighter("../plotter/weights.root", "weight_emht_gqcd"),
   looseCutFlowPhoton({{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
     {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} }),
-  gluinoMass(0),
   startTime(time(NULL)),
   rand()
 {
@@ -496,17 +491,11 @@ void HistogramProducer::Init(TTree *tree)
   fReader.SetTree(tree);
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
-  zToMet = inputName.find("ZGTo2LGmod") != string::npos;
 
   float lumi = 2.32e3; // pb^{-1}
   float nGen = ((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"))->GetBinContent(2);
   sampleW = isData ? 1. : lumi * sampleCrossSection(inputName) / nGen;
 
-
-  std::smatch sm;
-  if (regex_match(inputName, sm, regex(".*/T5.*_(\\d+)_(\\d+).root"))) {
-      gluinoMass = stoi(sm[1]);
-  }
   initTriggerStudies();
   initUncut();
 }
@@ -561,54 +550,11 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   resetSelection();
   fReader.SetEntry(entry);
   fillUncut();
-//  cout << *modelName << endl;
-
-  float zToMetPt = -1;
-  if (zToMet && intermediateGenParticles->size()) {
-    auto z = intermediateGenParticles->at(0);
-    if (z.daughters.size() > 2) {
-      return kTRUE;
-    }
-    met->p += z.p;
-    for (auto d : z.daughters) {
-      for (auto p = photons->begin(); p!=photons->end();) {
-        if (p->p.DeltaR(d.p) < 0.1) p = photons->erase(p);
-        else p++;
-      }
-      for (auto p = jets->begin(); p!=jets->end();) {
-        if (p->p.DeltaR(d.p) < 0.1) p = jets->erase(p);
-        else p++;
-      }
-      for (auto p = electrons->begin(); p!=electrons->end();) {
-        if (p->p.DeltaR(d.p) < 0.1) p = electrons->erase(p);
-        else p++;
-      }
-      for (auto p = muons->begin(); p!=muons->end();) {
-        if (p->p.DeltaR(d.p) < 0.1) p = muons->erase(p);
-        else p++;
-      }
-    }
-    for (auto p : *genParticles) {
-      if (p.pdgId == 22) {
-        zToMetPt = p.p.Pt();
-        break;
-      }
-    }
-  }
-  if (zToMet && zToMetPt<0) return kTRUE;
-
 
   if (isData) fillTriggerStudies();
 
   // set weight
   selW = *mc_weight * *pu_weight;
-
-  // For FastSim CMSSW7X, there are events with large pt jets (pt>sqrt(2))
-  // It was recommended for the 2015 analysis to ignore events with objets > 2 times gluino mass
-  // TODO: remove these events from the acceptance, change nGen (should be small influence)
-  // see here: https://hypernews.cern.ch/HyperNews/CMS/get/met/432.html
-  if (gluinoMass > 0 && jets->size() && jets->at(0).p.Pt() > 2*gluinoMass) return kTRUE;
-
 
   /////////////////////////////////////////////////////////////////////////////
   // signal sample
