@@ -77,17 +77,17 @@ void HistogramProducer::fillTriggerStudies() {
     // get trigger efficiencies for each run
     if (thisPhoton->p.Pt() > 100  && ht > 700 && *hlt_ht600) {
       if (!rawEff_vs_run.count(*runNo)) rawEff_vs_run[*runNo] = make_pair(0,0);
-      if (*hlt_photon90_ht500) rawEff_vs_run.at(*runNo).first += 1;
+      if (*hlt_photon90_ht600) rawEff_vs_run.at(*runNo).first += 1;
       rawEff_vs_run.at(*runNo).second += 1;
     }
 
     // main trigger plots
     if (thisPhoton->p.Pt() > 100 && *hlt_photon90) {
-      effMap.at("eff_hlt_ht").Fill(*hlt_photon90_ht500, ht);
-      effMap.at("eff_hlt_ht_ptMin").Fill(*hlt_photon90_ht500, minPtJet->p.Pt());
-      if (ht>600) effMap.at("eff_hlt_ht_etaMax").Fill(*hlt_photon90_ht500, fabs(maxEtaJet->p.Eta()));
+      effMap.at("eff_hlt_ht").Fill(*hlt_photon90_ht600, ht);
+      effMap.at("eff_hlt_ht_ptMin").Fill(*hlt_photon90_ht600, minPtJet->p.Pt());
+      if (ht>600) effMap.at("eff_hlt_ht_etaMax").Fill(*hlt_photon90_ht600, fabs(maxEtaJet->p.Eta()));
     }
-    if (thisPhoton->p.Pt() > 100 && *hlt_photon90_ht500) {
+    if (thisPhoton->p.Pt() > 100 && *hlt_photon90_ht600) {
       effMap.at("eff_hlt_ht_ct").Fill(*hlt_ht600, ht);
       effMap.at("eff_hlt_ht_ct_preScaled").FillWeighted(*hlt_ht600, *hlt_ht600_pre, ht);
       if (ht > 700) effMap.at("eff_hlt_met_ct").Fill(*hlt_ht600, met->p.Pt());
@@ -98,8 +98,8 @@ void HistogramProducer::fillTriggerStudies() {
       if (ht > 700) effMap.at("eff_hlt_met_ct2").Fill(*hlt_ht600, met->p.Pt());
     }
     if (ht > 700 && *hlt_ht600) {
-      effMap.at("eff_hlt_pt").Fill(*hlt_photon90_ht500, thisPhoton->p.Pt());
-      effMap.at("eff_hlt_eta").Fill(*hlt_photon90_ht500, fabs(thisPhoton->p.Eta()));
+      effMap.at("eff_hlt_pt").Fill(*hlt_photon90_ht600, thisPhoton->p.Pt());
+      effMap.at("eff_hlt_eta").Fill(*hlt_photon90_ht600, fabs(thisPhoton->p.Eta()));
     }
   }
 
@@ -107,37 +107,37 @@ void HistogramProducer::fillTriggerStudies() {
     for (auto& photon : *photons) {
       if (photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel) {
         if (looseCutFlowPhoton.check(photon)) {
-          effMap.at("eff_hlt_r9").Fill(*hlt_photon90_ht500, photon.r9);
-          effMap.at("eff_hlt_nVertex").Fill(*hlt_photon90_ht500, *nGoodVertices);
-          effMap.at("eff_hlt_nJet").Fill(*hlt_photon90_ht500, jets->size());
-          effMap.at("eff_hlt_met").Fill(*hlt_photon90_ht500, met->p.Pt());
+          effMap.at("eff_hlt_r9").Fill(*hlt_photon90_ht600, photon.r9);
+          effMap.at("eff_hlt_nVertex").Fill(*hlt_photon90_ht600, *nGoodVertices);
+          effMap.at("eff_hlt_nJet").Fill(*hlt_photon90_ht600, jets->size());
+          effMap.at("eff_hlt_met").Fill(*hlt_photon90_ht600, met->p.Pt());
         }
         if (
           looseCutFlowPhoton.passHoe()
           && looseCutFlowPhoton.passSie()
           && looseCutFlowPhoton.passNIso()
           && looseCutFlowPhoton.passPIso()
-         ) effMap.at("eff_hlt_cIso").Fill(*hlt_photon90_ht500, photon.cIso);
+         ) effMap.at("eff_hlt_cIso").Fill(*hlt_photon90_ht600, photon.cIso);
         if (
           looseCutFlowPhoton.passHoe()
           && looseCutFlowPhoton.passSie()
           && looseCutFlowPhoton.passCIso()
           && looseCutFlowPhoton.passPIso()
-         ) effMap.at("eff_hlt_nIso").Fill(*hlt_photon90_ht500, photon.nIso);
+         ) effMap.at("eff_hlt_nIso").Fill(*hlt_photon90_ht600, photon.nIso);
         if (
           looseCutFlowPhoton.passHoe()
           && looseCutFlowPhoton.passSie()
           && looseCutFlowPhoton.passCIso()
           && looseCutFlowPhoton.passNIso()
-         ) effMap.at("eff_hlt_pIso").Fill(*hlt_photon90_ht500, photon.pIso);
+         ) effMap.at("eff_hlt_pIso").Fill(*hlt_photon90_ht600, photon.pIso);
         if (
           looseCutFlowPhoton.passHoe()
           && looseCutFlowPhoton.passIso()
-       ) effMap.at("eff_hlt_sie").Fill(*hlt_photon90_ht500, photon.sigmaIetaIeta);
+       ) effMap.at("eff_hlt_sie").Fill(*hlt_photon90_ht600, photon.sigmaIetaIeta);
         if (
           looseCutFlowPhoton.passSie()
           && looseCutFlowPhoton.passIso()
-       ) effMap.at("eff_hlt_hoe").Fill(*hlt_photon90_ht500, photon.hOverE);
+       ) effMap.at("eff_hlt_hoe").Fill(*hlt_photon90_ht600, photon.hOverE);
       }
     } // photon loop
   } // ht cross trigger
@@ -470,7 +470,7 @@ HistogramProducer::HistogramProducer():
   mc_weight(fReader, "mc_weight"),
   genHt(fReader, "genHt"),
   runNo(fReader, "runNo"),
-  hlt_photon90_ht500(fReader, "HLT_Photon90_CaloIdL_PFHT500_v"),
+  hlt_photon90_ht600(fReader, "HLT_Photon90_CaloIdL_PFHT600_v"),
   hlt_photon90(fReader, "HLT_Photon90_v"),
   hlt_ht600(fReader, "HLT_PFHT600_v"),
   hlt_ht800(fReader, "HLT_PFHT800_v"),
@@ -621,7 +621,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selPhotons) myHt += p->p.Pt();
   for (auto& p : selJets) myHt += p->p.Pt();
 
-  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht500 || !isData)) {
+  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr");
     if (selPhotons.at(0)->isTrue and selPhotons.at(0)->isTrueAlternative) fillSelection("tr_true");
     if (selPhotons.at(0)->isTight) fillSelection("tr_tight");
