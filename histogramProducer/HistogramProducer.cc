@@ -293,7 +293,7 @@ void HistogramProducer::fillSelection(string const& s) {
   auto m2 = &h2Maps[s];
 
   tree_m = met->p.Pt();
-  tree_mRaw = met->p.Pt();
+  tree_mRaw = metRaw->p.Pt();
   tree_w = selW * sampleW;
   tree_genMatch = true;
   tree_pt = 0;
@@ -358,7 +358,7 @@ void HistogramProducer::fillSelection(string const& s) {
   m1->at("emrecoilt").Fill(emrecoil.Pt(), selW);
 
   m1->at("met").Fill(met->p.Pt(), selW);
-  m1->at("metRaw").Fill(met->p.Pt(), selW);
+  m1->at("metRaw").Fill(metRaw->p.Pt(), selW);
 
   if (selPhotons.size() > 0) {
     auto g = selPhotons.at(0);
@@ -380,12 +380,12 @@ void HistogramProducer::fillSelection(string const& s) {
     m1->at("metParUp").Fill(met->p.Pt()*cos(dphi_met_g)+g->sigmaPt, selW);
     m1->at("metParDn").Fill(met->p.Pt()*cos(dphi_met_g)-g->sigmaPt, selW);
     m1->at("metPer").Fill(fabs(met->p.Pt()*sin(dphi_met_g)), selW);
-    m1->at("metParRaw").Fill(met->p.Pt()*cos(met->p.DeltaPhi(g->p)), selW);
-    m1->at("metPerRaw").Fill(fabs(met->p.Pt()*sin(met->p.DeltaPhi(g->p))), selW);
+    m1->at("metParRaw").Fill(metRaw->p.Pt()*cos(met->p.DeltaPhi(g->p)), selW);
+    m1->at("metPerRaw").Fill(fabs(metRaw->p.Pt()*sin(met->p.DeltaPhi(g->p))), selW);
     m2->at("metPar_vs_emht").Fill(met->p.Pt()*cos(dphi_met_g), emht, selW);
     m2->at("metPer_vs_emht").Fill(met->p.Pt()*sin(dphi_met_g), emht, selW);
-    m2->at("metParRaw_vs_emht").Fill(met->p.Pt()*cos(dphi_met_g), emht, selW);
-    m2->at("metPerRaw_vs_emht").Fill(met->p.Pt()*sin(dphi_met_g), emht, selW);
+    m2->at("metParRaw_vs_emht").Fill(metRaw->p.Pt()*cos(dphi_met_g), emht, selW);
+    m2->at("metPerRaw_vs_emht").Fill(metRaw->p.Pt()*sin(dphi_met_g), emht, selW);
     unsigned photonPosition=0;
     for (;photonPosition<selJets.size() && selJets.at(photonPosition)->p.Pt() > g->p.Pt();photonPosition++);
     m2->at("n_jets_vs_photonPosition").Fill(selJets.size(), photonPosition, selW);
@@ -424,22 +424,23 @@ void HistogramProducer::fillSelection(string const& s) {
 
   m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size(), selW);
   m2->at("met_vs_n_obj").Fill(met->p.Pt(), selJets.size()+selPhotons.size(), selW);
-  m2->at("metRaw_vs_n_jet").Fill(met->p.Pt(), selJets.size(), selW);
-  m2->at("metRaw_vs_n_obj").Fill(met->p.Pt(), selJets.size()+selPhotons.size(), selW);
+  m2->at("metRaw_vs_n_jet").Fill(metRaw->p.Pt(), selJets.size(), selW);
+  m2->at("metRaw_vs_n_obj").Fill(metRaw->p.Pt(), selJets.size()+selPhotons.size(), selW);
   if (selJets.size()) m2->at("met_vs_j1_pt").Fill(met->p.Pt(), selJets.at(0)->p.Pt() , selW);
   if (selPhotons.size()) {
     m2->at("met_vs_g_pt").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
-    m2->at("metRaw_vs_g_pt").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
+    m2->at("metRaw_vs_g_pt").Fill(metRaw->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
     m2->at("met_vs_g_e").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
   } else {
-    m2->at("metRaw_vs_g_pt").Fill(met->p.Pt(), 0., selW);
+    m2->at("metRaw_vs_g_pt").Fill(metRaw->p.Pt(), 0., selW);
   }
   m2->at("met_vs_emht").Fill(met->p.Pt(), emht, selW);
-  m2->at("metRaw_vs_emht").Fill(met->p.Pt(), emht, selW);
+  m2->at("metRaw_vs_emht").Fill(metRaw->p.Pt(), emht, selW);
   m2->at("met_vs_mht").Fill(met->p.Pt(), recoil.Pt(), selW);
   m2->at("memht_vs_emht").Fill(emrecoil.Pt(), emht, selW);
   m2->at("mht_vs_emht").Fill(recoil.Pt(), emht, selW);
 
+  /*
   // razor
   std::vector<TVector3> razorObjects;
   for (auto j: *jets) {
@@ -452,6 +453,7 @@ void HistogramProducer::fillSelection(string const& s) {
 
   // st stuff
   m2->at("st_vs_n_jet").Fill(st, selJets.size(), selW);
+  */
 
 
 } // end fill
@@ -466,6 +468,7 @@ HistogramProducer::HistogramProducer():
   genParticles(fReader, "genParticles"),
   intermediateGenParticles(fReader, "intermediateGenParticles"),
   met(fReader, "met"),
+  metRaw(fReader, "met_raw"),
   nGoodVertices(fReader, "nGoodVertices"),
   pu_weight(fReader, "pu_weight"),
   mc_weight(fReader, "mc_weight"),
