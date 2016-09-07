@@ -273,6 +273,7 @@ map<string,TH1F> initHistograms() {
 }
 
 void HistogramProducer::fillSelection(string const& s) {
+  if (std::isnan(met->p.X())) return;
 
   float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt;
   UInt_t tree_njet, tree_genMatch;
