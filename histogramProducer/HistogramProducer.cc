@@ -492,7 +492,7 @@ void HistogramProducer::Init(TTree *tree)
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
 
-  float lumi = 2.32e3; // pb^{-1}
+  float lumi = 22.0e3; // pb^{-1}
   float nGen = ((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"))->GetBinContent(2);
   sampleW = isData ? 1. : lumi * sampleCrossSection(inputName) / nGen;
 
