@@ -676,8 +676,7 @@ def dataCardToLatexTable(filename):
     content = '\n'.join([' & '.join(x) for x in zip(*columns)])
     print "\\begin{tabular}{%s}\n"%('c'*len(columns)) + content + "\n\\end{tabular}\n"
 
-intLumi = 2.32e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2611.html
-# and here https://twiki.cern.ch/twiki/bin/view/CMS/PdmV2015Analysis#ReReco_at_25_ns
+intLumi = 22.0e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2705.html
 
 class Label:
     # Create labels
