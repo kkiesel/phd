@@ -25,6 +25,7 @@ def createBottomPad( r=.2 ):
     rPad.Draw()
     rPad.cd()
     rPad.SetLogy(0)
+    ROOT.SetOwnership(rPad, False)
     return rPad
 
 def convertToTH1( profile ):
@@ -57,20 +58,9 @@ class Ratio:
             hist.SetTitleOffset(1.2, "Y")
             hist.SetYTitle( self.title )
 
-        self.totalUncert.SetFillStyle(3254)
-        self.totalUncert.SetMarkerSize(0)
-        self.totalUncert.SetFillColor(46)
-
-        self.ratioSys.SetFillStyle(3002)
-        self.ratioSys.SetMarkerSize(0)
-        self.ratioSys.SetMarkerStyle(0)
-        self.ratioSys.SetFillColor( self.denominator.GetLineColor() )
-        self.ratioSys.SetLineColor(0)
-
-        self.ratioStat.SetLineWidth(5)
-        self.ratioStat.SetMarkerStyle(0)
-        self.ratioStat.SetLineColor(ROOT.kGray)
-
+        aux.drawOpt(self.totalUncert, "totUnc")
+        aux.drawOpt(self.ratioSys, "sysUnc")
+        aux.drawOpt(self.ratioStat, "statUnc")
 
     def calculateRatio( self ):
         for bin in range(self.denominator.GetNbinsX()+2): self.denominator.SetBinError(bin,0)
