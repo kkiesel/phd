@@ -492,6 +492,20 @@ def diagonalFlip( original ):
             flipped.SetBinError( ybin, xbin, original.GetBinError(xbin,ybin) )
     return flipped
 
+def addHists(*histograms):
+    out = histograms[0].Clone()
+    for h in histograms[1:]:
+        out.Add(h)
+    return out
+
+
+def addHistUncert(*histograms):
+    out = histograms[0].Clone()
+    for h in histograms[1:]:
+        for bin in range(out.GetNbinsX()+2):
+            out.SetBinError(bin, math.sqrt( out.GetBinError(bin)**2 + h.GetBinError(bin)**2 ))
+    return out
+
 def maxBinWidth( h ):
     return max([ h.GetBinWidth(bin) for bin in range(h.GetNbinsX()+2) ])
 
