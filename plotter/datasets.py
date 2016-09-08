@@ -166,32 +166,36 @@ wg_mg = Dataset( "WGToLNuG-madgraphMLM", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUE
 wg_pt500 = Dataset( "WGToLNuG_PtG-500", 0.0117887, ROOT.kRed-1, "WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wg_mg.label = "#gammaW#rightarrow#gammal#nu"
 
+wg_130 = Dataset( "WGJets_MonoPhoton_PtG-130", 0.834, ROOT.kRed-1, "WGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
+wg_130.label = "#gammaW"
+
+
 # znunu
 znunu100 = Dataset( "ZJetsToNuNu_HT-100To200", 280.47, ROOT.kMagenta+3 , "ZJetsToNuNu_HT-100To200_13TeV-madgraph" )
 znunu200 = Dataset( "ZJetsToNuNu_HT-200To400", 78.36, ROOT.kMagenta+2 , "ZJetsToNuNu_HT-200To400_13TeV-madgraph" )
 znunu400 = Dataset( "ZJetsToNuNu_HT-400To600", 10.94, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-400To600_13TeV-madgraph" )
-znunu400 = Dataset( "ZJetsToNuNu_HT-400To600", 10.94, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-400To600_13TeV-madgraph" )
-znunu400 = Dataset( "ZJetsToNuNu_HT-600To800", 0.853, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-600To800_13TeV-madgraph" )
-znunu400 = Dataset( "ZJetsToNuNu_HT-800To1200", 0.3942, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-800To1200_13TeV-madgraph" )
-znunu400 = Dataset( "ZJetsToNuNu_HT-1200To2500", 0.0974, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph" )
-znunu400 = Dataset( "ZJetsToNuNu_HT-2500ToInf", 0.002308, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph" )
-znunu600 = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.20, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-600ToInf_13TeV-madgraph" )
+znunu600 = Dataset( "ZJetsToNuNu_HT-600To800", 0.853, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-600To800_13TeV-madgraph" )
+znunu800 = Dataset( "ZJetsToNuNu_HT-800To1200", 0.3942, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-800To1200_13TeV-madgraph" )
+znunu1200 = Dataset( "ZJetsToNuNu_HT-1200To2500", 0.0974, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph" )
+znunu2500 = Dataset( "ZJetsToNuNu_HT-2500ToInf", 0.002308, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph" )
+znunu600Inf = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.20, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-600ToInf_13TeV-madgraph" )
 
-zg40 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-40-130", 2.816, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-40to130_TuneCUETP8M1_13TeV-madgraph" )
+#znunuSamples = znunu400, znunu600
+#for ds in znunuSamples:
+#    # apply k-factor
+#    ds.xsecs = [ ds.xsecs[0] * 1.23 ]
+
+znunu = znunu100 + znunu200 + znunu400 + znunu600 + znunu800 + znunu1200 + znunu2500
+znunu.label = "Z#rightarrow#nu#nu"
+
+
+zg40 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-40to130", 2.816, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-40to130_TuneCUETP8M1_13TeV-madgraph" )
 zg130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.223, ROOT.kMagenta+2, "ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
 zg = zg40 + zg130
 zg.label = "#gammaZ(#nu#nu)"
 
 zgll = Dataset( "ZGTo2LG", 117.864, ROOT.kMagenta+3, "ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 zgll.label = "#gammaZ(ll)"
-
-znunuSamples = znunu400, znunu600
-for ds in znunuSamples:
-    # apply k-factor
-    ds.xsecs = [ ds.xsecs[0] * 1.23 ]
-
-znunu = sum( znunuSamples )
-znunu.label = "Z#rightarrow#nu#nu"
 
 
 # cross section from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#DY_Z
@@ -234,10 +238,10 @@ signal = SampleCollection()
 
 if __name__ == "__main__":
     # print information
-    for i in gjets, qcd, ttjets, ttg, wjets, wg_mg, znunu,zg_130: print i.getLatexTableLine(),
+    for i in gjets, qcd, ttjets, ttg, wjets, wg_mg, wg_130, znunu,zg: print i.getLatexTableLine(),
     print
 
     print gjets.getLatexTableHeader()
-    for i in gjets40, gjets100, gjets200, gjets400, gjets600, qcd100, qcd200, qcd300, qcd500, qcd700, qcd1000, qcd1500, qcd2000, ttjets, wjets100, wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500, ttg, wg_mg, znunu100, znunu200, znunu400, znunu600, zg_130, zgll:
+    for i in gjets40, gjets100, gjets200, gjets400, gjets600, qcd100, qcd200, qcd300, qcd500, qcd700, qcd1000, qcd1500, qcd2000, ttjets, wjets100, wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500, ttg, wg_mg, wg_130, znunu100, znunu200, znunu400, znunu600, zg:
         print i.getLatexTableLine(),
     print
