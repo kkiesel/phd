@@ -563,18 +563,35 @@ def drawOpt(h, style):
         h.drawOption_="e0p0"
         if integerContent(h):
             h.Sumw2(False) # kPoisson uncertainties are drawn
-    if style == "pre":
-        h.SetLineColor(ROOT.kRed)
-        h.drawOption_ = "hist e"
-    if style == "signal":
+    elif style == "pre":
+        h.SetLineColor(ROOT.kBlack)
+        h.drawOption_ = "hist"
+    elif style == "signal":
         h.SetLineWidth(3)
         h.drawOption_ = "hist"
-    if style == "sys":
+    elif style == "statUnc":
+        h.SetLineWidth(5)
+        h.SetMarkerStyle(0)
+        h.SetLineColor(ROOT.kGray)
+        h.drawOption_ = "e x0"
+    elif style == "totUnc":
+        h.SetFillStyle(3254)
+        h.SetMarkerSize(0)
+        h.SetFillColor(ROOT.kBlack)
+        h.drawOption_ = "e2"
+    elif style == "sysUnc":
+        h.SetFillStyle(3245)
+        h.SetMarkerSize(0)
+        h.SetFillColor(ROOT.kRed)
+        h.drawOption_ = "e2"
+    elif style == "sys":
         c = h.GetLineColor()
         h.SetFillColor(c)
         h.SetMarkerColor(c)
         h.SetFillStyle(3333)
         h.drawOption_ = "e2"
+    else:
+        print "Do not know what to do with draw option", style
 
 def getPaletteColor(f):
     # f should be a fraction from 0 to 1, such that the whole palette is used
