@@ -1,5 +1,6 @@
-#include "regex"
-#include "time.h"
+#include <math.h>
+#include <regex>
+#include <time.h>
 
 #include "TROOT.h"
 #include "TFile.h"
@@ -78,6 +79,7 @@ class HistogramProducer : public TSelector {
 
   float selW = 1.; // weight
   float sampleW = 1.;
+  TVector3 metShift;
 
   map<string,map<string,TH1F>> h1Maps;
   map<string,map<string,TH2F>> h2Maps;
