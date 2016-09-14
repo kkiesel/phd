@@ -4,6 +4,7 @@ import re
 import math
 from math import *
 import ConfigParser
+import itertools
 
 binCfg = ConfigParser.SafeConfigParser()
 binCfg.readfp(open('rebin.cfg'))
@@ -53,21 +54,28 @@ def getDatasetFromKey(key):
     return key
 
 
-def getProjections( h2, alongX=True ):
+def getProjections( h2, axis="x" ):
+    if axis == "x":
+        a1 = h2.GetXaxis()
+        a2 = h2.GetYaxis()
+    elif axis == "y":
+        a1 = h2.GetYaxis()
+        a2 = h2.GetXaxis()
+    else:
+        print "please use 'x' or 'y' as argument"
     hs = []
-    label = h2.GetYaxis().GetTitle()
+    label = a2.GetTitle()
 
-    for ybin in range( h2.GetNbinsY()+2 ):
+    for ybin in range( a2.GetNbins()+2 ):
 
-        ylow = h2.GetYaxis().GetBinLowEdge(ybin)
-        yhigh = h2.GetYaxis().GetBinUpEdge(ybin)
+        ylow = a2.GetBinLowEdge(ybin)
+        yhigh = a2.GetBinUpEdge(ybin)
         name = "{} #leq {} < {}".format( ylow, label, yhigh )
         if ybin == 0: name = "{} < {}".format( label, yhigh )
-        if ybin == h2.GetNbinsY()+1: name = "{} #leq {}".format( ylow, label )
+        if ybin == a2.GetNbins()+1: name = "{} #leq {}".format( ylow, label )
 
-
-        h = h2.ProjectionX( name, ybin, ybin )
-        h.SetLineColor( ybin+2)
+        h = h2.ProjectionX( name, ybin, ybin ) if axis == "x" else h2.ProjectionY( name, ybin, ybin )
+        h.SetLineColor(getPaletteColor(1.*ybin/(a2.GetNbins()+2)))
         if h.GetEntries():
             h.Scale( 1./h.GetEntries() )
             hs.append( h )
@@ -120,6 +128,9 @@ def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
             outList.append( element.GetName() )
 
     return outList
+
+def inerate(axis):
+    return range(axis.GetNbins()+2)
 
 def getBinning( axis ):
     binning = []
@@ -612,6 +623,16 @@ def getSysHisto(h, relUncert):
             e = meanWeight*poissonZeroError
             hsys.SetBinError(bin, e)
     return hsys
+
+def iterate(h, axis="x"):
+    if axis == "x":
+        return range(h.GetNbinsX()+2)
+    elif axis == "y":
+        return range(h.GetNbinsY()+2)
+    elif axis == "z":
+        return range(h.GetNbinsZ()+2)
+    else:
+        print "Please specify correct axis"
 
 def myMatch( regex, string ):
     m = re.match( regex, string )
