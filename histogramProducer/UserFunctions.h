@@ -1,5 +1,6 @@
-#include<regex>
-#include<TH2F.h>
+#include <algorithm>
+#include <regex>
+#include <TH2F.h>
 
 // https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation74X
 enum bTaggingEnum { CSVv2L, CSVv2M, CSVv2T };
@@ -208,4 +209,53 @@ float sampleCrossSection(const string& inputFileName) {
   }
 }
 
+std::pair<float, float> jerScales(float eta) {
+  // Copied on 2016-09-14 from https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
+  // for 80X
+  eta = std::abs(eta);
+  float sf=0, e=0;
+  if (eta<.5) {
+    sf = 1.122; e = 0.026;
+  } else if (eta<.8) {
+    sf = 1.167; e = 0.048;
+  } else if (eta<1.1) {
+    sf = 1.168; e = 0.046;
+  } else if (eta<1.3) {
+    sf = 1.029; e = 0.066;
+  } else if (eta<1.7) {
+    sf = 1.115; e = 0.03;
+  } else if (eta<1.9) {
+    sf = 1.041; e = 0.062;
+  } else if (eta<2.1) {
+    sf = 1.167; e = 0.086;
+  } else if (eta<2.3) {
+    sf = 1.094; e = 0.093;
+  } else if (eta<2.5) {
+    sf = 1.168; e = 0.120;
+  } else if (eta<2.8) {
+    sf = 1.266; e = 0.132;
+  } else if (eta<3.0) {
+    sf = 1.595; e = 0.175;
+  } else if (eta<3.2) {
+    sf = 0.998; e = 0.066;
+  } else {
+    sf = 1.226; e = 0.145;
+  }
+  return std::pair<float, float> (sf, e);
+}
 
+float smearedPt(const TVector3& p, const vector<tree::Particle>& genJets, TRandom2& rand) {
+  auto sfe = jerScales(p.Eta());
+  float oldPt = p.Pt();
+  float genPt = 0;
+  for (const auto& genJ : genJets) {
+    if (p.DeltaR(genJ.p) < .2 && std::abs(oldPt-genJ.p.Pt()) < 3*sfe.second*oldPt) {
+      genPt = genJ.p.Pt();
+      break;
+    }
+  }
+  float newPt = genPt > 10 ?
+      std::max((float)0., genPt + sfe.first*(oldPt-genPt))
+    : rand.Gaus(oldPt, sqrt(pow(sfe.first,2)-1) * sfe.second*oldPt);
+  return newPt;
+}
