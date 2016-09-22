@@ -21,6 +21,56 @@ float m(const TVector3& p1, const TVector3& p2) {
   return (a+b).M();
 }
 
+class FourHists {
+  // Creates four histograms for {signal,background}x{pixelseed, }
+ public:
+  FourHists() {}
+  FourHists(const string& name, unsigned nBins, float min, float max, unsigned nMaxMixings_=10) {
+    nMaxMixings = nMaxMixings_;
+    eg_sig = TH2F( ("eg_sig_"+name).c_str(), "", 120, 60, 120, nBins, min, max);
+    ee_sig = TH2F( ("ee_sig_"+name).c_str(), "", 120, 60, 120, nBins, min, max);
+    eg_bkg = TH2F( ("eg_bkg_"+name).c_str(), "", 120, 60, 120, nBins, min, max);
+    ee_bkg = TH2F( ("ee_bkg_"+name).c_str(), "", 120, 60, 120, nBins, min, max);
+    binnedTags = std::vector<std::vector<TVector3>>(nBins+2, std::vector<TVector3>(0));
+    binnedProbes = std::vector<std::vector<TVector3>>(nBins+2, std::vector<TVector3>(0));
+  }
+  ~FourHists() { }
+  void Fill(const TVector3& tag, const TVector3& probe, float val, bool signal) {
+    auto bin = eg_sig.GetYaxis()->FindFixBin(val);
+    auto mll = m(tag, probe);
+    ee_sig.Fill(mll, val);
+    if (signal) eg_sig.Fill(mll, val);
+    for (const auto& t : binnedTags.at(bin)) {
+      mll = m(t, probe);
+      ee_bkg.Fill(mll, val);
+      if (signal) eg_bkg.Fill(mll, val);
+    }
+    for (const auto& p : binnedProbes.at(bin)) {
+      mll = m(tag, p);
+      ee_bkg.Fill(mll, val);
+      if (signal) eg_bkg.Fill(mll, val);
+    }
+    if (binnedTags.at(bin).size()<nMaxMixings) {
+      binnedTags.at(bin).push_back(tag);
+      binnedProbes.at(bin).push_back(probe);
+    }
+  }
+  void Write() {
+    eg_sig.Write();
+    ee_sig.Write();
+    eg_bkg.Write();
+    ee_bkg.Write();
+  }
+ private:
+  TH2F eg_sig;
+  TH2F eg_bkg;
+  TH2F ee_sig;
+  TH2F ee_bkg;
+  vector<vector<TVector3>> binnedTags;
+  vector<vector<TVector3>> binnedProbes;
+  unsigned nMaxMixings;
+};
+
 
 static const float zBosonMass = 91.1876;
 
@@ -50,6 +100,10 @@ class FakeRateSelector : public TSelector {
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
   TTreeReaderValue<Bool_t> hlt;
+
+  FourHists pt;
+  FourHists eta;
+  FourHists vtx;
 
   TTree outTree;
   TVector3 tag;
@@ -94,12 +148,17 @@ void FakeRateSelector::SlaveBegin(TTree *tree)
   outTree.Branch("nJet", &nJet, "nJet/i");
   outTree.Branch("hasPixelSeed", &hasPixelSeed, "hasPixelSeed/O");
 
+  pt = FourHists("pt", 12, 0, 120);
+  eta = FourHists("eta", 300, 0, 3);
+  vtx = FourHists("vtx", 36, 0.5, 36.5);
 }
 
 
 
 Bool_t FakeRateSelector::Process(Long64_t entry)
 {
+  //if (entry>1e4) return true;
+  if (!(entry%int(2e6))) cout << 1.*entry / fReader.GetEntries(false) << endl;
   fReader.SetEntry(entry);
   if (!*hlt) return true;
 
@@ -173,7 +232,9 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
     }
   }
   outTree.Fill();
-
+  if (abs(probe.Eta())<1.4442) pt.Fill(tag, probe, probe.Pt(), !hasPixelSeed);
+  if (probe.Pt()>40) eta.Fill(tag, probe, abs(probe.Eta()), !hasPixelSeed);
+  vtx.Fill(tag, probe, nVertex, !hasPixelSeed);
   return kTRUE;
 }
 
@@ -182,6 +243,9 @@ void FakeRateSelector::Terminate()
   auto outputName = getOutputFilename(fReader.GetTree()->GetCurrentFile()->GetName(), "fake");
   TFile file(outputName.c_str(), "RECREATE");
   outTree.Write("fakeTree", TObject::kWriteDelete);
+  pt.Write();
+  eta.Write();
+  vtx.Write();
   file.Close();
   cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 }
