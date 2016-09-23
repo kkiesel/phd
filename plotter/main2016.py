@@ -116,6 +116,30 @@ def createHistoFromDatasetTree(dset, variable, weight, nBins):
     h.SetLineColor(dset.color)
     return h
 
+def fitPrediction(dirTree, preTree, variable, weight, isData=True):
+    binning = range(0,100,1)
+    scales = [.85+.01*i for i in range(20)]
+    gr = ROOT.TGraph(len(scales))
+    dirHist = createHistoFromTree(dirTree, variable, weight, binning)
+    for iscale, scale in enumerate(scales):
+        preHist = createHistoFromTree(preTree, "{}*{}".format(variable,scale), weight, binning)
+        preHist.Scale(dirHist.Integral(0,100)/preHist.Integral(0,100))
+        chi2 = dirHist.Chi2Test(preHist, "OF UF CHI2 WW NORM")
+        c = ROOT.TCanvas()
+        dirHist.Draw()
+        preHist.SetLineColor(2)
+        preHist.Draw("same")
+        r = ratio.Ratio("g/p", dirHist,preHist)
+        r.draw(.5,1.5)
+        l = aux.Label(info="scale={}  chi2={}".format(scale, chi2))
+        aux.save("fitPrediction_scale{}percent".format(scale*100), log=False)
+        gr.SetPoint(iscale, scale, chi2)
+        print scale, chi2
+    c = ROOT.TCanvas()
+    gr.Draw()
+    gr.Fit("pol2", "W")
+    aux.save("fitPredictionTest", log=False)
+
 def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     if not preSet: preSet = dirSet
     dirTree = ROOT.TChain("tr/simpleTree")
@@ -128,6 +152,8 @@ def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
     nBins = range(0,250,10)+range(250,500,20)+[600,700,800,900,910]
+    #fitPrediction(dirTree, preTree, variable, weight, isData=False)
+    #return
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     preHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
@@ -169,6 +195,8 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     gjetHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
+    gjetHist = createHistoFromTree(preTree, variable, weight, nBins)
+    gjetHist.Scale(dirHist.Integral(0,100)/gjetHist.Integral(0,100))
     gjetHist.SetLineColor(ROOT.kCyan-1)
 
     eHist = createHistoFromTree(dirTree, variable, weight, nBins)
@@ -211,8 +239,11 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
 
 
 
+
 if __name__ == "__main__":
     finalDistribution("data", data, dataHt)
     #qcdClosure("data", data, dataHt)
     #qcdClosure("gqcd", gjets+qcd)
+    qcdClosure("gqcd_emht1000", gjets+qcd, cut="emht<1000")
+    qcdClosure("gqcd_2000emht", gjets+qcd, cut="emht>2000")
 

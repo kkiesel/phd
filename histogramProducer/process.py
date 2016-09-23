@@ -1,7 +1,9 @@
 #!/usr/bin/env python2
+import argparse
 import os
 import multiprocessing
 import glob
+import subprocess
 
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -81,10 +83,12 @@ dir = "/user/kiesel/nTuples/v14/"
 # Select datasets to process
 #############################################
 
-import argparse
+# compile only
+run.run()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('datasets', nargs='+', default=["all"], help="all "+' '.join(ds.keys()))
+parser.add_argument('--condor', action="store_true")
 args = parser.parse_args()
 
 if args.datasets == ["all"]:
@@ -95,17 +99,26 @@ else:
         toProcess += ds[n]
 
 print toProcess
-#############################################
-#############################################
 
-files = [dir+x for x in toProcess]
-files.sort(key=os.path.getsize, reverse=True)
+if args.condor:
+    for x in toProcess:
+        with open("submit","w") as f:
+            f.write("""
+Universe   = vanilla
+Executable = run.sh
+Arguments  = /net/scratch_cms1b1/cms/user/kiesel/{0}
+Log        = logs/{0}.log
+Output     = logs/{0}.out
+Error      = logs/{0}.error
+Queue
+""".format(x))
+        subprocess.call(["condor_submit", "submit"])
 
-# adding signal scan
-#files = [ f for f in glob.glob( dir+"T5Wg_*.root") ]
+else: # local processing
 
-# compile only
-run.run()
 
-p = multiprocessing.Pool()
-p.map(run.run, files)
+    files = [dir+x for x in toProcess]
+    files.sort(key=os.path.getsize, reverse=True)
+
+    p = multiprocessing.Pool()
+    p.map(run.run, files)

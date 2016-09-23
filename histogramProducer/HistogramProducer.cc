@@ -225,6 +225,7 @@ map<string,TH1F> initHistograms() {
   hMap["metSmeared"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metSmeared2"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metSmearedPhoton"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhoton2"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["mt_g_met"] = TH1F("", ";m(#gamma,#it{E}_{T}^{miss}_{T}) (GeV)", 150, 0, 1500);
 
   hMap["metSig"] = TH1F("", ";#it{S}", 3000, 0, 3000);
@@ -276,7 +277,7 @@ map<string,TH1F> initHistograms() {
   return hMap;
 }
 
-void HistogramProducer::fillSelection(string const& s) {
+void HistogramProducer::fillSelection(string const& s, bool fillTree=true) {
   if (std::isnan(met->p.X())) return;
 
   float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt;
@@ -333,7 +334,7 @@ void HistogramProducer::fillSelection(string const& s) {
   tree_emht = emht;
   tree_emrecoilt = emrecoil.Pt();
   tree_njet = selPhotons.size() ? selJets.size() : selJets.size() - 1;
-  treeMap[s]->Fill();
+  if (fillTree) treeMap[s]->Fill();
   float st = emht + met->p.Pt();
 
   float tremht = 0;
@@ -371,7 +372,7 @@ void HistogramProducer::fillSelection(string const& s) {
     }
     float oldPt = g->p.Pt();
     float newPt = isData ? oldPt : smearedPt(g->p, *genJets, rand);
-    TVector3 photonShift;
+    TVector3 photonShift(0,0,0);
     photonShift.SetPtEtaPhi(oldPt-newPt, g->p.Eta(), g->p.Phi());
     m1->at("metSmearedPhoton").Fill((met->p+photonShift).Pt(), selW);
     m1->at("metSmearedPhoton2").Fill((met->p-photonShift).Pt(), selW);
@@ -584,7 +585,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    fillSelection("tr");
+    fillSelection("tr", true);
     if (selPhotons.at(0)->isTrue and selPhotons.at(0)->isTrueAlternative) fillSelection("tr_true");
     if (selPhotons.at(0)->isTight) fillSelection("tr_tight");
     if (met->p.Pt() < 100) fillSelection("tr_0met100");
@@ -595,7 +596,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
-    fillSelection("tr_jControl");
+    fillSelection("tr_jControl", true);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep");
     for (auto& j : selJets) {
       if (j->nef>.9 && j->p.Pt()>100 && fabs(j->p.Eta())<1.4442) {
@@ -645,8 +646,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
 
   if (!selPhotons.size() && myHt > 900 && (*hlt_ht800 || !isData)) {
-    fillSelection("tr_jControl");
-    if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep");
+    fillSelection("tr_jControl_highHt");
+    if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_highHt_noLep");
     for (auto& j : selJets) {
       if (j->nef>.9 && j->p.Pt()>100 && fabs(j->p.Eta())<1.4442) {
         fillSelection("tr_jControl_highHt_neutralEM9");
