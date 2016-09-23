@@ -116,6 +116,30 @@ def createHistoFromDatasetTree(dset, variable, weight, nBins):
     h.SetLineColor(dset.color)
     return h
 
+def fitPrediction(dirTree, preTree, variable, weight, isData=True):
+    binning = range(0,100,1)
+    scales = [.85+.01*i for i in range(20)]
+    gr = ROOT.TGraph(len(scales))
+    dirHist = createHistoFromTree(dirTree, variable, weight, binning)
+    for iscale, scale in enumerate(scales):
+        preHist = createHistoFromTree(preTree, "{}*{}".format(variable,scale), weight, binning)
+        preHist.Scale(dirHist.Integral(0,100)/preHist.Integral(0,100))
+        chi2 = dirHist.Chi2Test(preHist, "OF UF CHI2 WW NORM")
+        c = ROOT.TCanvas()
+        dirHist.Draw()
+        preHist.SetLineColor(2)
+        preHist.Draw("same")
+        r = ratio.Ratio("g/p", dirHist,preHist)
+        r.draw(.5,1.5)
+        l = aux.Label(info="scale={}  chi2={}".format(scale, chi2))
+        aux.save("fitPrediction_scale{}percent".format(scale*100), log=False)
+        gr.SetPoint(iscale, scale, chi2)
+        print scale, chi2
+    c = ROOT.TCanvas()
+    gr.Draw()
+    gr.Fit("pol2", "W")
+    aux.save("fitPredictionTest", log=False)
+
 def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     if not preSet: preSet = dirSet
     dirTree = ROOT.TChain("tr/simpleTree")
