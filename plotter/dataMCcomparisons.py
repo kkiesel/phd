@@ -46,7 +46,7 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
         if dataHist:
             r = ratio.Ratio( "Data/SM", dataHist, hsm )
             rMean = dataHist.Integral()/hsm.Integral()
-            if rMean > 2: # for jcontrol with prescaled data
+            if rMean > 2 or rMean < 0.25: # for jcontrol with prescaled data
                 r.draw(rMean/2,1.5*rMean)
             else:
                 r.draw(.5,1.5)
