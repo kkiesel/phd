@@ -152,6 +152,8 @@ def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
     nBins = range(0,250,10)+range(250,500,20)+[600,700,800,900,910]
+    #fitPrediction(dirTree, preTree, variable, weight, isData=False)
+    #return
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     preHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
@@ -193,6 +195,8 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     gjetHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
+    gjetHist = createHistoFromTree(preTree, variable, weight, nBins)
+    gjetHist.Scale(dirHist.Integral(0,100)/gjetHist.Integral(0,100))
     gjetHist.SetLineColor(ROOT.kCyan-1)
 
     eHist = createHistoFromTree(dirTree, variable, weight, nBins)
@@ -235,8 +239,11 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
 
 
 
+
 if __name__ == "__main__":
     finalDistribution("data", data, dataHt)
     #qcdClosure("data", data, dataHt)
     #qcdClosure("gqcd", gjets+qcd)
+    qcdClosure("gqcd_emht1000", gjets+qcd, cut="emht<1000")
+    qcdClosure("gqcd_2000emht", gjets+qcd, cut="emht>2000")
 
