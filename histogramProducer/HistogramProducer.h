@@ -33,7 +33,7 @@ class HistogramProducer : public TSelector {
 
   void resetSelection();
   void defaultSelection();
-  void fillSelection(string const& s);
+  void fillSelection(string const& s, bool);
   void fillSelectedPhotons(const tree::Particle& p);
   tree::Jet* matchedJet(const tree::Particle& p);
 
