@@ -15,6 +15,9 @@
 #include "TreeParticles.hpp"
 #include "UserFunctions.h"
 
+static const float triggerDRcut = .2;
+static const float tpSeperationDRcut = .3;
+
 float m(const TVector3& p1, const TVector3& p2) {
   TLorentzVector a(p1, p1.Mag());
   TLorentzVector b(p2, p2.Mag());
@@ -41,11 +44,13 @@ class FourHists {
     ee_sig.Fill(mll, val);
     if (signal) eg_sig.Fill(mll, val);
     for (const auto& t : binnedTags.at(bin)) {
+      if (t.DeltaR(probe)<tpSeperationDRcut) continue;
       mll = m(t, probe);
       ee_bkg.Fill(mll, val);
       if (signal) eg_bkg.Fill(mll, val);
     }
     for (const auto& p : binnedProbes.at(bin)) {
+      if (tag.DeltaR(p)<tpSeperationDRcut) continue;
       mll = m(tag, p);
       ee_bkg.Fill(mll, val);
       if (signal) eg_bkg.Fill(mll, val);
@@ -165,9 +170,10 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   // search tag
   vector<tree::Electron*> selTags;
   for (auto& el : *electrons) {
+    if (el.p.Pt() < 30 || fabs(el.p.Eta())<2.1) continue;
     bool triggerMatch = false;
     for (const auto& tObj : *triggerObjects) {
-      if (el.p.DeltaR(tObj.p)<.2) {
+      if (el.p.DeltaR(tObj.p)<triggerDRcut) {
         triggerMatch = true;
         break;
       }
@@ -184,7 +190,7 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
     if (!pho.isLoose) continue;
     bool tagMatch = false;
     for (const auto& t : selTags) {
-      if (pho.p.DeltaR(t->p)<.3) {
+      if (pho.p.DeltaR(t->p)<tpSeperationDRcut) {
         tagMatch = true;
         break;
       }
