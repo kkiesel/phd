@@ -4,6 +4,7 @@
 
 #include "TH2F.h"
 #include "TH3F.h"
+#include "TEfficiency.h"
 #include "TFile.h"
 #include "TLorentzVector.h"
 #include "TROOT.h"
@@ -106,6 +107,8 @@ class FakeRateSelector : public TSelector {
   TTreeReaderValue<UInt_t> lumNo;
   TTreeReaderValue<Bool_t> hlt;
 
+  map<string,TEfficiency> effs;
+
   FourHists pt;
   FourHists eta;
   FourHists vtx;
@@ -156,6 +159,8 @@ void FakeRateSelector::SlaveBegin(TTree *tree)
   pt = FourHists("pt", 12, 0, 120);
   eta = FourHists("eta", 300, 0, 3);
   vtx = FourHists("vtx", 36, 0.5, 36.5);
+
+  effs["pt"] = TEfficiency("","", 120, 60, 120, 12, 0, 120);
 }
 
 
@@ -170,7 +175,7 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   // search tag
   vector<tree::Electron*> selTags;
   for (auto& el : *electrons) {
-    if (el.p.Pt() < 30 || fabs(el.p.Eta())<2.1) continue;
+    if (el.p.Pt() < 30 || fabs(el.p.Eta())>2.1) continue;
     bool triggerMatch = false;
     for (const auto& tObj : *triggerObjects) {
       if (el.p.DeltaR(tObj.p)<triggerDRcut) {
@@ -241,6 +246,8 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   if (abs(probe.Eta())<1.4442) pt.Fill(tag, probe, probe.Pt(), !hasPixelSeed);
   if (probe.Pt()>40) eta.Fill(tag, probe, abs(probe.Eta()), !hasPixelSeed);
   vtx.Fill(tag, probe, nVertex, !hasPixelSeed);
+  if (abs(probe.Eta())<1.4442) effs.at("pt").Fill(!hasPixelSeed, mll, probe.Pt());
+
   return kTRUE;
 }
 
@@ -252,6 +259,7 @@ void FakeRateSelector::Terminate()
   pt.Write();
   eta.Write();
   vtx.Write();
+  for (auto& it : effs ) it.second.Write(it.first.c_str());
   file.Close();
   cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 }
