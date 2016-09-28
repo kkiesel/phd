@@ -74,7 +74,7 @@ def fitHist(name, h, infoText=""):
     #total.fitTo(dh, ROOT.RooFit.Range("onZ"))
 
     # draw
-    frame = x.frame()
+    frame = x.frame(ROOT.RooFit.Title(" "))
     dh.plotOn(frame)
     #total.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kRed))
     #total.plotOn(frame, ROOT.RooFit.Components(ROOT.RooArgSet(bkg)), ROOT.RooFit.LineColor(ROOT.kGray), ROOT.RooFit.LineStyle(ROOT.kDashed))
@@ -82,6 +82,7 @@ def fitHist(name, h, infoText=""):
 
     c = ROOT.TCanvas()
     frame.Draw()
+    l = aux.Label(info=infoText, sim=False)
     aux.save(name)
     return nSig.getVal()
 
