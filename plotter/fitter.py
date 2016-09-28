@@ -1,8 +1,11 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+from include import *
+
 import ROOT
 ROOT.gROOT.SetBatch()
-ROOT.gSystem.Load("RooCMSShape_cc.so")
-ROOT.gSystem.Load("ExpGaussExp_cc.so")
+ROOT.gSystem.Load("cFunctions/RooCMSShape_cc.so")
+ROOT.gSystem.Load("cFunctions/ExpGaussExp_cc.so")
 
 import ROOT
 ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
@@ -79,10 +82,10 @@ def fitHist(name, h, infoText=""):
 
     c = ROOT.TCanvas()
     frame.Draw()
-    c.SaveAs("plots/{}.pdf".format(name))
+    aux.save(name)
     return nSig.getVal()
 
-fname = "SingleElectron_Run2016-PromptReco_fake.root"
+fname = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
 
 def inclusive():
     eff = getFromFile(fname, "vtx")
