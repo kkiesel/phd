@@ -198,9 +198,14 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     variable = "met"
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
-    nBins = range(0,250,10)+range(250,500,20)+[600,700,800,900,910]
+    nBins = range(0,200,10)+[200,250]+range(300,500,20)+[600,700,800,900,910]
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
+    if dirSet == data:
+        for bin in range(dirHist.GetNbinsX()+2):
+            if dirHist.GetBinCenter(bin) > 160:
+                dirHist.SetBinContent(bin,0)
+                dirHist.SetBinError(bin,0)
     gjetHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
     gjetHist.SetLineColor(ROOT.kCyan)
     gjetHistUnw = createHistoFromTree(preTree, variable, weight, nBins)
@@ -228,7 +233,7 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
 
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
-    m.add(dirHist, "(Pseudo)Data")
+    m.add(dirHist, "Data" if dirSet == data else "Pseudodata")
     m.addStack(eHist, "e#rightarrow#gamma")
     m.addStack(ttgHist, "t#bar{t}#gamma")
     m.addStack(zgHist, "Z#gamma")
