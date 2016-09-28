@@ -18,3 +18,7 @@ plotter/tmp/
 plotter/smsPlotter/
 plotter/AutoDict_*
 utilities/*.pdf
+
+plotter/cFunctions/*_cc.d
+plotter/cFunctions/*_cc_ACLiC_dict_rdict.pcm
+
