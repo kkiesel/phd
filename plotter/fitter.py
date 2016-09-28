@@ -29,7 +29,7 @@ def getSigHist(hname="pt", num=True):
 
 def fitHist(name, h, infoText=""):
     var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
-    x = ROOT.RooRealVar("x", "{} (GeV)".format(var), 60, 120)
+    x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
 
     # signal - breit wigner
     zBosonMass = ROOT.RooRealVar("mZ","", 91.1876)
