@@ -85,10 +85,14 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
 
     for name in names:
         for binningName, binning in aux.getBinningsFromName( name ).iteritems():
+            drawSameHistogram( sampleNames, "tr_dPhi3/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr_jControl_dPhi3/"+name, stack, additional, binning, binningName )
+            drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_tight/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_eControl/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_0met100/"+name, stack, additional, binning, binningName )
+            #drawSameHistogram( sampleNames, "tr_100met/"+name, stack, additional, binning, binningName )
             drawSameHistogram( sampleNames, "tr_jControl/"+name, stack, additionalHt, binning, binningName )
             drawSameHistogram( sampleNames, "tr_jControl_noLep/"+name, stack, additionalHt, binning, binningName )
             drawSameHistogram( sampleNames, "tr_jControl_highHt_neutralEM9/"+name, stack, additionalHt, binning, binningName )
@@ -110,7 +114,7 @@ def transitions():
     #drawSameHistogram( "_zg", "h_g_pt__tr", [zg_130], [znunu], scaleToData=False )
 
 if __name__ == "__main__":
-    transitions()
+    #transitions()
     #drawSameHistograms( "gqcd_data", [gjets, qcd], additional=[data])
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets, wg_mg, zg, znunu], additional=[data])
     #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets, wg_mg, zg, znunu], additional=[])
