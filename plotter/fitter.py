@@ -104,6 +104,8 @@ def binned(hname):
     den2d = getHist(eff, False)
     for bin in range(1, num2d.GetNbinsY()+1):
         yMin, yMax = num2d.GetYaxis().GetBinLowEdge(bin), num2d.GetYaxis().GetBinUpEdge(bin)
+        if not yMin - int(yMin): yMin = int(yMin)
+        if not yMax - int(yMax): yMax = int(yMax)
         infoText = "{} < {} < {}".format(yMin, num2d.GetYaxis().GetTitle(), yMax)
         num1d = num2d.ProjectionX("{}_{}_num".format(hname,bin), bin, bin)
         den1d = den2d.ProjectionX("{}_{}_den".format(hname,bin), bin, bin)
