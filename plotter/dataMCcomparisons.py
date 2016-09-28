@@ -6,10 +6,24 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
+    dataIntegral = 0
+    for d in additional:
+        if d == data or d == dataHt:
+            h = d.getHist(name)
+            dataIntegral = h.Integral(0,-1)
+    bkgHist = None
+    for d in bkg:
+        h = d.getHist(name)
+        if bkgHist: bkgHist.Add(h)
+        else: bkgHist = h
+    bkgIntegral = bkgHist.Integral(0,-1)
+
     for d in bkg[-1::-1]:
         h = d.getHist(name)
         if not h: continue
         if not h.Integral(): continue
+        if True:
+            h.Scale(dataIntegral/bkgIntegral)
         if binning: h = aux.rebin( h, binning )
 
         aux.appendFlowBin( h )
