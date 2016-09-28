@@ -83,7 +83,7 @@ def fitHist(name, h, infoText=""):
     c = ROOT.TCanvas()
     frame.Draw()
     l = aux.Label(info=infoText, sim=False)
-    aux.save(name)
+    aux.save("fakeRate_peaks_"+name, log=False)
     return nSig.getVal()
 
 fname = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
