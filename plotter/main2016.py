@@ -157,6 +157,9 @@ def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     preHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
     totUnc = aux.addHistUncert(preHist, gjetSyst)
 
+    gjetHistUnw = createHistoFromTree(preTree, variable, weight, nBins)
+    gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100))/gjetHistUnw.Integral(0,dirHist.FindBin(100)))
+
     # beautify
     aux.drawOpt(dirHist, "data")
     aux.drawOpt(preHist, "pre")
@@ -172,6 +175,12 @@ def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
 
     r = ratio.Ratio("Data/Pred", dirHist, preHist, gjetSyst)
     r.draw(0.5, 1.5)
+    gjetHistUnw.Divide(preHist)
+    gjetHistUnw.Draw("same hist")
+    leg = ROOT.TLegend(.17,.12,.39,.18)
+    leg.SetFillStyle(0)
+    leg.AddEntry(gjpreHistnw, "Unweighted/Weighted", "l")
+    leg.Draw()
 
     l = aux.Label(sim= not dirSet==data, info=dirSet.label)
     aux.save("qcdClosure_{}".format(name))
@@ -193,9 +202,9 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     gjetHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
-    gjetHist = createHistoFromTree(preTree, variable, weight, nBins)
-    gjetHist.Scale(dirHist.Integral(0,100)/gjetHist.Integral(0,100))
-    gjetHist.SetLineColor(ROOT.kCyan-1)
+    gjetHist.SetLineColor(ROOT.kCyan)
+    gjetHistUnw = createHistoFromTree(preTree, variable, weight, nBins)
+    gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100))/gjetHistUnw.Integral(0,dirHist.FindBin(100)))
 
     eHist = createHistoFromTree(dirTree, variable, weight, nBins)
     eHist.Scale( 0.0197 if dirSet==data else 0.0107 )
@@ -231,8 +240,18 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
 
     r = ratio.Ratio("Data/Pred", dirHist, totStat, totSyst)
     r.draw(0.5, 1.5)
+    gjetHistUnw.Add(eHist)
+    gjetHistUnw.Add(zgHist)
+    gjetHistUnw.Add(wgHist)
+    gjetHistUnw.Add(ttgHist)
+    gjetHistUnw.Divide(totSyst)
+    gjetHistUnw.Draw("same hist")
+    leg = ROOT.TLegend(.17,.12,.39,.18)
+    leg.SetFillStyle(0)
+    leg.AddEntry(gjetHistUnw, "Unweighted/Weighted", "l")
+    leg.Draw()
 
-    l = aux.Label(sim= not dirSet==data, info=dirSet.label)
+    l = aux.Label(sim= not dirSet==data, info=dirSet.label if dirSet != data else "")
     aux.save("finalDistribution_{}".format(name))
 
 
