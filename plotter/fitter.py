@@ -109,6 +109,7 @@ def binned(hname):
         infoText = "{} < {} < {}".format(yMin, num2d.GetYaxis().GetTitle(), yMax)
         num1d = num2d.ProjectionX("{}_{}_num".format(hname,bin), bin, bin)
         den1d = den2d.ProjectionX("{}_{}_den".format(hname,bin), bin, bin)
+        if not num1d.Integral() or not den1d.Integral(): continue
         nNum = fitHist("binned_{}_{}_num".format(bin,hname), num1d, infoText)
         nDen = fitHist("binned_{}_{}_den".format(bin,hname), den1d, infoText)
         print bin, nNum, nDen
@@ -116,4 +117,8 @@ def binned(hname):
 
 inclusive()
 binned("pt")
+binned("vtx")
+binned("jets")
+binned("met")
+binned("emht")
 
