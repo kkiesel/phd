@@ -8,7 +8,12 @@ ROOT.gSystem.Load("cFunctions/RooCMSShape_cc.so")
 ROOT.gSystem.Load("cFunctions/ExpGaussExp_cc.so")
 
 import ROOT
-ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
+#ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
+
+
+fnameData = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
+fnameMC = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
+
 
 def getFromFile(fname, hname):
     f = ROOT.TFile(fname)
@@ -19,15 +24,8 @@ def getFromFile(fname, hname):
 def getHist(eff, num=True):
     return eff.GetCopyPassedHisto() if num else eff.GetCopyTotalHisto()
 
-
-def getSigHist(hname="pt", num=True):
-    f = ROOT.TFile("SingleElectron_Run2016-PromptReco_fake.root")
-    eff = f.Get(hname)
-    y = x.ProjectionX()
-    y.SetDirectory(0)
-    return y
-
-def fitHist(name, h, infoText=""):
+def fitHist(name, hData, hMC, infoText=""):
+    totalInt = hData.Integral(0,-1)
     var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
     x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
 
@@ -36,26 +34,35 @@ def fitHist(name, h, infoText=""):
     zBosonWidth = ROOT.RooRealVar("BZ","", 2.4952)
     bw = ROOT.RooLandau("breitwigner","Breit Wigner", x, zBosonMass, zBosonWidth)
 
+    dhMC = ROOT.RooDataHist("mc", "mc", ROOT.RooArgList(x), ROOT.RooFit.Import(hMC))
+    bw = ROOT.RooHistPdf("histpdf1", "histpdf1", ROOT.RooArgSet(x), dhMC, 0)
+
     # signal - smearing function
-    p0 = ROOT.RooRealVar("p0", "p0", 90, 80, 100)
+    p0 = ROOT.RooRealVar("p0", "p0", 0, -5, 5)
     p1 = ROOT.RooRealVar("p1", "p1", 8, 0, 20)
     p2 = ROOT.RooRealVar("p2", "p2", 3.5, 0, 10)
     p3 = ROOT.RooRealVar("p3", "p3", 3.5, 0, 10)
     signal_smear = ROOT.ExpGaussExp("signal_norm", "ExpGaussExp", x, p0, p1, p2, p3)
+
+    signal_smear = ROOT.RooGaussian("gaus", "gaus", x, p0, p1)
+
+
     x.setBins(10000, "cache")
     signal_norm = ROOT.RooFFTConvPdf("bwcb","Convolution", x, bw, signal_smear)
 
-    nSig = ROOT.RooRealVar("nSig","number of events", 1000, 0, 20000)
+    nSig = ROOT.RooRealVar("nSig","number of events", totalInt, 0, 2*totalInt)
     signal = ROOT.RooExtendPdf("signal", "", signal_norm, nSig)
 
     # background
-    bkg_alpha = ROOT.RooRealVar("alpha", "alpha", 50, 0, 200)
+    bkg_alpha = ROOT.RooRealVar("alpha", "alpha", 0, -200, 200)
     bkg_beta = ROOT.RooRealVar("beta", "beta", .02, 0, 20)
     bkg_gamma = ROOT.RooRealVar("gamma", "gamma", .05, 0, 10)
     bkg_peak = ROOT.RooRealVar("peak", "peak", 90, 0, 200)
     bkg_norm = ROOT.RooCMSShape("background_norm", "CMSShape", x, bkg_alpha, bkg_beta, bkg_gamma, bkg_peak)
 
-    nBkg = ROOT.RooRealVar("nBkg", "number of events", 1000, 0, 100000)
+    bkg_norm = ROOT.RooExponential("exp","", x, bkg_alpha)
+
+    nBkg = ROOT.RooRealVar("nBkg", "number of events", totalInt/10, 0, 2*totalInt)
     bkg = ROOT.RooExtendPdf("bkg", "", bkg_norm, nBkg)
 
     total = ROOT.RooAddPdf("total", "sig+bkg", ROOT.RooArgList(signal, bkg))
@@ -66,38 +73,53 @@ def fitHist(name, h, infoText=""):
     x.setRange("onZ", 80, 100)
 
     # import histogram
-    dh = ROOT.RooDataHist("db", "db", ROOT.RooArgList(x), ROOT.RooFit.Import(h))
+    dh = ROOT.RooDataHist("db", "db", ROOT.RooArgList(x), ROOT.RooFit.Import(hData))
 
     # fit
     #signal.fitTo(dh, ROOT.RooFit.Range("onZ"))
     #bkg.fitTo(dh, ROOT.RooFit.Range("belowZ,aboveZ"))
     #total.fitTo(dh, ROOT.RooFit.Range("onZ"))
+    total.fitTo(dh)
 
     # draw
     frame = x.frame(ROOT.RooFit.Title(" "))
     dh.plotOn(frame)
+    signal.plotOn(frame)
     #total.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kRed))
     #total.plotOn(frame, ROOT.RooFit.Components(ROOT.RooArgSet(bkg)), ROOT.RooFit.LineColor(ROOT.kGray), ROOT.RooFit.LineStyle(ROOT.kDashed))
     #total.plotOn(frame, ROOT.RooFit.Components(ROOT.RooArgSet(signal)), ROOT.RooFit.LineColor(ROOT.kGreen))
 
+    residuals = frame.residHist()
+
+    frameRes = x.frame(ROOT.RooFit.Title(" "))
+    frameRes.addPlotable(residuals, "P")
+
     c = ROOT.TCanvas()
     frame.Draw()
+    ratio.createBottomPad()
+    frameRes.Draw()
     l = aux.Label(info=infoText, sim=False)
     aux.save("fakeRate_peaks_"+name, log=False)
     return nSig.getVal()
 
-fname = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
-fname = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
 
 def inclusive():
-    eff = getFromFile(fname, "vtx")
-    num2d = getHist(eff)
+    eff = getFromFile(fnameData, "vtx")
+    num2d = getHist(eff, False)
     num1d = num2d.ProjectionX()
-    nNum = fitHist("inclusive_num", num1d)
-    den2d = getHist(eff, False)
-    den1d = den2d.ProjectionX()
-    nDen = fitHist("inclusive_den", den1d)
-    print nNum, nDen
+
+    effMC = getFromFile(fnameMC, "vtx")
+    num2dMC = getHist(effMC, False)
+    num1dMC = num2dMC.ProjectionX("ldien")
+
+    nNum = fitHist("inclusive_num", num1d, num1dMC)
+
+
+
+    #den2d = getHist(eff, False)
+    #den1d = den2d.ProjectionX()
+    #nDen = fitHist("inclusive_den", den1d)
+    #print nNum, nDen
 
 def binned(hname):
     eff = getFromFile(fname, hname)
@@ -117,9 +139,9 @@ def binned(hname):
 
 
 inclusive()
-binned("pt")
-binned("vtx")
-binned("jets")
-binned("met")
-binned("emht")
+#binned("pt")
+#binned("vtx")
+#binned("jets")
+#binned("met")
+#binned("emht")
 
