@@ -87,6 +87,7 @@ def fitHist(name, h, infoText=""):
     return nSig.getVal()
 
 fname = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
+fname = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
 
 def inclusive():
     eff = getFromFile(fname, "vtx")
