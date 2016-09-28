@@ -33,7 +33,6 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
     dataHist = None
     for d in additional:
         h = d.getHist( name )
-        if "jControl" in name: h.Scale(40)
         if not h: continue
         if not h.Integral(): continue
         if binning: h = aux.rebin( h, binning )
