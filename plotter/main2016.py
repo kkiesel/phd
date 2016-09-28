@@ -152,8 +152,6 @@ def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
     nBins = range(0,250,10)+range(250,500,20)+[600,700,800,900,910]
-    #fitPrediction(dirTree, preTree, variable, weight, isData=False)
-    #return
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     preHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
