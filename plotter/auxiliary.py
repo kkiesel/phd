@@ -569,7 +569,7 @@ def drawOpt(h, style):
         h.SetLineColor(ROOT.kBlack)
         h.SetMarkerColor(ROOT.kBlack)
         h.SetMarkerStyle(20)
-        h.SetMarkerSize(0.8)
+        h.SetMarkerSize(0.7)
         h.SetBinErrorOption(ROOT.TH1.kPoisson)
         h.drawOption_="e0p0"
         if integerContent(h):
