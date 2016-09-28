@@ -50,6 +50,7 @@ class FakeRateSelector : public TSelector {
 
   map<string,TEfficiency> effs;
 
+  bool isData;
 };
 
 
@@ -67,6 +68,8 @@ FakeRateSelector::FakeRateSelector():
 void FakeRateSelector::Init(TTree *tree)
 {
   fReader.SetTree(tree);
+  string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
+  isData = inputName.find("Run201") != string::npos;
 }
 
 void FakeRateSelector::SlaveBegin(TTree *tree)
@@ -86,13 +89,13 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   //if (entry>1e4) return true;
   if (!(entry%int(2e6))) cout << 1.*entry / fReader.GetEntries(false) << endl;
   fReader.SetEntry(entry);
-  if (!*hlt) return true;
+  if (!*hlt && isData) return true;
 
   // search tag
   vector<tree::Electron*> selTags;
   for (auto& el : *electrons) {
     if (el.p.Pt() < 30 || fabs(el.p.Eta())>2.1) continue;
-    bool triggerMatch = false;
+    bool triggerMatch = !isData;
     for (const auto& tObj : *triggerObjects) {
       if (el.p.DeltaR(tObj.p)<triggerDRcut) {
         triggerMatch = true;
