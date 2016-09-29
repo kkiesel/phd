@@ -21,70 +21,62 @@ def getFromFile(fname, hname):
     x.SetDirectory(0)
     return x
 
-def getHist(eff, num=True):
+def getHistFromEff(eff, num=True):
     return eff.GetCopyPassedHisto() if num else eff.GetCopyTotalHisto()
+
+def getHist(name, den=False, data=True, yBin1=0, yBin2=-1):
+    fname = fnameData if data else fnameMC
+    f = ROOT.TFile(fname)
+    eff = f.Get(name)
+    h2 = eff.GetCopyTotalHisto() if den else eff.GetCopyPassedHisto()
+    h1 = h2.ProjectionX(aux.randomName(), yBin1, yBin2)
+    h1.SetDirectory(0)
+    return h1
+
+
 
 def fitHist(name, hData, hSig, hBkg, infoText=""):
     totalInt = hData.Integral(0,-1)
     var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
     x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
 
-    # signal - breit wigner
-    zBosonMass = ROOT.RooRealVar("mZ","", 91.1876)
-    zBosonWidth = ROOT.RooRealVar("BZ","", 2.4952)
-    bw = ROOT.RooLandau("breitwigner","Breit Wigner", x, zBosonMass, zBosonWidth)
+    dhSig = ROOT.RooDataHist("dhSig", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hSig))
+    dhBkg = ROOT.RooDataHist("dhBkg", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hBkg))
+    dh = ROOT.RooDataHist("dhData", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hData))
 
-    dhMC = ROOT.RooDataHist("mc", "mc", ROOT.RooArgList(x), ROOT.RooFit.Import(hMC))
-    bw = ROOT.RooHistPdf("histpdf1", "histpdf1", ROOT.RooArgSet(x), dhMC, 0)
+    pdfSig = ROOT.RooHistPdf("histpdf1", "", ROOT.RooArgSet(x), dhSig, 0)
+    pdfBkg = ROOT.RooHistPdf("histpdf2", "", ROOT.RooArgSet(x), dhBkg, 0)
 
-    # signal - smearing function
-    p0 = ROOT.RooRealVar("p0", "p0", 0, -5, 5)
-    p1 = ROOT.RooRealVar("p1", "p1", 8, 0, 20)
-    p2 = ROOT.RooRealVar("p2", "p2", 3.5, 0, 10)
-    p3 = ROOT.RooRealVar("p3", "p3", 3.5, 0, 10)
-    signal_smear = ROOT.ExpGaussExp("signal_norm", "ExpGaussExp", x, p0, p1, p2, p3)
+    meanSig = ROOT.RooRealVar("meanSig", "meanSig", 0, -5, 5)
+    widthSig = ROOT.RooRealVar("widthSig", "widthSig", 2, 0, 10)
+    smearSig = ROOT.RooGaussian("gausSig", "", x, meanSig, widthSig)
 
-    signal_smear = ROOT.RooGaussian("gaus", "gaus", x, p0, p1)
-
+    meanBkg = ROOT.RooRealVar("meanBkg", "meanBkg", 0, -5, 5)
+    widthBkg = ROOT.RooRealVar("widthBkg", "widthBkg", 2, 0, 10)
+    smearBkg = ROOT.RooGaussian("gausBkg", "", x, meanBkg, widthBkg)
 
     x.setBins(10000, "cache")
-    signal_norm = ROOT.RooFFTConvPdf("bwcb","Convolution", x, bw, signal_smear)
+    smearedSig = ROOT.RooFFTConvPdf("smearedSig","", x, pdfSig, smearSig)
+    smearedBkg = ROOT.RooFFTConvPdf("smearedBkg","", x, pdfBkg, smearBkg)
 
     nSig = ROOT.RooRealVar("nSig","number of events", totalInt, 0, 2*totalInt)
-    signal = ROOT.RooExtendPdf("signal", "", signal_norm, nSig)
-
-    # background
-    bkg_alpha = ROOT.RooRealVar("alpha", "alpha", 0, -200, 200)
-    bkg_beta = ROOT.RooRealVar("beta", "beta", .02, 0, 20)
-    bkg_gamma = ROOT.RooRealVar("gamma", "gamma", .05, 0, 10)
-    bkg_peak = ROOT.RooRealVar("peak", "peak", 90, 0, 200)
-    bkg_norm = ROOT.RooCMSShape("background_norm", "CMSShape", x, bkg_alpha, bkg_beta, bkg_gamma, bkg_peak)
-
-    bkg_norm = ROOT.RooExponential("exp","", x, bkg_alpha)
+    signal = ROOT.RooExtendPdf("signal", "", smearedSig, nSig)
 
     nBkg = ROOT.RooRealVar("nBkg", "number of events", totalInt/10, 0, 2*totalInt)
-    bkg = ROOT.RooExtendPdf("bkg", "", bkg_norm, nBkg)
+    bkg = ROOT.RooExtendPdf("bkg", "", smearedBkg, nBkg)
 
     total = ROOT.RooAddPdf("total", "sig+bkg", ROOT.RooArgList(signal, bkg))
-
-    # ranges
-    x.setRange("belowZ", 60, 75)
-    x.setRange("aboveZ", 105, 120)
-    x.setRange("onZ", 80, 100)
-
-    # import histogram
-    dh = ROOT.RooDataHist("db", "db", ROOT.RooArgList(x), ROOT.RooFit.Import(hData))
 
     # fit
     #signal.fitTo(dh, ROOT.RooFit.Range("onZ"))
     #bkg.fitTo(dh, ROOT.RooFit.Range("belowZ,aboveZ"))
     #total.fitTo(dh, ROOT.RooFit.Range("onZ"))
-    total.fitTo(dh)
+    #total.fitTo(dh)
 
     # draw
     frame = x.frame(ROOT.RooFit.Title(" "))
     dh.plotOn(frame)
-    signal.plotOn(frame)
+    #total.plotOn(frame)
     #total.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kRed))
     #total.plotOn(frame, ROOT.RooFit.Components(ROOT.RooArgSet(bkg)), ROOT.RooFit.LineColor(ROOT.kGray), ROOT.RooFit.LineStyle(ROOT.kDashed))
     #total.plotOn(frame, ROOT.RooFit.Components(ROOT.RooArgSet(signal)), ROOT.RooFit.LineColor(ROOT.kGreen))
@@ -102,82 +94,44 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     aux.save("fakeRate_peaks_"+name, log=False)
     return nSig.getVal()
 
-def getHist(name, den=False, data=True, yBin1=0, yBin2=-1):
-    fname = fnameData if data else fnameMC
-    f = ROOT.TFile(fname)
-    eff = f.Get(name)
-    h2 = eff.GetCopyTotalHisto() if den else eff.GetCopyPassedHisto()
-    h1 = h2.ProjectionX(aux.randomName(), yBin1, yBin2)
-    h1.SetDirectory(0)
-    return h1
-
 
 hData = getHist("pt")
-hBkg = getHist("pt_bkg", True, data=False)
+hBkg = getHist("pt_bkg")
 hSig = getHist("pt", data=False)
+#fitHist("inclusive", hData, hSig, hBkg)
 
-fitHist("inclusive", hData, hSig, hBkg)
-
-"""
-def inclusive():
-    for i in range(2,12):
-        eff = getFromFile(fnameData, "pt")
-        num2d = getHist(eff, False)
-        num1d = num2d.ProjectionX("pt1", i, i)
-
-        effMC = getFromFile(fnameMC, "pt_bkg")
-        num2dMC = getHist(effMC, False)
-        num1dMC = num2dMC.ProjectionX("ldien")
-        num1dMC.Draw()
-        aux.save("test")
-
-        effMC2 = getFromFile(fnameMC, "pt")
-        num2dMC2 = getHist(effMC2, False)
-        num1dMC2 = num2dMC2.ProjectionX("ilnde", i, i)
-
-        num1d.Draw("e")
-        if num1dMC.GetMaximum():
-            num1dMC.Scale(num1d.GetMaximum()/num1dMC.GetMaximum())
-        num1dMC.Draw("hist same")
-
-        if num1dMC2.GetBinContent(1):
-            num1dMC2.Scale(num1d.GetBinContent(1)/num1dMC2.GetBinContent(1))
-        num1dMC2.Draw("same")
-
-
-        aux.save("test_%s"%i)
-
-        #nNum = fitHist("inclusive_num", num1d, num1dMC)
-
-
-
-    #den2d = getHist(eff, False)
-    #den1d = den2d.ProjectionX()
-    #nDen = fitHist("inclusive_den", den1d)
-    #print nNum, nDen
+hData.Draw("ep")
+hSig.Scale(hData.GetMaximum()/hSig.GetMaximum())
+hSig.Draw("hist same")
+hBkg.Scale(hData.Integral()/hBkg.Integral()/10)
+hBkg.Draw("hist same")
+aux.save("test", log=False)
 
 def binned(hname):
-    eff = getFromFile(fname, hname)
-    num2d = getHist(eff)
-    den2d = getHist(eff, False)
-    for bin in range(1, num2d.GetNbinsY()+1):
-        yMin, yMax = num2d.GetYaxis().GetBinLowEdge(bin), num2d.GetYaxis().GetBinUpEdge(bin)
+    eff = getFromFile(fnameMC, hname)
+    h2 = getHistFromEff(eff)
+    hOut = h2.ProjectionY()
+    for bin in range(1, h2.GetNbinsY()+1):
+        ax = h2.GetYaxis()
+        yMin, yMax = ax.GetBinLowEdge(bin), ax.GetBinUpEdge(bin)
         if not yMin - int(yMin): yMin = int(yMin)
         if not yMax - int(yMax): yMax = int(yMax)
-        infoText = "{} < {} < {}".format(yMin, num2d.GetYaxis().GetTitle(), yMax)
-        num1d = num2d.ProjectionX("{}_{}_num".format(hname,bin), bin, bin)
-        den1d = den2d.ProjectionX("{}_{}_den".format(hname,bin), bin, bin)
-        if not num1d.Integral() or not den1d.Integral(): continue
-        nNum = fitHist("binned_{}_{}_num".format(bin,hname), num1d, infoText)
-        nDen = fitHist("binned_{}_{}_den".format(bin,hname), den1d, infoText)
-        print bin, nNum, nDen
-
+        infoText = "{} < {} < {}".format(yMin, ax.GetTitle(), yMax)
+        hDataNum = getHist(hname, data=False, yBin1=bin, yBin2=bin)
+        hDataDen = getHist(hname, True, data=False, yBin1=bin, yBin2=bin)
+        num = hDataNum.Integral()
+        den = hDataDen.Integral()
+        if den:
+            hOut.SetBinContent(bin, num/den)
+            hOut.SetBinError(bin, math.sqrt(num)/den)
+    hOut.Draw("hist e")
+    aux.save("fakeRate_vs_{}".format(hname), log=False)
 
 #inclusive()
-#binned("pt")
-#binned("vtx")
-#binned("jets")
-#binned("met")
-#binned("emht")
+binned("pt")
+binned("vtx")
+binned("jets")
+binned("met")
+binned("emht")
+binned("eta")
 
-"""
