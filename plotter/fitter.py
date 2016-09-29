@@ -24,7 +24,7 @@ def getFromFile(fname, hname):
 def getHist(eff, num=True):
     return eff.GetCopyPassedHisto() if num else eff.GetCopyTotalHisto()
 
-def fitHist(name, hData, hMC, infoText=""):
+def fitHist(name, hData, hSig, hBkg, infoText=""):
     totalInt = hData.Integral(0,-1)
     var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
     x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
@@ -102,7 +102,23 @@ def fitHist(name, hData, hMC, infoText=""):
     aux.save("fakeRate_peaks_"+name, log=False)
     return nSig.getVal()
 
+def getHist(name, den=False, data=True, yBin1=0, yBin2=-1):
+    fname = fnameData if data else fnameMC
+    f = ROOT.TFile(fname)
+    eff = f.Get(name)
+    h2 = eff.GetCopyTotalHisto() if den else eff.GetCopyPassedHisto()
+    h1 = h2.ProjectionX(aux.randomName(), yBin1, yBin2)
+    h1.SetDirectory(0)
+    return h1
 
+
+hData = getHist("pt")
+hBkg = getHist("pt_bkg", True, data=False)
+hSig = getHist("pt", data=False)
+
+fitHist("inclusive", hData, hSig, hBkg)
+
+"""
 def inclusive():
     for i in range(2,12):
         eff = getFromFile(fnameData, "pt")
@@ -164,28 +180,4 @@ def binned(hname):
 #binned("met")
 #binned("emht")
 
-def getHist(name, den=False, data=True, yBin1=0, yBin2=-1):
-    fname = fnameData if data else fnameMC
-    f = ROOT.TFile(fname)
-    eff = f.Get(name)
-    h2 = eff.GetCopyTotalHisto() if den else eff.GetCopyPassedHisto()
-    h1 = h2.ProjectionX(aux.randomName(), yBin1, yBin2)
-    h1.SetDirectory(0)
-    return h1
-
-for i in range(1,12):
-    hData = getHist("pt",yBin1=i,yBin2=i)
-    hBkg = getHist("pt_bkg", True, data=False,yBin1=i,yBin2=i)
-    hSig = getHist("pt", data=False,yBin1=i,yBin2=i)
-
-    if not hSig.GetMaximum() or not hBkg.Integral(): continue
-    hSig.Scale(hData.GetMaximum()/hSig.GetMaximum())
-    hBkg.Scale(0.5*hData.Integral()/hBkg.Integral())
-
-    hData.Draw()
-    hBkg.Draw("same")
-    hSig.Draw("same")
-
-    aux.save("test_%s"%i)
-
-
+"""
