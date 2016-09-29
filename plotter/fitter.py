@@ -104,15 +104,34 @@ def fitHist(name, hData, hMC, infoText=""):
 
 
 def inclusive():
-    eff = getFromFile(fnameData, "vtx")
-    num2d = getHist(eff, False)
-    num1d = num2d.ProjectionX()
+    for i in range(2,12):
+        eff = getFromFile(fnameData, "pt")
+        num2d = getHist(eff, False)
+        num1d = num2d.ProjectionX("pt1", i, i)
 
-    effMC = getFromFile(fnameMC, "vtx")
-    num2dMC = getHist(effMC, False)
-    num1dMC = num2dMC.ProjectionX("ldien")
+        effMC = getFromFile(fnameMC, "pt_bkg")
+        num2dMC = getHist(effMC, False)
+        num1dMC = num2dMC.ProjectionX("ldien")
+        num1dMC.Draw()
+        aux.save("test")
 
-    nNum = fitHist("inclusive_num", num1d, num1dMC)
+        effMC2 = getFromFile(fnameMC, "pt")
+        num2dMC2 = getHist(effMC2, False)
+        num1dMC2 = num2dMC2.ProjectionX("ilnde", i, i)
+
+        num1d.Draw("e")
+        if num1dMC.GetMaximum():
+            num1dMC.Scale(num1d.GetMaximum()/num1dMC.GetMaximum())
+        num1dMC.Draw("hist same")
+
+        if num1dMC2.GetBinContent(1):
+            num1dMC2.Scale(num1d.GetBinContent(1)/num1dMC2.GetBinContent(1))
+        num1dMC2.Draw("same")
+
+
+        aux.save("test_%s"%i)
+
+        #nNum = fitHist("inclusive_num", num1d, num1dMC)
 
 
 
@@ -138,10 +157,35 @@ def binned(hname):
         print bin, nNum, nDen
 
 
-inclusive()
+#inclusive()
 #binned("pt")
 #binned("vtx")
 #binned("jets")
 #binned("met")
 #binned("emht")
+
+def getHist(name, den=False, data=True, yBin1=0, yBin2=-1):
+    fname = fnameData if data else fnameMC
+    f = ROOT.TFile(fname)
+    eff = f.Get(name)
+    h2 = eff.GetCopyTotalHisto() if den else eff.GetCopyPassedHisto()
+    h1 = h2.ProjectionX(aux.randomName(), yBin1, yBin2)
+    h1.SetDirectory(0)
+    return h1
+
+for i in range(1,12):
+    hData = getHist("pt",yBin1=i,yBin2=i)
+    hBkg = getHist("pt_bkg", True, data=False,yBin1=i,yBin2=i)
+    hSig = getHist("pt", data=False,yBin1=i,yBin2=i)
+
+    if not hSig.GetMaximum() or not hBkg.Integral(): continue
+    hSig.Scale(hData.GetMaximum()/hSig.GetMaximum())
+    hBkg.Scale(0.5*hData.Integral()/hBkg.Integral())
+
+    hData.Draw()
+    hBkg.Draw("same")
+    hSig.Draw("same")
+
+    aux.save("test_%s"%i)
+
 
