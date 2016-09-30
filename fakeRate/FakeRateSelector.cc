@@ -39,10 +39,13 @@ class FakeRateSelector : public TSelector {
   virtual void Terminate();
   virtual Int_t Version() const { return 2; }
 
+  template<typename T>
+  void fillSelection(tree::Electron* tag, T probe, const string& name="");
   TTreeReader fReader;
   TTreeReaderValue<std::vector<tree::Photon>> photons;
   TTreeReaderValue<std::vector<tree::Jet>> jets;
   TTreeReaderValue<std::vector<tree::Electron>> electrons;
+  TTreeReaderValue<std::vector<tree::Muon>> muons;
   TTreeReaderValue<std::vector<tree::Particle>> triggerObjects;
   TTreeReaderValue<tree::MET> met;
   TTreeReaderValue<Int_t> nGoodVertices;
@@ -58,6 +61,7 @@ FakeRateSelector::FakeRateSelector():
   photons(fReader, "photons"),
   jets(fReader, "jets"),
   electrons(fReader, "electrons"),
+  muons(fReader, "muons"),
   triggerObjects(fReader, "triggerObjects"),
   met(fReader, "met"),
   nGoodVertices(fReader, "nGoodVertices"),
@@ -74,19 +78,47 @@ void FakeRateSelector::Init(TTree *tree)
 
 void FakeRateSelector::SlaveBegin(TTree *tree)
 {
-  effs["pt"] = TEfficiency("",";m (GeV);#it{p}_{T} (GeV);#varepsilon", 120, 60, 120, 12, 0, 120);
-  effs["met"] = TEfficiency("",";m (GeV);#it{E}_{T}^{miss} (GeV);#varepsilon", 120, 60, 120, 20, 0, 200);
-  effs["emht"] = TEfficiency("",";m (GeV);#it{EMH}_{T} (GeV);#varepsilon", 120, 60, 120, 30, 0, 300);
-  effs["eta"] = TEfficiency("",";m (GeV);|#eta|;#varepsilon", 120, 60, 120, 300, 0, 3);
-  effs["jets"] = TEfficiency("",";m (GeV);jet multiplicity;#varepsilon", 120, 60, 120, 21, -0.5, 20.5);
-  effs["vtx"] = TEfficiency("",";m (GeV);vertex multiplicity;#varepsilon", 120, 60, 120, 36, 0.5, 36.5);
 }
 
+bool getPixelSeed(const tree::Photon* p) { return p->hasPixelSeed; }
+bool getPixelSeed(const tree::Muon* p) { return false; }
 
+template<typename T>
+void FakeRateSelector::fillSelection(tree::Electron* tag, T probe, const string& name) {
+  if (tag->p.DeltaR(probe->p)<tpSeperationDRcut) return;
+
+  if (!effs.count("pt"+name)) {
+    effs["pt"+name] = TEfficiency("",";m (GeV);#it{p}_{T} (GeV);#varepsilon", 120, 60, 120, 12, 0, 120);
+    effs["met"+name] = TEfficiency("",";m (GeV);#it{E}_{T}^{miss} (GeV);#varepsilon", 120, 60, 120, 20, 0, 200);
+    effs["emht"+name] = TEfficiency("",";m (GeV);#it{EMH}_{T} (GeV);#varepsilon", 120, 60, 120, 30, 0, 300);
+    effs["eta"+name] = TEfficiency("",";m (GeV);|#eta|;#varepsilon", 120, 60, 120, 300, 0, 3);
+    effs["jets"+name] = TEfficiency("",";m (GeV);jet multiplicity;#varepsilon", 120, 60, 120, 21, -0.5, 20.5);
+    effs["vtx"+name] = TEfficiency("",";m (GeV);vertex multiplicity;#varepsilon", 120, 60, 120, 36, 0.5, 36.5);
+  }
+
+  bool hasPixelSeed = getPixelSeed(probe);
+  auto nVertex = *nGoodVertices;
+  float thisMet = met->p.Pt();
+  float mll = m(tag->p, probe->p);
+  float emht = 0;
+  unsigned nJet = 0;
+  for (auto& j : *jets ) {
+    if (j.p.Pt()>30 && j.p.Eta()<3 && tag->p.DeltaR(j.p)>0.4 && probe->p.DeltaR(j.p)>0.4) {
+      nJet++;
+      emht += j.p.Pt();
+    }
+  }
+
+  effs.at("vtx"+name).Fill(!hasPixelSeed, mll, nVertex);
+  if (abs(probe->p.Eta())<1.4442) effs.at("pt"+name).Fill(!hasPixelSeed, mll, probe->p.Pt());
+  if (probe->p.Pt()>40) effs.at("eta"+name).Fill(!hasPixelSeed, mll, fabs(probe->p.Eta()));
+  effs.at("emht"+name).Fill(!hasPixelSeed, mll, emht);
+  effs.at("jets"+name).Fill(!hasPixelSeed, mll, nJet);
+  effs.at("met"+name).Fill(!hasPixelSeed, mll, thisMet);
+}
 
 Bool_t FakeRateSelector::Process(Long64_t entry)
 {
-  //if (entry>1e4) return true;
   if (!(entry%int(2e6))) cout << 1.*entry / fReader.GetEntries(false) << endl;
   fReader.SetEntry(entry);
   if (!*hlt && isData) return true;
@@ -95,16 +127,13 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   vector<tree::Electron*> selTags;
   for (auto& el : *electrons) {
     if (el.p.Pt() < 30 || fabs(el.p.Eta())>2.1) continue;
-    bool triggerMatch = !isData;
     for (const auto& tObj : *triggerObjects) {
       if (el.p.DeltaR(tObj.p)<triggerDRcut) {
-        triggerMatch = true;
+        selTags.push_back(&el);
         break;
       }
     }
-    if (triggerMatch) {
-      selTags.push_back(&el);
-    }
+    if (not isData) selTags.push_back(&el); // trigger not simulated
   }
   if (!selTags.size()) return true;
 
@@ -112,62 +141,24 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   vector<tree::Photon*> selProbes;
   for (auto& pho : *photons) {
     if (!pho.isLoose) continue;
-    bool tagMatch = false;
-    for (const auto& t : selTags) {
-      if (pho.p.DeltaR(t->p)<tpSeperationDRcut) {
-        tagMatch = true;
-        break;
-      }
-    }
-    if (!tagMatch) {
-      selProbes.push_back(&pho);
-    }
-  }
-  if (!selProbes.size()) return true;
-
-  // select exactly one tag and exactly one probe
-  if (selProbes.size()>1 and selTags.size()>1) {
-    float diffZmass = 100;
-    tree::Electron *a = 0;
-    tree::Photon *b = 0;
-    for (unsigned i=0; i<selTags.size(); i++) {
-      for (unsigned j=0; j<selProbes.size(); j++) {
-        float dz = std::abs( zBosonMass - m(selTags.at(i)->p,selProbes.at(j)->p) ); // maasss
-        if (dz<diffZmass) {
-          diffZmass = dz;
-          a = selTags.at(i);
-          b = selProbes.at(j);
-        }
-      }
-    }
-    selTags.clear();
-    selProbes.clear();
-    selTags.push_back(a);
-    selProbes.push_back(b);
+    selProbes.push_back(&pho);
   }
 
-  TVector3 tag = selTags.at(0)->p;
-  TVector3 probe = selProbes.at(0)->p;
-
-  bool hasPixelSeed = selProbes.at(0)->hasPixelSeed;
-  auto nVertex = *nGoodVertices;
-  float thisMet = met->p.Pt();
-  float mll = m(tag, probe);
-  float emht = 0;
-  unsigned nJet = 0;
-  for (auto& j : *jets ) {
-    if (j.p.Pt()>30 && j.p.Eta()<3 && tag.DeltaR(j.p)>0.4 && probe.DeltaR(j.p)>0.4) {
-      nJet++;
-      emht += j.p.Pt();
-    }
+  // search muons
+  vector<tree::Muon*> selMuons;
+  for (auto& pho : *muons) {
+    selMuons.push_back(&pho);
   }
 
-  effs.at("vtx").Fill(!hasPixelSeed, mll, nVertex);
-  if (abs(probe.Eta())<1.4442) effs.at("pt").Fill(!hasPixelSeed, mll, probe.Pt());
-  if (probe.Pt()>40) effs.at("eta").Fill(!hasPixelSeed, mll, fabs(probe.Eta()));
-  effs.at("emht").Fill(!hasPixelSeed, mll, emht);
-  effs.at("jets").Fill(!hasPixelSeed, mll, nJet);
-  effs.at("met").Fill(!hasPixelSeed, mll, thisMet);
+
+  for (auto& tag : selTags) {
+    for (auto& probe : selProbes) {
+      fillSelection(tag, probe);
+    }
+    for (auto& mu : selMuons) {
+      fillSelection(tag, mu, "_bkg");
+    }
+  }
 
   return kTRUE;
 }
