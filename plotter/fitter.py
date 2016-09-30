@@ -49,7 +49,10 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
 
     meanSig = ROOT.RooRealVar("meanSig", "meanSig", 0, -5, 5)
     widthSig = ROOT.RooRealVar("widthSig", "widthSig", 2, 0, 10)
+    a1Sig = ROOT.RooRealVar("a1Sig", "", 1, 1, 25)
+    a2Sig = ROOT.RooRealVar("a2Sig", "", 1, 1, 25)
     smearSig = ROOT.RooGaussian("gausSig", "", x, meanSig, widthSig)
+    smearSig = ROOT.ExpGaussExp("gausSig", "", x, meanSig, widthSig, a1Sig, a2Sig)
 
     meanBkg = ROOT.RooRealVar("meanBkg", "meanBkg", 0, -5, 5)
     widthBkg = ROOT.RooRealVar("widthBkg", "widthBkg", 2, 0, 10)
