@@ -5,10 +5,10 @@
 
 .*
 *~
-
-histogramProducer/*_cc.d
-histogramProducer/*_cc.so
-histogramProducer/*_cc_ACLiC_dict_rdict.pcm
+*_cc.d
+*_cc.d
+*_cc.so
+*_cc_ACLiC_dict_rdict.pcm
 histogramProducer/AutoDict_*
 histogramProducer/TreeParticles.hpp
 
@@ -19,6 +19,4 @@ plotter/smsPlotter/
 plotter/AutoDict_*
 utilities/*.pdf
 
-plotter/cFunctions/*_cc.d
-plotter/cFunctions/*_cc_ACLiC_dict_rdict.pcm
 
