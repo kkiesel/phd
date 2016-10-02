@@ -549,6 +549,7 @@ def printH2(h2,flow=True):
 
 def stdHist(dataset, name, binning=None, xCut=True, cut1=0, cut2=1e8):
     h = dataset.getHist(name)
+    if not h: return
     if isinstance(h, ROOT.TH2):
         if xCut: h = h.ProjectionY(randomName(), h.GetXaxis().FindFixBin(cut1), h.GetYaxis().FindFixBin(cut2))
         else:    h = h.ProjectionX(randomName(), h.GetYaxis().FindFixBin(cut1), h.GetXaxis().FindFixBin(cut2))
