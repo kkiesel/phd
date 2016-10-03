@@ -59,6 +59,9 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     smearBkg = ROOT.RooGaussian("gausBkg", "", x, meanBkg, widthBkg)
 
     x.setBins(10000, "cache")
+    #x.setMin("cache", 40)
+    #x.setMax("cache", 130)
+
     smearedSig = ROOT.RooFFTConvPdf("smearedSig","", x, pdfSig, smearSig)
     smearedBkg = ROOT.RooFFTConvPdf("smearedBkg","", x, pdfBkg, smearBkg)
 
@@ -122,11 +125,16 @@ def binned(hname):
         infoText = "{} < {} < {}".format(yMin, ax.GetTitle(), yMax)
         hDataNum = getHist(hname, data=False, yBin1=bin, yBin2=bin)
         hDataDen = getHist(hname, True, data=False, yBin1=bin, yBin2=bin)
-        num = hDataNum.Integral()
-        den = hDataDen.Integral()
+        r1, r2 = hDataNum.FindFixBin(80), hDataNum.FindFixBin(100)
+        num = hDataNum.Integral(r1, r2)
+        den = hDataDen.Integral(r1, r2)
         if den:
-            hOut.SetBinContent(bin, num/den)
-            hOut.SetBinError(bin, math.sqrt(num)/den)
+            hOut.SetBinContent(bin, 100*num/den)
+            hOut.SetBinError(bin, 100*math.sqrt(num)/den)
+    hOut.SetTitle("")
+    hOut.SetYTitle("f_{e#rightarrow#gamma} (%)")
+    hOut.SetMaximum(5)
+    hOut.SetMinimum(0)
     hOut.Draw("hist e")
     aux.save("fakeRate_vs_{}".format(hname), log=False)
 
