@@ -109,9 +109,9 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, T probe, const string&
     }
   }
 
+  effs.at("pt"+name).Fill(!hasPixelSeed, mll, probe->p.Pt());
+  effs.at("eta"+name).Fill(!hasPixelSeed, mll, fabs(probe->p.Eta()));
   effs.at("vtx"+name).Fill(!hasPixelSeed, mll, nVertex);
-  if (abs(probe->p.Eta())<1.4442) effs.at("pt"+name).Fill(!hasPixelSeed, mll, probe->p.Pt());
-  if (probe->p.Pt()>40) effs.at("eta"+name).Fill(!hasPixelSeed, mll, fabs(probe->p.Eta()));
   effs.at("emht"+name).Fill(!hasPixelSeed, mll, emht);
   effs.at("jets"+name).Fill(!hasPixelSeed, mll, nJet);
   effs.at("met"+name).Fill(!hasPixelSeed, mll, thisMet);
@@ -150,13 +150,22 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
     selMuons.push_back(&pho);
   }
 
-
   for (auto& tag : selTags) {
     for (auto& probe : selProbes) {
       fillSelection(tag, probe);
+      if (probe->p.Pt()>40) fillSelection(tag, probe, "_40pt");
+      if (abs(probe->p.Eta())<1.4442) fillSelection(tag, probe, "_EB");
+      if (abs(probe->p.Eta())<1.4442 && probe->p.Pt()>40) fillSelection(tag, probe, "_EB_40pt");
+      if (abs(probe->p.Eta())>0.1 && abs(probe->p.Eta())<1.4442 && probe->p.Pt()>40) fillSelection(tag, probe, "_EB_01eta_40pt");
+      if (abs(probe->p.Eta())<1.4442 && probe->p.Pt()>100) fillSelection(tag, probe, "_EB_100pt");
     }
-    for (auto& mu : selMuons) {
-      fillSelection(tag, mu, "_bkg");
+    for (auto& probe : selMuons) {
+      fillSelection(tag, probe, "_bkg");
+      if (probe->p.Pt()>40) fillSelection(tag, probe, "_bkg_40pt");
+      if (abs(probe->p.Eta())<1.4442) fillSelection(tag, probe, "_bkg_EB");
+      if (abs(probe->p.Eta())<1.4442 && probe->p.Pt()>40) fillSelection(tag, probe, "_bkg_EB_40pt");
+      if (abs(probe->p.Eta())>0.1 && abs(probe->p.Eta())<1.4442 && probe->p.Pt()>40) fillSelection(tag, probe, "_bkg_EB_01eta_40pt");
+      if (abs(probe->p.Eta())<1.4442 && probe->p.Pt()>100) fillSelection(tag, probe, "_bkg_EB_100pt");
     }
   }
 
