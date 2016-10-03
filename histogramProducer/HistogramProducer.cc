@@ -584,6 +584,17 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // signal sample
   /////////////////////////////////////////////////////////////////////////////
 
+  vector<float> dPhis;
+  int nJets = 0;
+  for (auto& j : *jets ) {
+    if (nJets < 3) {
+      dPhis.push_back(fabs(met->p.DeltaPhi(j.p)));
+      nJets ++;
+    }
+  }
+  float dPhiMin = *std::min_element(dPhis.begin(),dPhis.end());
+  float dPhiMax = *std::max_element(dPhis.begin(),dPhis.end());
+
   for (auto& photon : *photons) {
     if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel) {
       selPhotons.push_back(&photon);
@@ -597,7 +608,11 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr", true);
-    if (selPhotons.at(0)->isTrue and selPhotons.at(0)->isTrueAlternative) fillSelection("tr_true");
+    if (dPhiMin>0.3 && dPhiMax<3.1415-0.3) fillSelection("tr_dPhi3");
+    if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB");
+    else if (selPhotons.at(0)->isTrue == MATCHED_FROM_PI0) fillSelection("tr_true_pi0");
+    else if (selPhotons.at(0)->isTrue == MATCHED_FROM_OTHER_SOURCES) fillSelection("tr_true_other");
+    else fillSelection("tr_unmatched");
     if (selPhotons.at(0)->isTight) fillSelection("tr_tight");
     if (met->p.Pt() < 100) fillSelection("tr_0met100");
     else                    fillSelection("tr_100met");
@@ -608,6 +623,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
     fillSelection("tr_jControl", true);
+    if (dPhiMin>0.3 && dPhiMax<3.1415-0.3) fillSelection("tr_jControl_dPhi3");
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep");
     for (auto& j : selJets) {
       if (j->nef>.9 && j->p.Pt()>100 && fabs(j->p.Eta())<1.4442) {
