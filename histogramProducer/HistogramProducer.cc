@@ -224,8 +224,12 @@ map<string,TH1F> initHistograms() {
   hMap["metPerRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss #perp  } (GeV)", 200, 0, 2000);
   hMap["metSmeared"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metSmeared2"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhoton"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhoton2"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonUp"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonDn"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metPhotonResUp"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metPhotonResDn"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metUncertUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metUncertDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["mt_g_met"] = TH1F("", ";m(#gamma,#it{E}_{T}^{miss}_{T}) (GeV)", 150, 0, 1500);
 
   hMap["metSig"] = TH1F("", ";#it{S}", 3000, 0, 3000);
@@ -359,6 +363,8 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=true) {
   m1->at("metSmeared").Fill((met->p+metShift).Pt(), selW);
   m1->at("metSmeared2").Fill((met->p-metShift).Pt(), selW);
   m1->at("metRaw").Fill(metRaw->p.Pt(), selW);
+  m1->at("metUncertUp").Fill(met->p.Pt()+met->uncertainty, selW);
+  m1->at("metUncertDn").Fill(met->p.Pt()-met->uncertainty, selW);
 
   if (selPhotons.size() > 0) {
     auto g = selPhotons.at(0);
@@ -374,8 +380,11 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=true) {
     float newPt = isData ? oldPt : smearedPt(g->p, *genJets, rand);
     TVector3 photonShift(0,0,0);
     photonShift.SetPtEtaPhi(oldPt-newPt, g->p.Eta(), g->p.Phi());
-    m1->at("metSmearedPhoton").Fill((met->p+photonShift).Pt(), selW);
-    m1->at("metSmearedPhoton2").Fill((met->p-photonShift).Pt(), selW);
+    m1->at("metSmearedPhotonUp").Fill((met->p+photonShift).Pt(), selW);
+    m1->at("metSmearedPhotonDn").Fill((met->p-photonShift).Pt(), selW);
+    float res = resolution.get(g->p.Pt(), g->p.Eta(), *rho);
+    m1->at("metPhotonResUp").Fill((met->p+res*g->p).Pt(), selW);
+    m1->at("metPhotonResDn").Fill((met->p-res*g->p).Pt(), selW);
 
     m1->at("mt_g_met").Fill((g->p + met->p).Pt(), selW);
     m1->at("g_pt").Fill(g->p.Pt(), selW);
@@ -480,6 +489,7 @@ HistogramProducer::HistogramProducer():
   pu_weight(fReader, "pu_weight"),
   mc_weight(fReader, "mc_weight"),
   genHt(fReader, "genHt"),
+  rho(fReader, "rho"),
   runNo(fReader, "runNo"),
   hlt_photon90_ht600(fReader, "HLT_Photon90_CaloIdL_PFHT600_v"),
   hlt_photon90(fReader, "HLT_Photon90_v"),
@@ -498,6 +508,7 @@ void HistogramProducer::Init(TTree *tree)
   fReader.SetTree(tree);
   string inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
+  resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
 
   float lumi = 22.0e3; // pb^{-1}
   float nGen = ((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"))->GetBinContent(2);

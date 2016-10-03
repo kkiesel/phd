@@ -17,6 +17,7 @@
 #include "UserFunctions.h"
 #include "Weighter.h"
 #include "CutFlow.h"
+#include "Resolution.h"
 
 
 class HistogramProducer : public TSelector {
@@ -59,6 +60,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Char_t> mc_weight;
   TTreeReaderValue<Int_t> nGoodVertices;
   TTreeReaderValue<Float_t> genHt;
+  TTreeReaderValue<Float_t> rho;
   TTreeReaderValue<ULong64_t> eventNo;
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
@@ -91,6 +93,8 @@ class HistogramProducer : public TSelector {
   bool isData;
 
   CutFlowPhoton looseCutFlowPhoton;
+  Weighter nVtxWeighter;
+  Resolution resolution;
 
   double startTime;
   TRandom2 rand;
