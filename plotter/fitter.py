@@ -33,12 +33,23 @@ def getHist(name, den=False, data=True, yBin1=0, yBin2=-1):
     h1.SetDirectory(0)
     return h1
 
-
+def drawUnfitted(name, hData, hSig, hBkg):
+    aux.drawOpt(hData, "data")
+    hData.SetTitle(";m (GeV);Pairs [abitrary normalization]")
+    hData.Draw("ep")
+    hSig.SetLineColor(ROOT.kRed)
+    hSig.Scale(hData.GetMaximum()/hSig.GetMaximum())
+    hSig.Draw("hist same")
+    hBkg.SetLineColor(ROOT.kBlack)
+    hBkg.Scale(hData.Integral()/hBkg.Integral()/5)
+    hBkg.Draw("hist same")
+    aux.save("fakeRate_unfitted_"+name, log=False)
 
 def fitHist(name, hData, hSig, hBkg, infoText=""):
+    drawUnfitted(name, hData, hSig, hBkg)
     totalInt = hData.Integral(0,-1)
     var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
-    x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
+    x = ROOT.RooRealVar("x", var, 80, 100, "GeV")
 
     dhSig = ROOT.RooDataHist("dhSig", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hSig))
     dhBkg = ROOT.RooDataHist("dhBkg", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hBkg))
@@ -49,21 +60,22 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
 
     meanSig = ROOT.RooRealVar("meanSig", "meanSig", 0, -5, 5)
     widthSig = ROOT.RooRealVar("widthSig", "widthSig", 2, 0, 10)
-    a1Sig = ROOT.RooRealVar("a1Sig", "", 1, 1, 25)
-    a2Sig = ROOT.RooRealVar("a2Sig", "", 1, 1, 25)
+    a1Sig = ROOT.RooRealVar("a1Sig", "", 1, 0, 25)
+    a2Sig = ROOT.RooRealVar("a2Sig", "", 1, 0, 25)
     smearSig = ROOT.RooGaussian("gausSig", "", x, meanSig, widthSig)
-    smearSig = ROOT.ExpGaussExp("gausSig", "", x, meanSig, widthSig, a1Sig, a2Sig)
+    #smearSig = ROOT.ExpGaussExp("gausSig", "", x, meanSig, widthSig, a1Sig, a2Sig)
 
     meanBkg = ROOT.RooRealVar("meanBkg", "meanBkg", 0, -5, 5)
     widthBkg = ROOT.RooRealVar("widthBkg", "widthBkg", 2, 0, 10)
     smearBkg = ROOT.RooGaussian("gausBkg", "", x, meanBkg, widthBkg)
 
     x.setBins(10000, "cache")
-    #x.setMin("cache", 40)
-    #x.setMax("cache", 130)
+    x.setMin("cache", 10.3)
+    x.setMax("cache", 200.42)
 
     smearedSig = ROOT.RooFFTConvPdf("smearedSig","", x, pdfSig, smearSig)
     smearedBkg = ROOT.RooFFTConvPdf("smearedBkg","", x, pdfBkg, smearBkg)
+    smearedBkg = ROOT.RooExponential("expo", "exponential PDF", x, meanBkg)
 
     nSig = ROOT.RooRealVar("nSig","number of events", totalInt, 0, 2*totalInt)
     signal = ROOT.RooExtendPdf("signal", "", smearedSig, nSig)
@@ -74,28 +86,29 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     total = ROOT.RooAddPdf("total", "sig+bkg", ROOT.RooArgList(signal, bkg))
 
     # fit
-    #signal.fitTo(dh, ROOT.RooFit.Range("onZ"))
+    #signal.fitTo(dh)
     #bkg.fitTo(dh, ROOT.RooFit.Range("belowZ,aboveZ"))
     #total.fitTo(dh, ROOT.RooFit.Range("onZ"))
-    #total.fitTo(dh)
+    total.fitTo(dh)
 
     # draw
     frame = x.frame(ROOT.RooFit.Title(" "))
     dh.plotOn(frame)
-    #total.plotOn(frame)
+    frame.SetYTitle(frame.GetYaxis().GetTitle().replace("Events", "Pairs"))
+    total.plotOn(frame)
     #total.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kRed))
-    #total.plotOn(frame, ROOT.RooFit.Components(ROOT.RooArgSet(bkg)), ROOT.RooFit.LineColor(ROOT.kGray), ROOT.RooFit.LineStyle(ROOT.kDashed))
-    #total.plotOn(frame, ROOT.RooFit.Components(ROOT.RooArgSet(signal)), ROOT.RooFit.LineColor(ROOT.kGreen))
+    total.plotOn(frame, ROOT.RooFit.Components("expo"), ROOT.RooFit.LineColor(ROOT.kGray), ROOT.RooFit.LineStyle(ROOT.kDashed))
+    total.plotOn(frame, ROOT.RooFit.Components("smearedSig"), ROOT.RooFit.LineColor(ROOT.kGreen))
 
-    residuals = frame.residHist()
+    #residuals = frame.residHist()
 
-    frameRes = x.frame(ROOT.RooFit.Title(" "))
-    frameRes.addPlotable(residuals, "P")
+    #frameRes = x.frame(ROOT.RooFit.Title(" "))
+    #frameRes.addPlotable(residuals, "P")
 
     c = ROOT.TCanvas()
     frame.Draw()
-    ratio.createBottomPad()
-    frameRes.Draw()
+    #ratio.createBottomPad()
+    #frameRes.Draw()
     l = aux.Label(info=infoText, sim=False)
     aux.save("fakeRate_peaks_"+name, log=False)
     return nSig.getVal()
@@ -104,14 +117,8 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
 hData = getHist("pt")
 hBkg = getHist("pt_bkg")
 hSig = getHist("pt", data=False)
-#fitHist("inclusive", hData, hSig, hBkg)
+fitHist("inclusive", hData, hSig, hBkg)
 
-hData.Draw("ep")
-hSig.Scale(hData.GetMaximum()/hSig.GetMaximum())
-hSig.Draw("hist same")
-hBkg.Scale(hData.Integral()/hBkg.Integral()/10)
-hBkg.Draw("hist same")
-aux.save("test", log=False)
 
 def binned(hname):
     eff = getFromFile(fnameMC, hname)
@@ -135,14 +142,15 @@ def binned(hname):
     hOut.SetYTitle("f_{e#rightarrow#gamma} (%)")
     hOut.SetMaximum(5)
     hOut.SetMinimum(0)
+    c = ROOT.TCanvas()
     hOut.Draw("hist e")
     aux.save("fakeRate_vs_{}".format(hname), log=False)
 
-#inclusive()
+"""
 binned("pt")
 binned("vtx")
 binned("jets")
 binned("met")
 binned("emht")
 binned("eta")
-
+"""
