@@ -9,7 +9,7 @@ ROOT.gSystem.Load("cFunctions/ExpGaussExp_cc.so")
 
 import ROOT
 ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
-#ROOT.RooMsgService.instance().getStream(1).removeTopic(ROOT.NumericIntegration)
+ROOT.RooMsgService.instance().setSilentMode(True)
 
 fnameData = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
 fnameMC = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
@@ -59,7 +59,6 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     totalInt = hData.Integral(0,-1)
     var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
     x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
-    x.setRange("peak", 80, 100)
 
     dhSig = ROOT.RooDataHist("dhSig", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hSig))
     dhBkg = ROOT.RooDataHist("dhBkg", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hBkg))
@@ -73,19 +72,14 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     a1Sig = ROOT.RooRealVar("a1Sig", "", 1, 0, 25)
     a2Sig = ROOT.RooRealVar("a2Sig", "", 1, 0, 25)
     smearSig = ROOT.RooGaussian("gausSig", "", x, meanSig, widthSig)
-    #smearSig = ROOT.ExpGaussExp("gausSig", "", x, meanSig, widthSig, a1Sig, a2Sig)
+    #smearSig = ROOT.ExpGaussExp("gausSig", "", x, meanSig, widthSig, a1Sig, a2Sig) # double sided crystal ball
 
     meanBkg = ROOT.RooRealVar("meanBkg", "meanBkg", 0, -5, 5)
     widthBkg = ROOT.RooRealVar("widthBkg", "widthBkg", 2, 0, 10)
     smearBkg = ROOT.RooGaussian("gausBkg", "", x, meanBkg, widthBkg)
 
-    x.setBins(10000, "cache")
-    #x.setMin("cache", 10.3)
-    #x.setMax("cache", 200.42)
-
     smearedSig = ROOT.RooFFTConvPdf("smearedSig","", x, pdfSig, smearSig)
     smearedBkg = ROOT.RooFFTConvPdf("smearedBkg","", x, pdfBkg, smearBkg)
-    smearedBkg = ROOT.RooExponential("expo", "exponential PDF", x, meanBkg)
 
     nSig = ROOT.RooRealVar("nSig","number of events", totalInt, 0, 2*totalInt)
     signal = ROOT.RooExtendPdf("signal", "", smearedSig, nSig)
@@ -96,18 +90,16 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     total = ROOT.RooAddPdf("total", "sig+bkg", ROOT.RooArgList(signal, bkg))
 
     # fit
-    #signal.fitTo(dh)
-    #bkg.fitTo(dh, ROOT.RooFit.Range("belowZ,aboveZ"))
-    #total.fitTo(dh, ROOT.RooFit.Range("onZ"))
-    total.fitTo(dh, ROOT.RooFit.Range("peak"))
+    x.setBins(10000, "cache") # for the convolution
+    x.setRange("peak", 60, 120) # range can be decreased to avoid boundary effects
+    total.fitTo(dh, ROOT.RooFit.Range("peak"), ROOT.RooFit.PrintEvalErrors(-1))
 
     # draw
     frame = x.frame(ROOT.RooFit.Title(" "))
     dh.plotOn(frame)
     frame.SetYTitle(frame.GetYaxis().GetTitle().replace("Events", "Pairs"))
     total.plotOn(frame)
-    #total.plotOn(frame, ROOT.RooFit.LineColor(ROOT.kRed))
-    total.plotOn(frame, ROOT.RooFit.Components("expo"), ROOT.RooFit.LineColor(ROOT.kGreen), ROOT.RooFit.LineStyle(ROOT.kDashed))
+    total.plotOn(frame, ROOT.RooFit.Components("smearedBkg"), ROOT.RooFit.LineColor(ROOT.kGreen), ROOT.RooFit.LineStyle(ROOT.kDashed))
     total.plotOn(frame, ROOT.RooFit.Components("smearedSig"), ROOT.RooFit.LineColor(ROOT.kRed))
 
     #residuals = frame.residHist()
