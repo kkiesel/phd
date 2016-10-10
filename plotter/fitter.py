@@ -8,9 +8,8 @@ ROOT.gSystem.Load("cFunctions/RooCMSShape_cc.so")
 ROOT.gSystem.Load("cFunctions/ExpGaussExp_cc.so")
 
 import ROOT
-ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.INFO)
+ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
 #ROOT.RooMsgService.instance().getStream(1).removeTopic(ROOT.NumericIntegration)
-
 
 fnameData = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
 fnameMC = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
@@ -43,7 +42,7 @@ def drawUnfitted(name, hData, hSig, hBkg, infoText=""):
     hSig.Scale(hData.GetMaximum()/hSig.GetMaximum())
     hSig.Draw("hist same")
     hBkg.SetLineColor(ROOT.kGreen)
-    hBkg.Scale(hData.Integral()/hBkg.Integral()/5)
+    hBkg.Scale(hData.Integral()/hBkg.Integral())
     hBkg.Draw("hist same")
     l = aux.Label(info=infoText, sim=False)
     leg = ROOT.TLegend(.6, .6, .93, .92)
@@ -139,9 +138,9 @@ def binned(hname, isData=True):
         hNumMC = getHist(hname, data=False, yBin1=bin, yBin2=bin)
         hDen = getHist(hname, True, data=isData, yBin1=bin, yBin2=bin)
         hDenMC = getHist(hname, True, data=False, yBin1=bin, yBin2=bin)
-        hBkg = getHist(hname, data=isData, yBin1=bin, yBin2=bin)
-        num = fitHist("fakeRate_vs_{}_bin{}_num".format(hname,bin), hNum, hNumMC, hBkg)
-        den = fitHist("fakeRate_vs_{}_bin{}_den".format(hname,bin), hDen, hDenMC, hBkg)
+        hBkg = getHist(hname+"_bkg", data=isData, yBin1=bin, yBin2=bin)
+        num = fitHist("fakeRate_vs_{}_bin{}_num".format(hname,bin), hNum, hNumMC, hBkg, infoText)
+        den = fitHist("fakeRate_vs_{}_bin{}_den".format(hname,bin), hDen, hDenMC, hBkg, infoText)
         if den:
             hOut.SetBinContent(bin, 100*num/den)
             hOut.SetBinError(bin, 100*math.sqrt(num)/den)
@@ -165,8 +164,8 @@ def inclusive():
 
 inclusive()
 binned("pt")
-binned("vtx")
-binned("jets")
-binned("met")
-binned("emht")
-binned("eta")
+#binned("vtx")
+#binned("jets")
+#binned("met")
+#binned("emht")
+#binned("eta")
