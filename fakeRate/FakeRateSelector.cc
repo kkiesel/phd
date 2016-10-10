@@ -88,12 +88,12 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, T probe, const string&
   if (tag->p.DeltaR(probe->p)<tpSeperationDRcut) return;
 
   if (!effs.count("pt"+name)) {
-    effs["pt"+name] = TEfficiency("",";m (GeV);#it{p}_{T} (GeV);#varepsilon", 120, 60, 120, 12, 0, 120);
-    effs["met"+name] = TEfficiency("",";m (GeV);#it{E}_{T}^{miss} (GeV);#varepsilon", 120, 60, 120, 20, 0, 200);
-    effs["emht"+name] = TEfficiency("",";m (GeV);#it{EMH}_{T} (GeV);#varepsilon", 120, 60, 120, 30, 0, 300);
-    effs["eta"+name] = TEfficiency("",";m (GeV);|#eta|;#varepsilon", 120, 60, 120, 300, 0, 3);
-    effs["jets"+name] = TEfficiency("",";m (GeV);jet multiplicity;#varepsilon", 120, 60, 120, 21, -0.5, 20.5);
-    effs["vtx"+name] = TEfficiency("",";m (GeV);vertex multiplicity;#varepsilon", 120, 60, 120, 36, 0.5, 36.5);
+    effs["pt"+name] = TEfficiency("",";m (GeV);#it{p}_{T} (GeV);#varepsilon", 200, 40, 140, 12, 0, 120);
+    effs["met"+name] = TEfficiency("",";m (GeV);#it{E}_{T}^{miss} (GeV);#varepsilon", 200, 40, 140, 20, 0, 200);
+    effs["emht"+name] = TEfficiency("",";m (GeV);#it{EMH}_{T} (GeV);#varepsilon", 200, 40, 140, 30, 0, 300);
+    effs["eta"+name] = TEfficiency("",";m (GeV);|#eta|;#varepsilon", 200, 40, 140, 300, 0, 3);
+    effs["jets"+name] = TEfficiency("",";m (GeV);jet multiplicity;#varepsilon", 200, 40, 140, 21, -0.5, 20.5);
+    effs["vtx"+name] = TEfficiency("",";m (GeV);vertex multiplicity;#varepsilon", 200, 40, 140, 36, 0.5, 36.5);
   }
 
   bool hasPixelSeed = getPixelSeed(probe);
