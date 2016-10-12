@@ -164,7 +164,8 @@ def rebin2d( h, binEdgesX=None, binEdgesY=None ):
     import array
     binEdgesXArr = array.array( 'd', binEdgesX )
     binEdgesYArr = array.array( 'd', binEdgesY )
-    hnew = ROOT.TH2F(h.GetName(),h.GetTitle(), len(binEdgesX)-1, binEdgesXArr, len(binEdgesY)-1, binEdgesYArr )
+    hnew = ROOT.TH2F(h.GetName()+randomName(),h.GetTitle(), len(binEdgesX)-1, binEdgesXArr, len(binEdgesY)-1, binEdgesYArr )
+    hnew.GetYaxis().SetTitleOffset(h.GetYaxis().GetTitleOffset())
 
     # GetProperties
     hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
