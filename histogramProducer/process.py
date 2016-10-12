@@ -73,7 +73,8 @@ ds={
     "wg": [
         "WGJets_MonoPhoton_PtG-130_nTuple.root",
         "WGToLNuG-madgraphMLM_nTuple.root",
-        "WGToLNuG-amcatnloFXFX_nTuple.root"
+        "WGToLNuG-madgraphMLM_PtG-0to130_nTuple.root",
+        "WGToLNuG-amcatnloFXFX_nTuple.root",
         ],
 }
 dir = "/user/kiesel/nTuples/v14/"
