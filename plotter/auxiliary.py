@@ -222,6 +222,7 @@ def rebin3d( h, binEdgesX=None, binEdgesY=None, binEdgesZ=None ):
 
 
 def rebin( h, binEdges, scale=True ):
+    if not binEdges: return h
     checkRebinningConsistence( h.GetXaxis(), binEdges )
     import array
     binEdgesArr = array.array( 'd', binEdges )
