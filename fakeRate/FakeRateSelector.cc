@@ -103,7 +103,7 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   auto nVertex = *nGoodVertices;
   float thisMet = met->p.Pt();
   float mll = m(tag->p, probe->p);
-  float emht = 0;
+  float emht = tag->p.Pt() + probe->p.Pt();
   unsigned nJet = 0;
   for (auto& j : *jets ) {
     if (j.p.Pt()>30 && j.p.Eta()<3 && tag->p.DeltaR(j.p)>0.4 && probe->p.DeltaR(j.p)>0.4) {
