@@ -96,7 +96,7 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
     effs["cIso"+name] = TEfficiency("",";m (GeV);I_{#pm} (GeV);#varepsilon", 200, 40, 140, 50, 0, 5);
     effs["nIso"+name] = TEfficiency("",";m (GeV);I_{0} (GeV);#varepsilon", 200, 40, 140, 50, 0, 5);
     effs["pIso"+name] = TEfficiency("",";m (GeV);I_{#gamma} (GeV);#varepsilon", 200, 40, 140, 50, 0, 5);
-    effs["cIsoWorst"+name] = TEfficiency("",";m (GeV);worst I_{#pm} (GeV);#varepsilon", 200, 40, 140, 50, 0, 50);
+    effs["cIsoWorst"+name] = TEfficiency("",";m (GeV);worst I_{#pm} (GeV);#varepsilon", 200, 40, 140, 80, 0, 40);
   }
 
   bool hasPixelSeed = probe->hasPixelSeed;
