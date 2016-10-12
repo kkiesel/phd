@@ -211,6 +211,9 @@ dy.label = "Z#rightarrowll"
 
 # signal samples
 
+t5wg_1600_100 = Dataset("SMS-T5Wg_1600_100", 0.00810078, ROOT.kRed, "")
+t5wg_1600_100.label = "T5Wg 1600 100"
+
 import collections
 class SampleCollection(collections.MutableMapping):
     """Dictionary used to store signal datasets.
