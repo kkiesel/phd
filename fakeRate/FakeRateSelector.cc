@@ -83,12 +83,20 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   if (tag->p.DeltaR(probe->p)<tpSeperationDRcut) return;
 
   if (!effs.count("pt"+name)) {
-    effs["pt"+name] = TEfficiency("",";m (GeV);#it{p}_{T} (GeV);#varepsilon", 200, 40, 140, 12, 0, 120);
-    effs["met"+name] = TEfficiency("",";m (GeV);#it{E}_{T}^{miss} (GeV);#varepsilon", 200, 40, 140, 20, 0, 200);
-    effs["emht"+name] = TEfficiency("",";m (GeV);#it{EMH}_{T} (GeV);#varepsilon", 200, 40, 140, 30, 0, 300);
+    effs["pt"+name] = TEfficiency("",";m (GeV);#it{p}_{T} (GeV);#varepsilon", 200, 40, 140, 40, 0, 200);
+    effs["met"+name] = TEfficiency("",";m (GeV);#it{E}_{T}^{miss} (GeV);#varepsilon", 200, 40, 140, 40, 0, 200);
+    effs["emht"+name] = TEfficiency("",";m (GeV);#it{EMH}_{T} (GeV);#varepsilon", 200, 40, 140, 40, 0, 400);
     effs["eta"+name] = TEfficiency("",";m (GeV);|#eta|;#varepsilon", 200, 40, 140, 300, 0, 3);
     effs["jets"+name] = TEfficiency("",";m (GeV);jet multiplicity;#varepsilon", 200, 40, 140, 21, -0.5, 20.5);
     effs["vtx"+name] = TEfficiency("",";m (GeV);vertex multiplicity;#varepsilon", 200, 40, 140, 36, 0.5, 36.5);
+    effs["sie"+name] = TEfficiency("",";m (GeV);#sigma_{i#etai#eta};#varepsilon", 200, 40, 140, 60, 0, 0.03);
+    effs["sip"+name] = TEfficiency("",";m (GeV);#sigma_{i#phii#phi};#varepsilon", 200, 40, 140, 80, 0, 0.08);
+    effs["hoe"+name] = TEfficiency("",";m (GeV);H/E;#varepsilon", 200, 40, 140, 100, 0, 0.05);
+    effs["r9"+name] = TEfficiency("",";m (GeV);r9;#varepsilon", 200, 40, 140, 60, 0, 1.1);
+    effs["cIso"+name] = TEfficiency("",";m (GeV);I_{#pm} (GeV);#varepsilon", 200, 40, 140, 50, 0, 5);
+    effs["nIso"+name] = TEfficiency("",";m (GeV);I_{0} (GeV);#varepsilon", 200, 40, 140, 50, 0, 5);
+    effs["pIso"+name] = TEfficiency("",";m (GeV);I_{#gamma} (GeV);#varepsilon", 200, 40, 140, 50, 0, 5);
+    effs["cIsoWorst"+name] = TEfficiency("",";m (GeV);worst I_{#pm} (GeV);#varepsilon", 200, 40, 140, 50, 0, 50);
   }
 
   bool hasPixelSeed = probe->hasPixelSeed;
@@ -110,6 +118,15 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   effs.at("emht"+name).Fill(!hasPixelSeed, mll, emht);
   effs.at("jets"+name).Fill(!hasPixelSeed, mll, nJet);
   effs.at("met"+name).Fill(!hasPixelSeed, mll, thisMet);
+  effs.at("sie"+name).Fill(!hasPixelSeed, mll, probe->sigmaIetaIeta);
+  effs.at("sip"+name).Fill(!hasPixelSeed, mll, probe->sigmaIphiIphi);
+  effs.at("hoe"+name).Fill(!hasPixelSeed, mll, probe->hOverE);
+  effs.at("r9"+name).Fill(!hasPixelSeed, mll, probe->r9);
+  effs.at("cIso"+name).Fill(!hasPixelSeed, mll, probe->cIso);
+  effs.at("nIso"+name).Fill(!hasPixelSeed, mll, probe->nIso);
+  effs.at("pIso"+name).Fill(!hasPixelSeed, mll, probe->pIso);
+  effs.at("cIsoWorst"+name).Fill(!hasPixelSeed, mll, probe->cIsoWorst);
+
 }
 
 Bool_t FakeRateSelector::Process(Long64_t entry)
