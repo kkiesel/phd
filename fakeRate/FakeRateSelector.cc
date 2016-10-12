@@ -39,8 +39,7 @@ class FakeRateSelector : public TSelector {
   virtual void Terminate();
   virtual Int_t Version() const { return 2; }
 
-  template<typename T>
-  void fillSelection(tree::Electron* tag, T probe, const string& name="");
+  void fillSelection(tree::Electron* tag, tree::Photon* probe, const string& name="");
   TTreeReader fReader;
   TTreeReaderValue<std::vector<tree::Photon>> photons;
   TTreeReaderValue<std::vector<tree::Jet>> jets;
@@ -80,11 +79,7 @@ void FakeRateSelector::SlaveBegin(TTree *tree)
 {
 }
 
-bool getPixelSeed(const tree::Photon* p) { return p->hasPixelSeed; }
-bool getPixelSeed(const tree::Muon* p) { return false; }
-
-template<typename T>
-void FakeRateSelector::fillSelection(tree::Electron* tag, T probe, const string& name) {
+void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, const string& name) {
   if (tag->p.DeltaR(probe->p)<tpSeperationDRcut) return;
 
   if (!effs.count("pt"+name)) {
@@ -96,7 +91,7 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, T probe, const string&
     effs["vtx"+name] = TEfficiency("",";m (GeV);vertex multiplicity;#varepsilon", 200, 40, 140, 36, 0.5, 36.5);
   }
 
-  bool hasPixelSeed = getPixelSeed(probe);
+  bool hasPixelSeed = probe->hasPixelSeed;
   auto nVertex = *nGoodVertices;
   float thisMet = met->p.Pt();
   float mll = m(tag->p, probe->p);
@@ -145,9 +140,25 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   }
 
   // search muons
-  vector<tree::Muon*> selMuons;
-  for (auto& pho : *muons) {
-    selMuons.push_back(&pho);
+  vector<tree::Photon> artificialPhotons;
+  vector<tree::Photon*> selMuons;
+  for (auto& mu : *muons) {
+    if (mu.p.Pt() < 25) continue;
+    tree::Photon x;
+    x.p = mu.p;
+    x.sigmaIetaIeta = -1;
+    x.sigmaIphiIphi = -1;
+    x.hOverE = -1;
+    x.hasPixelSeed = false;
+    x.passElectronVeto = false;
+    x.r9 = -1;
+    x.sigmaPt = -1;
+    x.cIso = -1;
+    x.nIso = -1;
+    x.pIso = -1;
+    x.cIsoWorst = -1;
+    artificialPhotons.push_back(x);
+    selMuons.push_back(&artificialPhotons.back());
   }
 
   for (auto& tag : selTags) {
