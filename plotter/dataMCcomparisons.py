@@ -116,6 +116,6 @@ def transitions():
 if __name__ == "__main__":
     #transitions()
     #drawSameHistograms( "gqcd_data", [gjets, qcd], additional=[data])
-    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets, wg_mg, zg, znunu], additional=[data])
+    drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets, wg_mg, zg, znunu], additional=[data])
     #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets, wg_mg, zg, znunu], additional=[])
 
