@@ -161,13 +161,19 @@ ttg.label = "#gammat#bar{t}"
 tg = Dataset( "TGJets_amcatnlo_madspin", 2.967, ROOT.kOrange+2, "TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8" )
 tg.label = "#gammat"
 
-wg_mc = Dataset( "WGToLNuG-amcatnloFXFX", 489., ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
-wg_mg = Dataset( "WGToLNuG-madgraphMLM", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wg_pt500 = Dataset( "WGToLNuG_PtG-500", 0.0117887, ROOT.kRed-1, "WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wg_mg.label = "#gammaW#rightarrow#gammal#nu"
-
+wg_mc = Dataset( "WGToLNuG-amcatnloFXFX", 489., ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+wg_mc.label = "#gammaW#rightarrow#gammal#nu (mc@NLO)"
+wg_mg = Dataset( "WGToLNuG-madgraphMLM", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wg_mg.label = "#gammaW#rightarrow#gammal#nu (MG)"
+wg_mg_0to130 = Dataset( "WGToLNuG-madgraphMLM_PtG-0to130", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wg_mg_0to130.label = "#gammaW p_{T}<130GeV"
 wg_130 = Dataset( "WGJets_MonoPhoton_PtG-130", 0.834, ROOT.kRed-1, "WGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
-wg_130.label = "#gammaW"
+wg_130.label = "#gammaW p_{T}>130GeV"
+
+wg = Dataset( "WGToLNuG-madgraphMLM_PtG-0to130", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wg = wg + wg_130
+wg.label = "#gammaW"
 
 
 # znunu
