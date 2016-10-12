@@ -81,7 +81,6 @@ class HistogramProducer : public TSelector {
 
   float selW = 1.; // weight
   float sampleW = 1.;
-  TVector3 metShift;
 
   map<string,map<string,TH1F>> h1Maps;
   map<string,map<string,TH2F>> h2Maps;
@@ -91,6 +90,7 @@ class HistogramProducer : public TSelector {
   map<int,pair<int,int>> rawEff_vs_run;
 
   bool isData;
+  bool genPt130;
 
   CutFlowPhoton looseCutFlowPhoton;
   Weighter nVtxWeighter;
