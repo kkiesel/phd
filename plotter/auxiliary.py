@@ -9,6 +9,11 @@ import itertools
 binCfg = ConfigParser.SafeConfigParser()
 binCfg.readfp(open('rebin.cfg'))
 
+def frange(x, y, jump):
+    while x < y:
+        yield x
+        x += jump
+
 def getXsecInfoSMS( mother_mass, pklfilename ):
     import pickle
 
