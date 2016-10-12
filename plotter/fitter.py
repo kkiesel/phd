@@ -116,32 +116,58 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     return nSig.getVal()
 
 
-def binned(hname, isData=True):
-    eff = getFromFile(fnameMC, hname)
-    h2 = getHistFromEff(eff)
-    hOut = h2.ProjectionY()
-    for bin in range(1, h2.GetNbinsY()+1):
-        ax = h2.GetYaxis()
+def binned(hname, selectionInfo="", intOnly=False):
+    binning = None
+    if hname.startswith("met"): binning = range(0,50,5)+range(50,120,10)
+    if hname.startswith("pt"): binning = range(30, 90, 5) + [90,100,120,150,200]
+    effMC = getFromFile(fnameMC, hname)
+    h2NumMC = effMC.GetCopyPassedHisto()
+    h2NumMC = aux.rebin2d(h2NumMC, None, binning)
+    h2DenMC = effMC.GetCopyTotalHisto()
+    h2DenMC = aux.rebin2d(h2DenMC, None, binning)
+    eff = getFromFile(fnameData, hname)
+    h2Num = eff.GetCopyPassedHisto()
+    h2Num = aux.rebin2d(h2Num, None, binning)
+    h2Den = eff.GetCopyTotalHisto()
+    h2Den = aux.rebin2d(h2Den, None, binning)
+    effBkg = getFromFile(fnameData, hname+"_bkg")
+    h2Bkg = effBkg.GetCopyTotalHisto()
+    h2Bkg = aux.rebin2d(h2Bkg, None, binning)
+
+    hOut = h2Den.ProjectionY()
+    hOut.Reset("ICES")
+    for bin in range(0, h2Den.GetNbinsY()+2):
+        ax = h2Den.GetYaxis()
         yMin, yMax = ax.GetBinLowEdge(bin), ax.GetBinUpEdge(bin)
         if not yMin - int(yMin): yMin = int(yMin)
         if not yMax - int(yMax): yMax = int(yMax)
         infoText = "{} < {} < {}".format(yMin, ax.GetTitle(), yMax)
-        hNum = getHist(hname, data=isData, yBin1=bin, yBin2=bin)
-        hNumMC = getHist(hname, data=False, yBin1=bin, yBin2=bin)
-        hDen = getHist(hname, True, data=isData, yBin1=bin, yBin2=bin)
-        hDenMC = getHist(hname, True, data=False, yBin1=bin, yBin2=bin)
-        hBkg = getHist(hname+"_bkg", data=isData, yBin1=bin, yBin2=bin)
-        num = fitHist("fakeRate_vs_{}_bin{}_num".format(hname,bin), hNum, hNumMC, hBkg, infoText)
-        den = fitHist("fakeRate_vs_{}_bin{}_den".format(hname,bin), hDen, hDenMC, hBkg, infoText)
+        hNum = h2Num.ProjectionX(aux.randomName(), bin, bin)
+        hNumMC = h2NumMC.ProjectionX(aux.randomName(), bin, bin)
+        hDen = h2Den.ProjectionX(aux.randomName(), bin, bin)
+        hDenMC = h2DenMC.ProjectionX(aux.randomName(), bin, bin)
+        hBkg = h2Bkg.ProjectionX(aux.randomName(), bin, bin)
+        if intOnly:
+            xMin = hNum.GetXaxis().FindFixBin(80)
+            xMax = hNum.GetXaxis().FindFixBin(100)
+            num = hNum.Integral(xMin, xMax)
+            den = hDen.Integral(xMin, xMax)
+        else:
+            num = fitHist("fakeRate_vs_{}_bin{}_num".format(hname,bin), hNum, hNumMC, hBkg, infoText)
+            den = fitHist("fakeRate_vs_{}_bin{}_den".format(hname,bin), hDen, hDenMC, hBkg, infoText)
         if den:
             hOut.SetBinContent(bin, 100*num/den)
             hOut.SetBinError(bin, 100*math.sqrt(num)/den)
     hOut.SetTitle("")
     hOut.SetYTitle("f_{e#rightarrow#gamma} (%)")
+    hOut.SetTitleOffset(0.9,"y")
+    aux.drawOpt(hOut, "data")
     hOut.SetMaximum(5)
     hOut.SetMinimum(0)
     c = ROOT.TCanvas()
-    hOut.Draw("hist e")
+    style.defaultStyle()
+    hOut.Draw("e hist")
+    l = aux.Label(info=selectionInfo)
     aux.save("fakeRate_vs_{}".format(hname), log=False)
 
 def inclusive():
@@ -154,10 +180,16 @@ def inclusive():
     den = fitHist("fakeRate_inclusive_den", hDen, hDenMC, hBkg)
     print "Inclusive fake-rate: {:.2f}%".format(100.*num/den)
 
-inclusive()
-binned("pt")
-#binned("vtx")
-#binned("jets")
-#binned("met")
-#binned("emht")
-#binned("eta")
+#inclusive()
+infos = {"":"", "_40pt":"p_{T}>40GeV", "_EB":"Barrel", "_EB_40pt":"Barrel, p_{T}>40GeV", "_EB_01eta_40pt":"Barrel, p_{T}>40GeV, |#eta|>0.1", "_EB_100pt":"Barrel, p_{T}>100GeV"}
+
+variables = "pt", "jets", "met", "emht", "vtx", "eta", "sie", "sip", "hoe", "r9", "cIso", "nIso", "pIso", "cIsoWorst"
+selections = "", "_40pt", "_EB", "_EB_40pt", "_EB_01eta_40pt", "_EB_100pt"
+selections = ["_EB_40pt"]
+#variables = ["met"]
+
+for var in variables:
+    for sel in selections:
+        binned("{}{}".format(var,sel), selectionInfo=infos[sel], intOnly=True)
+
+
