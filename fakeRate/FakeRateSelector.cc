@@ -138,7 +138,7 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   // search tag
   vector<tree::Electron*> selTags;
   for (auto& el : *electrons) {
-    if (el.p.Pt() < 30 || fabs(el.p.Eta())>2.1) continue;
+    if (el.p.Pt() < 30 || fabs(el.p.Eta())>2.1 || !el.isTight) continue;
     for (const auto& tObj : *triggerObjects) {
       if (el.p.DeltaR(tObj.p)<triggerDRcut) {
         selTags.push_back(&el);
