@@ -120,6 +120,10 @@ def binned(hname, selectionInfo="", intOnly=False):
     binning = None
     if hname.startswith("met"): binning = range(0,50,5)+range(50,120,10)
     if hname.startswith("pt"): binning = range(30, 90, 5) + [90,100,120,150,200]
+    if hname.startswith("cIsoWorst"): binning = range(0, 8) + [8, 10, 15, 20]
+    if hname.startswith("pIso"): binning = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1., 1.5, 2]
+    if hname.startswith("hoe"): binning = list(aux.frange(0, 0.05, 0.005))
+    else: return
     effMC = getFromFile(fnameMC, hname)
     h2NumMC = effMC.GetCopyPassedHisto()
     h2NumMC = aux.rebin2d(h2NumMC, None, binning)
@@ -186,7 +190,6 @@ infos = {"":"", "_40pt":"p_{T}>40GeV", "_EB":"Barrel", "_EB_40pt":"Barrel, p_{T}
 variables = "pt", "jets", "met", "emht", "vtx", "eta", "sie", "sip", "hoe", "r9", "cIso", "nIso", "pIso", "cIsoWorst"
 selections = "", "_40pt", "_EB", "_EB_40pt", "_EB_01eta_40pt", "_EB_100pt"
 selections = ["_EB_40pt"]
-#variables = ["met"]
 
 for var in variables:
     for sel in selections:
