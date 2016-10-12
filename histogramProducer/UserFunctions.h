@@ -185,6 +185,7 @@ float sampleCrossSection(const string& inputFileName) {
     {"TGJets_amcatnlo_madspin", 2.967},
     {"WGToLNuG-amcatnloFXFX", 489.},
     {"WGToLNuG-madgraphMLM", 405.271},
+    {"WGToLNuG-madgraphMLM_PtG-0to130", 405.271},
     {"WGToLNuG_PtG-500", 0.0117887},
     {"ZJetsToNuNu_HT-100To200", 280.47*1.23},
     {"ZJetsToNuNu_HT-200To400", 78.36*1.23},
