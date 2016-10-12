@@ -215,8 +215,12 @@ map<string,TH1F> initHistograms() {
   hMap["met"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metPhotonPtUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metPhotonPtDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhotonUp"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhotonDn"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJERUp"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJERDn"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJER"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJERUp_fixedRho"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJERDn_fixedRho"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJER_fixedRho"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metPhotonResUp"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metPhotonResDn"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metUncertUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
@@ -389,16 +393,14 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
     auto mJet = matchedJet(*g);
     if (mJet) {
       m1->at("g_ptStar").Fill(mJet->p.Pt(), selW);
+      m1->at("metSmearedPhotonByJERUp").Fill((met->p+g->p*mJet->ptRes).Pt(), selW);
+      m1->at("metSmearedPhotonByJERDn").Fill((met->p-g->p*mJet->ptRes).Pt(), selW);
+      for (int i=0;i<1000;i++) m1->at("metSmearedPhotonByJER").Fill((met->p-g->p*rand.Gaus(0, mJet->ptRes)).Pt(), selW);
     }
-    float oldPt = g->p.Pt();
-    float newPt = isData ? oldPt : smearedPt(g->p, *genJets, rand);
-    TVector3 photonShift(0,0,0);
-    photonShift.SetPtEtaPhi(oldPt-newPt, g->p.Eta(), g->p.Phi());
-    m1->at("metSmearedPhotonUp").Fill((met->p+photonShift).Pt(), selW);
-    m1->at("metSmearedPhotonDn").Fill((met->p-photonShift).Pt(), selW);
-//    float res = resolution.get(g->p.Pt(), g->p.Eta(), *rho);
-//    m1->at("metPhotonResUp").Fill((met->p+res*g->p).Pt(), selW);
-//    m1->at("metPhotonResDn").Fill((met->p-res*g->p).Pt(), selW);
+    float res = resolution.get(g->p.Pt(), g->p.Eta(), 15.4);
+    m1->at("metSmearedPhotonByJERUp_fixedRho").Fill((met->p+res*g->p).Pt(), selW);
+    m1->at("metSmearedPhotonByJERDn_fixedRho").Fill((met->p-res*g->p).Pt(), selW);
+    for (int i=0;i<1000;i++) m1->at("metSmearedPhotonByJER_fixedRho").Fill((met->p-rand.Gaus(0,res)*g->p).Pt(), selW);
 
     m1->at("mt_g_met").Fill((g->p + met->p).Pt(), selW);
     m1->at("g_pt").Fill(g->p.Pt(), selW);

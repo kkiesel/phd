@@ -245,7 +245,7 @@ std::pair<float, float> jerScales(float eta) {
   return std::pair<float, float> (sf, e);
 }
 
-float smearedPt(const TVector3& p, const vector<tree::Particle>& genJets, TRandom2& rand) {
+float smearedPtDataMC(const TVector3& p, const vector<tree::Particle>& genJets, TRandom2& rand) {
   auto sfe = jerScales(p.Eta());
   float oldPt = p.Pt();
   float genPt = 0;
