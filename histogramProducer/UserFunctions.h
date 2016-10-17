@@ -287,7 +287,7 @@ int genMatchWZDecay(const tree::Particle& p, const std::vector<tree::Intermediat
   return 0;
 }
 
-float topPtReweighting(const std::vector<tree::GenParticle>& particles) {
+float topPtReweighting(std::vector<tree::GenParticle>& particles) {
   // scale factors from 8TeV combination https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting
   // Take care that you correct for the additional weight, as this is not fixed to 1
   float a = 0.156, b = -0.00137;
