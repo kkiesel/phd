@@ -680,7 +680,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   /////////////////////////////////////////////////////////////////////////////
 
   for (auto& photon : *photons) {
-    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) > photonsEtaMaxBarrel) {
+    auto eta = fabs(photon.p.Eta());
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && 1.6 < eta && eta < 2.2) {
       selPhotons.push_back(&photon);
     }
   }
