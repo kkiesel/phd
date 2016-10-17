@@ -97,6 +97,8 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
     effs["nIso"+name] = TEfficiency("",";m (GeV);I_{0} (GeV);#varepsilon", 200, 40, 140, 50, 0, 5);
     effs["pIso"+name] = TEfficiency("",";m (GeV);I_{#gamma} (GeV);#varepsilon", 200, 40, 140, 50, 0, 5);
     effs["cIsoWorst"+name] = TEfficiency("",";m (GeV);worst I_{#pm} (GeV);#varepsilon", 200, 40, 140, 80, 0, 40);
+    effs["pt_vs_vtx"+name] = TEfficiency("", ";m (GeV);#it{p}_{T};vertex multiplicity;#varepsilon", 200, 40, 140, 40, 0, 200, 36, 0.5, 36.5);
+    effs["met_vs_vtx"+name] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss};vertex multiplicity;#varepsilon", 200, 40, 140, 40, 0, 200, 36, 0.5, 36.5);
   }
 
   bool hasPixelSeed = probe->hasPixelSeed;
@@ -127,6 +129,8 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   effs.at("pIso"+name).Fill(!hasPixelSeed, mll, probe->pIso);
   effs.at("cIsoWorst"+name).Fill(!hasPixelSeed, mll, probe->cIsoWorst);
 
+  effs.at("pt_vs_vtx"+name).Fill(!hasPixelSeed, mll, probe->p.Pt(), nVertex);
+  effs.at("met_vs_vtx"+name).Fill(!hasPixelSeed, mll, thisMet, nVertex);
 }
 
 Bool_t FakeRateSelector::Process(Long64_t entry)
