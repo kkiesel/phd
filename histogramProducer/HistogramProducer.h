@@ -44,8 +44,6 @@ class HistogramProducer : public TSelector {
   void initUncut();
   void fillUncut();
 
-  int genMatch(const tree::Particle& p);
-
   TTreeReader fReader;
   TTreeReaderValue<std::vector<tree::Photon>> photons;
   TTreeReaderValue<std::vector<tree::Jet>> jets;
