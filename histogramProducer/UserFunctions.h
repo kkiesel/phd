@@ -121,6 +121,8 @@ inline bool pseudoRandomSort(const tree::Particle p1, const tree::Particle p2) {
 }
 
 const float photonsEtaMaxBarrel = 1.4442;
+const float photonsEtaMinEndcap = 1.566;
+const float photonsEtaMaxEndcap = 2.5;
 
 class JetSelector {
   public:
