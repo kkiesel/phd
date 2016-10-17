@@ -286,3 +286,30 @@ int genMatchWZDecay(const tree::Particle& p, const std::vector<tree::Intermediat
   }
   return 0;
 }
+
+float topPtReweighting(const std::vector<tree::GenParticle>& particles) {
+  // scale factors from 8TeV combination https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting
+  // Take care that you correct for the additional weight, as this is not fixed to 1
+  float a = 0.156, b = -0.00137;
+  vector<tree::GenParticle*> selTops;
+  for (auto& genP : particles) {
+    if (fabs(genP.pdgId)==6) {
+      selTops.push_back( &genP );
+    }
+  }
+  float scaleFactor = 1;
+  if (selTops.size()==2) {
+    float pt1 = selTops.at(0)->p.Pt();
+    float pt2 = selTops.at(1)->p.Pt();
+    if (pt1>400) pt1=400;
+    if (pt2>400) pt2=400;
+    scaleFactor = sqrt( exp(a+b*pt1) * exp(a+b*pt2) );
+  } else if (selTops.size() == 1 ) {
+    float pt1 = selTops.at(0)->p.Pt();
+    if (pt1>400) pt1=400;
+    scaleFactor = exp(a+b*pt1);
+  } else if (!selTops.size()) {
+    cout << "Counted " << selTops.size() << " tops, applying scale factor of 1 " << endl;
+  }
+  return scaleFactor;
+}
