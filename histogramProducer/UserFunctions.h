@@ -260,3 +260,16 @@ float smearedPtDataMC(const TVector3& p, const vector<tree::Particle>& genJets, 
     : rand.Gaus(oldPt, sqrt(pow(sfe.first,2)-1) * sfe.second*oldPt);
   return newPt;
 }
+
+int genMatchNegativePrompt(const tree::Particle& p, const std::vector<tree::GenParticle>& particles) {
+  for (auto const& genP : particles) {
+    auto id = fabs(genP.pdgId);
+    auto dr = p.p.DeltaR(genP.p);
+    auto dpt = p.p.Pt()/genP.p.Pt();
+    if (dr < 0.15 && fabs(dpt-1) < 0.15) {
+      if (genP.isPrompt) return id;
+      else return -id;
+    }
+  }
+  return 0;
+}
