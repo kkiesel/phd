@@ -134,6 +134,13 @@ qcd.label = "Multijet"
 ttjets = Dataset( "TTJets", 670.3,  ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 ttjets.label = "t#bar{t}"
 
+ttjets600 = Dataset("TTJets_HT-600to800_ext", 1.61, ROOT.kRed+2, "TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
+ttjets800 = Dataset("TTJets_HT-800to1200_ext", 0.663, ROOT.kRed+2, "TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
+ttjets1200 = Dataset("TTJets_HT-1200to2500_ext", 0.12, ROOT.kRed+2, "TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
+ttjets2500 = Dataset("TTJets_HT-2500toInf_ext", 0.00143, ROOT.kRed+2, "TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
+ttjets_ht = ttjets600 + ttjets800 + ttjets1200 + ttjets2500
+ttjets_ht.label = "t#bar{t}"
+
 wjets100 = Dataset( "WJetsToLNu_HT-100To200", 1345., ROOT.kRed-6, "WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wjets200 = Dataset( "WJetsToLNu_HT-200To400", 359.7, ROOT.kRed-5, "WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wjets400 = Dataset( "WJetsToLNu_HT-400To600", 48.91, ROOT.kRed-4, "WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
