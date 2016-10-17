@@ -506,6 +506,7 @@ void HistogramProducer::Init(TTree *tree)
   sampleW = isData ? 1. : lumi * sampleCrossSection(inputName) / nGen;
 
   genPt130 = inputName.find("0to130") != string::npos;
+  genHt600 = inputName.find("HT-0to600") != string::npos;
 
   initTriggerStudies();
   initUncut();
@@ -569,6 +570,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     }
     if (gPt>130) return kTRUE;
   }
+  if (genHt600 && *genHt>600) {
+    return kTRUE;
+  }
+
   fillUncut();
 
   if (isData) fillTriggerStudies();

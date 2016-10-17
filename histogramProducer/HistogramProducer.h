@@ -89,6 +89,7 @@ class HistogramProducer : public TSelector {
 
   bool isData;
   bool genPt130;
+  bool genHt600;
 
   CutFlowPhoton looseCutFlowPhoton;
   Weighter nVtxWeighter;
