@@ -63,7 +63,14 @@ ds={
         "ZJetsToNuNu_HT-1200To2500_nTuple.root",
         "ZJetsToNuNu_HT-2500ToInf_nTuple.root",
         ],
-    "tt": ["TTJets_nTuple.root"],
+    "tt": [
+        "TTJets_nTuple.root",
+        "TTJets_HT-0to600_nTuple.root",
+        "TTJets_HT-600to800_ext_nTuple.root",
+        "TTJets_HT-800to1200_ext_nTuple.root",
+        "TTJets_HT-1200to2500_ext_nTuple.root",
+        "TTJets_HT-2500toInf_nTuple.root",
+    ],
     "ttg": ["TTGJets_nTuple.root"],
     "tg": ["TGJets_amcatnlo_madspin_nTuple.root"],
     "zg": [
