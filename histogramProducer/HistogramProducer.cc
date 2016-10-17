@@ -1,30 +1,5 @@
 #include "HistogramProducer.h"
 
-int HistogramProducer::genMatch(const tree::Particle& p) {
-
-  // match to daghters of massive particles
-  for (auto const& genP : *intermediateGenParticles) {
-    for (auto const & d : genP.daughters) {
-      auto id = fabs(d.pdgId);
-      auto dr = p.p.DeltaR(d.p);
-      auto dpt = p.p.Pt()/d.p.Pt();
-      if (dr < 0.5) return id;
-    }
-  }
-
-  for (auto const& genP : *genParticles) {
-    auto id = fabs(genP.pdgId);
-    auto dr = p.p.DeltaR(genP.p);
-    auto dpt = p.p.Pt()/genP.p.Pt();
-    if (dr < 0.15 && fabs(dpt-1) < 0.15) {
-      if (genP.isPrompt) return id;
-      else return -id;
-    }
-  }
-
-  return 0;
-}
-
 void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_pt"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
   effMap["eff_hlt_eta"] = TEfficiency("", ";|#eta|;#varepsilon", 15, 0, 1.5);
@@ -285,7 +260,7 @@ map<string,TH1F> initHistograms() {
   hMap["n_muon"] = TH1F("", ";muon multiplicity", 4, -0.5, 3.5);
   hMap["n_heJet"] = TH1F("", ";photon-like jet multiplicity", 11, -0.5, 10.5);
 
-  hMap["genMatch"] = TH1F("", ";pdg id for gen match", 24, -0.5, 23.5);
+  hMap["genMatch"] = TH1F("", ";pdg id for gen match", 47, -23.5, 23.5);
   hMap["genHt"] = TH1F("", ";#it{H}_{T}^{gen}", 3000, 0, 3000);
 
   return hMap;
@@ -387,7 +362,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
 
   if (selPhotons.size() > 0) {
     auto g = selPhotons.at(0);
-    m1->at("genMatch").Fill(genMatch(*g), selW);
+    m1->at("genMatch").Fill(genMatchNegativePrompt(*g, *genParticles), selW);
     m1->at("metPhotonPtUp").Fill((met->p+g->sigmaPt/g->p.Pt()*g->p).Pt(), selW);
     m1->at("metPhotonPtDn").Fill((met->p-g->sigmaPt/g->p.Pt()*g->p).Pt(), selW);
     auto mJet = matchedJet(*g);
@@ -671,9 +646,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (selPhotons.at(0)->isTight) fillSelection("tr_tight");
     if (met->p.Pt() < 100) fillSelection("tr_0met100");
     else                    fillSelection("tr_100met");
-    auto gMatch = genMatch(*selPhotons.at(0));
-    if (gMatch == 11) fillSelection("tr_genE", true);
-    else              fillSelection("tr_noGenE", true);
+    fillSelection(string("tr_genWZ")+to_string(genMatchWZDecay(*selPhotons.at(0), *intermediateGenParticles)), true);
+    fillSelection(string("tr_gen")+to_string(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)), true);
   }
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
@@ -737,7 +711,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr_eControl", true);
-    if (genMatch(*selPhotons.at(0)) == 11) fillSelection("tr_eControl_genE");
+    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_eControl_genE");
   }
 
 
@@ -758,7 +732,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr_eControl_ee", true);
-    if (genMatch(*selPhotons.at(0)) == 11) fillSelection("tr_eControl_genE_ee");
+    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_eControl_genE_ee");
   }
 
   resetSelection();
