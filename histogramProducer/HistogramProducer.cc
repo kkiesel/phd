@@ -501,7 +501,7 @@ void HistogramProducer::Init(TTree *tree)
   isData = inputName.find("Run201") != string::npos;
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
 
-  float lumi = 22.0e3; // pb^{-1}
+  float lumi = 27.22e3; // pb^{-1}
   cutFlow = *((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"));
   auto fName1 = string(fReader.GetTree()->GetCurrentFile()->GetName());
   fReader.GetEntries(true); // jumps to last file
