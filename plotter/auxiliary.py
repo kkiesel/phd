@@ -134,6 +134,11 @@ def getObjectNames( filename, path="", objects=[ROOT.TH1] ):
 
     return outList
 
+def getDirNames(filename):
+    f = ROOT.TFile(filename)
+    allDirs = [ e.GetName() for e in f.GetListOfKeys() if isinstance(e.ReadObj(),ROOT.TDirectory) ]
+    return allDirs
+
 def inerate(axis):
     return range(axis.GetNbins()+2)
 
