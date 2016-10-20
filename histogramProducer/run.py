@@ -27,6 +27,9 @@ def run(infile="", selector="HistogramProducer.cc", ext=False):
     else:
         raise Exception ('TSelector could not be compiled!')
 
+def runExt(infile="", selector="HistogramProducer.cc"):
+    # wrapper
+    run(infile, selector, True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -125,10 +125,7 @@ Queue
         subprocess.call(["condor_submit", "submit"])
 
 else: # local processing
-
-
     files = [dir+x for x in toProcess]
     files.sort(key=os.path.getsize, reverse=True)
-
     p = multiprocessing.Pool()
-    p.map(run.run, files)
+    p.map(run.runExt, files)
