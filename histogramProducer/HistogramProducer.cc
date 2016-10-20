@@ -559,7 +559,7 @@ tree::Jet* HistogramProducer::matchedJet(const tree::Particle& p) {
 Bool_t HistogramProducer::Process(Long64_t entry)
 {
   resetSelection();
-  fReader.SetEntry(entry);
+  fReader.SetLocalEntry(entry);
   if (genPt130) {
     float gPt = 0;
     for (auto const& genP : *genParticles) {
