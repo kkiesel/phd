@@ -502,7 +502,15 @@ void HistogramProducer::Init(TTree *tree)
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
 
   float lumi = 22.0e3; // pb^{-1}
-  float nGen = ((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"))->GetBinContent(2);
+  cutFlow = *((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"));
+  auto fName1 = string(fReader.GetTree()->GetCurrentFile()->GetName());
+  fReader.GetEntries(true); // jumps to last file
+  auto fName2 = string(fReader.GetTree()->GetCurrentFile()->GetName());
+  if (fName1!=fName2) {
+    // adds cut flow of last file. This makes only scence if there is for 1 or two files
+    cutFlow.Add((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"));
+  }
+  float nGen = cutFlow.GetBinContent(2);
   sampleW = isData ? 1. : lumi * sampleCrossSection(inputName) / nGen;
 
   genPt130 = inputName.find("0to130") != string::npos;
@@ -778,7 +786,7 @@ void HistogramProducer::Terminate()
   file.GetDirectory("triggerStudies")->WriteObject(&rawEff_vs_run, "rawEff_vs_run");
   file.cd();
 
-  fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow")->Write("hCutFlow");
+  cutFlow.Write("hCutFlow");
   file.Close();
   cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 }
