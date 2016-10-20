@@ -97,6 +97,7 @@ run.run()
 parser = argparse.ArgumentParser()
 parser.add_argument('datasets', nargs='+', default=["all"], help="all "+' '.join(ds.keys()))
 parser.add_argument('--condor', action="store_true")
+parser.add_argument('--ext', action='store_true')
 args = parser.parse_args()
 
 if args.datasets == ["all"]:
@@ -109,17 +110,18 @@ else:
 print toProcess
 
 if args.condor:
+    extStr = "--ext" if args.ext else ""
     for x in toProcess:
         with open("submit","w") as f:
             f.write("""
 Universe   = vanilla
 Executable = run.sh
-Arguments  = /net/scratch_cms1b1/cms/user/kiesel/{0}
+Arguments  = /net/scratch_cms1b1/cms/user/kiesel/{0} {1}
 Log        = logs/{0}.log
 Output     = logs/{0}.out
 Error      = logs/{0}.error
 Queue
-""".format(x))
+""".format(x, extStr))
         subprocess.call(["condor_submit", "submit"])
 
 else: # local processing
