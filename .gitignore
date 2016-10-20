@@ -9,8 +9,16 @@
 *_cc.d
 *_cc.so
 *_cc_ACLiC_dict_rdict.pcm
+*submit
+
 histogramProducer/AutoDict_*
 histogramProducer/TreeParticles.hpp
+histogramProducer/logs
+histogramProducer/suppressor.py
+
+fakeRate/TreeParticles.hpp
+fakeRate/UserFunctions.h
+fakeRate/logs
 
 plotter/plots/
 plotter/plotsPhys14/
