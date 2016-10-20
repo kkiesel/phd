@@ -6,7 +6,7 @@ import ROOT
 import argparse
 import os
 
-def run(infile="", selector="HistogramProducer.cc"):
+def run(infile="", selector="HistogramProducer.cc", ext=False):
     # load libraries
     ROOT.gSystem.Load("pluginTreeWriterTreeWriterAuto.so")
     lib = "AutoDict_map_int_pair_int_int____cxx.so"
@@ -17,6 +17,10 @@ def run(infile="", selector="HistogramProducer.cc"):
     if infile:
         ch = ROOT.TChain("TreeWriter/eventTree")
         ch.AddFile(infile)
+        extName = infile.replace("_nTuple", "_ext_nTuple")
+        if ext and os.path.isfile(extName):
+            print "Add file", extName
+            ch.AddFile(extName)
         ch.Process(selector+"+")
     elif ROOT.TSelector.GetSelector(selector+"++"):
         print "Compiled TSelector"
@@ -27,7 +31,8 @@ def run(infile="", selector="HistogramProducer.cc"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('file', default="", nargs="?")
+    parser.add_argument('--ext', action='store_true')
 
     args = parser.parse_args()
 
-    run(args.file)
+    run(args.file, ext=args.ext)
