@@ -155,9 +155,10 @@ class JetSelector {
 float sampleCrossSection(const string& inputFileName) {
   auto startPos = inputFileName.rfind("/");
   auto endPos = inputFileName.find("_nTuple.root");
+  auto extPos = inputFileName.find("_ext");
   string sampleName = "";
   if (endPos != string::npos) {
-    sampleName = inputFileName.substr(startPos+1, endPos-startPos-1);
+    sampleName = inputFileName.substr(startPos+1, min(endPos,extPos)-startPos-1);
   }
 
   map<string,float> xs = {
@@ -174,11 +175,11 @@ float sampleCrossSection(const string& inputFileName) {
     {"QCD_HT1000to1500", 1207},
     {"QCD_HT1500to2000", 119.9},
     {"QCD_HT2000toInf", 25.24},
-    {"TTJets", 670.3},
-    {"TTJets_HT-0to600", 670.3},
-    {"TTJets_HT-600to800_ext", 1.61},
-    {"TTJets_HT-800to1200_ext", 0.663},
-    {"TTJets_HT-1200to2500_ext", 0.12},
+    {"TTJets", 831.76},
+    {"TTJets_HT-0to600", 831.76},
+    {"TTJets_HT-600to800", 1.61},
+    {"TTJets_HT-800to1200", 0.663},
+    {"TTJets_HT-1200to2500", 0.12},
     {"TTJets_HT-2500toInf", 0.00143},
     {"WJetsToLNu_HT-100To200", 1345.*1.21},
     {"WJetsToLNu_HT-200To400", 359.7*1.21},
@@ -195,13 +196,13 @@ float sampleCrossSection(const string& inputFileName) {
     {"WGToLNuG-madgraphMLM_PtG-0to130", 405.271},
     {"WGToLNuG_PtG-500", 0.0117887},
     {"ZJetsToNuNu_HT-100To200", 280.47*1.23},
-    {"ZJetsToNuNu_HT-200To400", 78.36*1.23},
-    {"ZJetsToNuNu_HT-400To600", 10.94*1.23},
-    {"ZJetsToNuNu_HT-600ToInf", 4.20*1.23},
-    {"ZJetsToNuNu_HT-600To800", 0.853*1.23},
-    {"ZJetsToNuNu_HT-800To1200", 0.3942*1.23},
-    {"ZJetsToNuNu_HT-1200To2500", 0.0974*1.23},
-    {"ZJetsToNuNu_HT-2500ToInf", 0.002308*1.23},
+    {"ZJetsToNuNu_HT-200To400", 77.67*1.23},
+    {"ZJetsToNuNu_HT-400To600", 10.73*1.23},
+    {"ZJetsToNuNu_HT-600ToInf", 4.116*1.23},
+    {"ZJetsToNuNu_HT-600To800", 2.559*1.23},
+    {"ZJetsToNuNu_HT-800To1200", 1.1796*1.23},
+    {"ZJetsToNuNu_HT-1200To2500", 0.28833*1.23},
+    {"ZJetsToNuNu_HT-2500ToInf", 0.006945*1.23},
     {"ZNuNuGJets_MonoPhoton_PtG-40to130", 2.816},
     {"ZNuNuGJets_MonoPhoton_PtG-130", 0.223},
     {"ZGTo2LG", 117.864},
