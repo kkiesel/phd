@@ -323,3 +323,17 @@ float topPtReweighting(std::vector<tree::GenParticle>& particles) {
   }
   return scaleFactor;
 }
+
+string getSignalPointName(unsigned short nBinos, unsigned short m1, unsigned short m2) {
+  string out = "";
+  switch (nBinos) {
+    case 0: out += "WW"; break;
+    case 1: out += "Wg"; break;
+    case 2: out += "gg"; break;
+    default: out += "xx";
+  }
+  out += "_"+to_string(m1);
+  out += "_"+to_string(m2);
+  return out;
+
+}
