@@ -68,6 +68,11 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Bool_t> hlt_ht800;
   TTreeReaderValue<Int_t> hlt_ht600_pre;
 
+  // signal scan
+  TTreeReaderValue<UShort_t> signal_nBinos;
+  TTreeReaderValue<UShort_t> signal_m1;
+  TTreeReaderValue<UShort_t> signal_m2;
+
   vector<tree::Photon*> selPhotons;
   vector<tree::Jet*> selJets;
   vector<tree::Jet*> selBJets;
@@ -88,6 +93,7 @@ class HistogramProducer : public TSelector {
   map<int,pair<int,int>> rawEff_vs_run;
 
   bool isData;
+  bool isScan;
   bool genPt130;
   bool genHt600;
   TH1F cutFlow;
