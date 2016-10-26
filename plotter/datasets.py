@@ -131,15 +131,20 @@ qcd.label = "Multijet"
 
 # electroweak
 # https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns#TTbar NNLO +19.77 -29.20 +35.06 -35.06
-ttjets = Dataset( "TTJets", 831.76,  ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+ttjets_nlo = Dataset( "TTJets-amcatnloFXFX", 6.675e+02,  ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+ttjets_nlo.xsecs[0] = 831.76 #+19.77 -29.20 +35.06 -35.06
+ttjets = Dataset( "TTJets-madgraphMLM", 5.098e+02,  ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+ttjets.xsecs[0] = 831.76 #+19.77 -29.20 +35.06 -35.06
 ttjets.label = "t#bar{t}"
 
-ttjets0 = Dataset("TTJets_HT-0to600", 831.76, ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8")
+ttjets0 = Dataset("TTJets_HT-0to600", 5.098e+02, ROOT.kRed+2, "TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
 ttjets600 = Dataset("TTJets_HT-600to800_ext", 1.61, ROOT.kRed+2, "TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
 ttjets800 = Dataset("TTJets_HT-800to1200_ext", 0.663, ROOT.kRed+2, "TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
 ttjets1200 = Dataset("TTJets_HT-1200to2500_ext", 0.12, ROOT.kRed+2, "TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
-ttjets2500 = Dataset("TTJets_HT-2500toInf_ext", 0.00143, ROOT.kRed+2, "TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
-ttjets_ht = ttjets0 + ttjets600 + ttjets800 + ttjets1200 + ttjets2500
+ttjets2500 = Dataset("TTJets_HT-2500toInf", 0.00143, ROOT.kRed+2, "TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
+ttjets_ht_samples = ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500
+for ds in ttjets_ht_samples: ds.xsecs = [ ds.xsecs[0] * 831.76/5.098e+02 ] # k-factor
+ttjets_ht = sum(ttjets_ht_samples)
 ttjets_ht.label = "t#bar{t}"
 
 wjets100 = Dataset( "WJetsToLNu_HT-100To200", 1345., ROOT.kRed-6, "WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
@@ -149,32 +154,25 @@ wjets600 = Dataset( "WJetsToLNu_HT-600To800", 12.05, ROOT.kRed-3, "WJetsToLNu_HT
 wjets800 = Dataset( "WJetsToLNu_HT-800To1200", 5.501, ROOT.kRed-2, "WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wjets1200 = Dataset( "WJetsToLNu_HT-1200To2500", 1.329, ROOT.kRed-1, "WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wjets2500 = Dataset( "WJetsToLNu_HT-2500ToInf", 0.03216, ROOT.kRed, "WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wjets600_inf = Dataset( "WJetsToLNu_HT-600ToInf", 18.77, ROOT.kRed, "WJetsToLNu_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-
-# k-factor
 wjetsSamples = [ wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500 ]
-for ds in wjetsSamples+[wjets600_inf]:
-    ds.xsecs = [ ds.xsecs[0] * 1.21 ]
-
+for ds in wjetsSamples: ds.xsecs = [ ds.xsecs[0] * 1.21 ] # k-factor
 wjets = sum( wjetsSamples )
 wjets.label = "W#rightarrowl#nu"
 
-# isr
 ttg = Dataset( "TTGJets", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8" )
 ttg.label = "#gammat#bar{t}"
 
-# NLO xsec from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#T_X
 tg = Dataset( "TGJets_amcatnlo_madspin", 2.967, ROOT.kOrange+2, "TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8" )
 tg.label = "#gammat"
 
-wg_pt500 = Dataset( "WGToLNuG_PtG-500", 0.0117887, ROOT.kRed-1, "WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-wg_mc = Dataset( "WGToLNuG-amcatnloFXFX", 489., ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+#wg_pt500 = Dataset( "WGToLNuG_PtG-500", 0.0117887, ROOT.kRed-1, "WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wg_mc = Dataset( "WGToLNuG-amcatnloFXFX_ext", 512.1, ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 wg_mc.label = "#gammaW#rightarrow#gammal#nu (mc@NLO)"
-wg_mg = Dataset( "WGToLNuG-madgraphMLM", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wg_mg = Dataset( "WGToLNuG-madgraphMLM", 377.2*1.34, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wg_mg.label = "#gammaW#rightarrow#gammal#nu (MG)"
-wg_mg_0to130 = Dataset( "WGToLNuG-madgraphMLM_PtG-0to130", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+wg_mg_0to130 = Dataset( "WGToLNuG-madgraphMLM_PtG-0to130", 377.2*1.34, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 wg_mg_0to130.label = "#gammaW p_{T}<130GeV"
-wg_130 = Dataset( "WGJets_MonoPhoton_PtG-130", 0.834*1.34, ROOT.kRed-1, "WGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
+wg_130 = Dataset( "WGJets_MonoPhoton_PtG-130", 0.6565*1.34, ROOT.kRed-1, "WGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
 wg_130.label = "#gammaW p_{T}>130GeV"
 
 # k-factor from http://cms.cern.ch/iCMS/jsp/db_notes/noteInfo.jsp?cmsnoteid=CMS%20AN-2016/078 EXO-16-014
@@ -182,28 +180,23 @@ wg = Dataset( "WGToLNuG-madgraphMLM_PtG-0to130", 405.271*1.34, ROOT.kRed-3, "WGT
 wg = wg + wg_130
 wg.label = "#gammaW"
 
-
-# znunu
 znunu100 = Dataset( "ZJetsToNuNu_HT-100To200", 280.47, ROOT.kMagenta-2 , "ZJetsToNuNu_HT-100To200_13TeV-madgraph" )
-znunu200 = Dataset( "ZJetsToNuNu_HT-200To400", 77.67, ROOT.kMagenta-1 , "ZJetsToNuNu_HT-200To400_13TeV-madgraph" )
+znunu200 = Dataset( "ZJetsToNuNu_HT-200To400_ext", 77.67, ROOT.kMagenta-1 , "ZJetsToNuNu_HT-200To400_13TeV-madgraph" )
 znunu400 = Dataset( "ZJetsToNuNu_HT-400To600", 10.73, ROOT.kMagenta+4 , "ZJetsToNuNu_HT-400To600_13TeV-madgraph" )
 znunu600 = Dataset( "ZJetsToNuNu_HT-600To800", 2.559, ROOT.kMagenta+3 , "ZJetsToNuNu_HT-600To800_13TeV-madgraph" )
 znunu800 = Dataset( "ZJetsToNuNu_HT-800To1200", 1.1796, ROOT.kMagenta+2 , "ZJetsToNuNu_HT-800To1200_13TeV-madgraph" )
 znunu1200 = Dataset( "ZJetsToNuNu_HT-1200To2500", 0.28833, ROOT.kMagenta+1 , "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph" )
 znunu2500 = Dataset( "ZJetsToNuNu_HT-2500ToInf", 0.006945, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph" )
 znunu600Inf = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.116, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-600ToInf_13TeV-madgraph" )
-
 znunuSamples = znunu100, znunu200, znunu400, znunu600, znunu800, znunu1200, znunu2500
-for ds in znunuSamples:
-    # apply k-factor
-    ds.xsecs = [ ds.xsecs[0] * 1.23 ]
-
+for ds in znunuSamples: ds.xsecs = [ ds.xsecs[0] * 1.23 ]
 znunu = sum( znunuSamples )
 znunu.label = "Z#rightarrow#nu#nu"
 
+
 # k-factor from http://cms.cern.ch/iCMS/jsp/db_notes/noteInfo.jsp?cmsnoteid=CMS%20AN-2016/078 EXO-16-014
-zg40 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-40to130", 2.816*1.39, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-40to130_TuneCUETP8M1_13TeV-madgraph" )
-zg130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.223*1.39, ROOT.kMagenta+2, "ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
+zg40 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-40to130", 2.789*1.39, ROOT.kMagenta+1, "ZNuNuGJets_MonoPhoton_PtG-40to130_TuneCUETP8M1_13TeV-madgraph" )
+zg130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.1832*1.39, ROOT.kMagenta+2, "ZNuNuGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
 zg = zg40 + zg130
 zg.label = "#gammaZ(#nu#nu)"
 
