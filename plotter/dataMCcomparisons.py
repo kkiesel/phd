@@ -71,6 +71,15 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
         saveName = "sameHistograms_{}_{}{}".format(sampleNames, name, binningName )
         aux.save( saveName )
 
+        if "emht" in name:
+            c = ROOT.TCanvas()
+            myRatio = dataHist.Clone()
+            myRatio.Divide(hsm)
+            myRatio.SetMaximum(1.5)
+            myRatio.SetMinimum(0.5)
+            myRatio.Draw()
+            aux.save(saveName+"_ratio", endings=[".root"], log=False)
+
 
 def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     file = stack[0].files[0] if stack else additional[0].files[0]
