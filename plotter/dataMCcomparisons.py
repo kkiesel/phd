@@ -84,9 +84,6 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
 def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
     file = stack[0].files[0] if stack else additional[0].files[0]
     names = aux.getObjectNames( file, "tr", [ROOT.TH1F] )
-    additionalHt = [ x for x in additional if x is not data ]
-    if data in additional: additionalHt += [ dataHt ]
-
     dirs = [d for d in aux.getDirNames(file) if "tr_" in d and not "gen" in d and not "true" in d]
 
     if data in additional:
@@ -97,7 +94,11 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
         for binningName, binning in aux.getBinningsFromName( name ).iteritems():
             #drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
             for directory in dirs:
-                drawSameHistogram( sampleNames, directory+"/"+name, stack, additional, binning, binningName )
+                if "jControl" in directory:
+                    thisAdditional = [dataHt] + [x for x in additional if x is not data]
+                    drawSameHistogram( sampleNames, directory+"/"+name, stack, thisAdditional, binning, binningName )
+                else:
+                    drawSameHistogram( sampleNames, directory+"/"+name, stack, additional, binning, binningName )
 
 
 if __name__ == "__main__":
