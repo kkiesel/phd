@@ -114,7 +114,9 @@ def getGJetPrediction(dirTree, preTree, variable, weight, nBins):
 def createHistoFromDatasetTree(dset, variable, weight, nBins, treename="tr/simpleTree"):
     tree = ROOT.TChain(treename)
     for f in dset.files: tree.Add(f)
-    h = createHistoFromTree(tree, variable, weight, nBins)
+    hUp = createHistoFromTree(tree, variable, "(1.37485+0.0429725-(0.000581557-6.68025e-05)*emht+(1.25901e-07+2.32383e-08)*emht*emht)*"+weight, nBins)
+    hDn = createHistoFromTree(tree, variable, "(1.37485-0.0429725-(0.000581557+6.68025e-05)*emht+(1.25901e-07-2.32383e-08)*emht*emht)*"+weight, nBins)
+    h = aux.getSystFromDifference(hUp, hDn, changeStyle=False)
     h.SetLineColor(dset.color)
     return h
 
@@ -142,10 +144,10 @@ def fitPrediction(dirTree, preTree, variable, weight, isData=True):
     gr.Fit("pol2", "W")
     aux.save("fitPredictionTest", log=False)
 
-def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
+def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSets=[], cut="1", noScale=False):
     if not preSet: preSet = dirSet
-    dirTree = ROOT.TChain("tr/simpleTree")
-    preTree = ROOT.TChain("tr_jControl/simpleTree")
+    dirTree = ROOT.TChain(treename)
+    preTree = ROOT.TChain(treename.replace("tr", "tr_jControl"))
 
     for f in dirSet.files: dirTree.Add(f)
     for f in preSet.files: preTree.Add(f)
@@ -153,7 +155,6 @@ def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     variable = "met"
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
-    nBins = range(0,250,10)+range(250,500,20)+[600,700,800,900,910]
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     preHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
@@ -178,6 +179,7 @@ def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     r = ratio.Ratio("Data/Pred", dirHist, preHist, gjetSyst)
     r.draw(0.5, 1.5)
     gjetHistUnw.Divide(preHist)
+    gjetHistUnw.SetLineColor(ROOT.kBlue)
     gjetHistUnw.Draw("same hist")
     leg = ROOT.TLegend(.17,.12,.39,.18)
     leg.SetFillStyle(0)
@@ -187,12 +189,12 @@ def qcdClosure(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     l = aux.Label(sim= not dirSet==data, info=dirSet.label)
     aux.save("qcdClosure_{}".format(name))
 
-def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
+def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="1"):
+    #f1 = emhtReweighting("tr_jControl/simpleTree")
     if not preSet: preSet = dirSet
-    treename = "tr/simpleTree"
     dirTree = ROOT.TChain(treename)
-    preTree = ROOT.TChain("tr_jControl/simpleTree")
-    eTree = ROOT.TChain("tr_eControl/simpleTree")
+    preTree = ROOT.TChain(treename.replace("tr", "tr_jControl"))
+    eTree = ROOT.TChain(treename.replace("tr", "tr_jControl"))
 
     for f in dirSet.files: dirTree.Add(f)
     for f in preSet.files: preTree.Add(f)
@@ -202,6 +204,7 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
     nBins = range(0,200,10)+[200,250]+range(300,500,20)+[600,700,800,900,910]
+    nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 350, 400,450, 500,600,700,800,900,910 ]
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     if dirSet == data:
@@ -215,7 +218,8 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100))/gjetHistUnw.Integral(0,dirHist.FindBin(100)))
 
     eHist = createHistoFromTree(dirTree, variable, weight, nBins)
-    eHist.Scale( 0.0197 if dirSet==data else 0.0107 )
+    eHist.Scale( 0.0297 if dirSet==data else 0.0107 )
+    #eHist.Scale( 0.0 ) # disable data driven bkg
     eHist.SetLineColor(ROOT.kGreen)
 
     # cheat
@@ -224,26 +228,32 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     #eHist = createHistoFromDatasetTree(ewk, variable, weight, nBins, "tr_genE/simpleTree")
     eSyst = aux.getSysHisto(eHist, 0.3)
 
+
+    # warning: scaling systematic errors are displayed as statistical ones
     zgHist = createHistoFromDatasetTree(zg, variable, weight, nBins, treename)
     wgHist = createHistoFromDatasetTree(wg, variable, weight, nBins, treename)
     ttgHist = createHistoFromDatasetTree(ttg, variable, weight, nBins, treename)
     zHist = createHistoFromDatasetTree(znunu, variable, weight, nBins, treename)
-    wHist = createHistoFromDatasetTree(wjets, variable, weight, nBins, "tr/simpleTree")
-    ttHist = createHistoFromDatasetTree(ttjets, variable, weight, nBins, "tr/simpleTree")
-    zgSyst = aux.getSysHisto(zgHist, 0.3)
-    wgSyst = aux.getSysHisto(wgHist, 0.3)
-    ttgSyst = aux.getSysHisto(ttgHist, 0.3)
-    zSyst = aux.getSysHisto(zHist, 0.3)
-    wSyst = aux.getSysHisto(wHist, 0.3)
-    ttSyst = aux.getSysHisto(ttHist, 0.3)
+    wHist = createHistoFromDatasetTree(wjets, variable, weight, nBins, treename)
+    wHist.Scale(0.0)
+    ttHist = createHistoFromDatasetTree(ttjets_ht, variable, weight, nBins, treename)
+    ttHist.Scale(0)
+    mcSystUncert = 0.0
+    zgSyst = aux.getSysHisto(zgHist, mcSystUncert)
+    wgSyst = aux.getSysHisto(wgHist, mcSystUncert)
+    ttgSyst = aux.getSysHisto(ttgHist, mcSystUncert)
+    zSyst = aux.getSysHisto(zHist, mcSystUncert)
+    wSyst = aux.getSysHisto(wHist, mcSystUncert)
+    ttSyst = aux.getSysHisto(ttHist, mcSystUncert)
 
     totStat = aux.addHists(gjetHist, eHist, zgHist, wgHist, ttgHist, wHist, zHist, ttHist)
     totSyst = aux.addHists(gjetSyst, eSyst, zgSyst, wgSyst, ttgSyst, wSyst, zSyst, ttSyst)
     totUnc = aux.addHistUncert(totStat, totSyst)
 
-    signal = createHistoFromDatasetTree(t5wg_1600_100, variable, "-{}*{}".format(t5wg_1600_100.xsecs[0], weight), nBins, treename)
+    signal = createHistoFromDatasetTree(t5wg_1600_100, variable, weight, nBins, treename)
     aux.drawOpt(signal, "signal")
     #signal.Add(totStat)
+    signal.SetLineColor(ROOT.kAzure)
 
     # beautify
     aux.drawOpt(dirHist, "data")
@@ -271,7 +281,11 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     gjetHistUnw.Add(zgHist)
     gjetHistUnw.Add(wgHist)
     gjetHistUnw.Add(ttgHist)
+    gjetHistUnw.Add(wHist)
+    gjetHistUnw.Add(zHist)
+    gjetHistUnw.Add(ttHist)
     gjetHistUnw.Divide(totSyst)
+    gjetHistUnw.SetLineColor(ROOT.kBlue)
     gjetHistUnw.Draw("same hist")
     leg = ROOT.TLegend(.17,.12,.39,.18)
     leg.SetFillStyle(0)
@@ -279,15 +293,16 @@ def finalDistribution(name, dirSet, preSet=None, additionalSets=[], cut="1"):
     leg.Draw()
 
     l = aux.Label(sim= not dirSet==data, info=dirSet.label if dirSet != data else "")
-    aux.save("finalDistribution_{}".format(name))
+    aux.save("finalDistribution_{}".format(name), normal=False)
 
-    for bin in [21,22]:
+    for bin in [21,22,23,24]:
         print "bin low edge:", dirHist.GetBinLowEdge(bin)
-        print "signal:", dirHist.GetBinContent(bin)
+        print "observed:", dirHist.GetBinContent(bin)
         print "gjet:", gjetHist.GetBinContent(bin)
         print "e->g:", eHist.GetBinContent(bin)
         print "w, z, tt + g:", wgHist.GetBinContent(bin), zgHist.GetBinContent(bin), ttgHist.GetBinContent(bin)
-        print "total:", totStat.GetBinContent(bin)
+        print "w, z, tt", wHist.GetBinContent(bin), zHist.GetBinContent(bin), ttHist.GetBinContent(bin)
+        print "total bkg.:", totStat.GetBinContent(bin)
 
 
 def finalDistributionEasy(name, dirSet, preSet=None):
@@ -315,8 +330,8 @@ def finalDistributionEasy(name, dirSet, preSet=None):
     zgHist = aux.stdHist(zg+znunu, "{}/{}".format(folder,hname), binning)
     wgHist = aux.stdHist(wg+wjets, "{}/{}".format(folder,hname), binning)
     ttgHist = aux.stdHist(ttg+ttjets, "{}/{}".format(folder,hname), binning)
-    for h in zgHist, wgHist, ttgHist:
-        h.Scale(1.5)
+    #for h in zgHist, wgHist, ttgHist:
+    #    h.Scale(1.5)
     zgSyst = aux.getSysHisto(zgHist, 0.3)
     wgSyst = aux.getSysHisto(wgHist, 0.3)
     ttgSyst = aux.getSysHisto(ttgHist, 0.3)
@@ -346,20 +361,60 @@ def finalDistributionEasy(name, dirSet, preSet=None):
     l = aux.Label(sim= not dirSet==data, info=dirSet.label if dirSet != data else "")
     aux.save("finalDistributionEasy_{}".format(name))
 
+def emhtReweighting(treename="tr/simpleTree"):
+    dataSet = data
+    if "jControl" in treename: dataSet = dataHt
+    mcSet = gjets #+ qcd + zg + wg_130 + ttg + wjets + ttjets
+    mcSet = qcd
+
+    dataTree = ROOT.TChain(treename)
+    mcTree = ROOT.TChain(treename)
+
+    for f in dataSet.files: dataTree.Add(f)
+    for f in mcSet.files: mcTree.Add(f)
+
+    cut = "1"
+    variable = "emht"
+    weight = "weight*({})".format(cut)
+    #nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
+    #nBins = range(0,200,10)+[200,250]+range(300,500,20)+[600,700,800,900,910]
+    nBins = range(0,1300,10)+range(1300,2200,50)+range(2200,3000,100)
+
+    dataHist = createHistoFromTree(dataTree, variable, weight, nBins)
+    mcHist = createHistoFromTree(mcTree, variable, weight, nBins)
+    mcHist.Scale(dataHist.Integral()/mcHist.Integral())
+
+    dataHist.Divide(mcHist)
+    dataHist.Draw()
+    f1 = ROOT.TF1("f1","pol2", 0, 3000)
+    dataHist.Fit("f1")
+    aux.save("test", endings=[".pdf", ".root"], log=False)
+    return f1
+
 
 
 
 if __name__ == "__main__":
+    """
+    finalDistribution("data_dPhi3", data, dataHt, "tr_dPhi3/simpleTree")
+    finalDistribution("data_dPhi3_1500emht", data, dataHt, "tr_dPhi3/simpleTree", cut="emht>1500")
+    finalDistribution("data_ee", data, dataHt, "tr_ee/simpleTree")
     finalDistribution("data", data, dataHt)
-    finalDistributionEasy("data", data, dataHt)
-    #allMC = gjets+qcd+zg+wg_130+ttg+wjets+ttjets
-    #allMC.label = "MC mix"
-    #finalDistribution("mc", allMC, allMC)
-    #allMC = gjets+qcd+zg+wg_130+ttg
-    #allMC.label = "MC mix wo ewk"
-    #finalDistribution("mc_wo_ewk", allMC, allMC)
+    finalDistribution("data_emht1000", data, dataHt, cut="emht<1000")
+    finalDistribution("data_1500emht", data, dataHt, cut="emht>1500")
+    allMC = gjets+qcd+zg+wg+ttg+wjets+ttjets_ht+znunu
+    allMC.label = "MC mix"
+    finalDistribution("mc", allMC, allMC)
+    finalDistribution("mc_dPhi3", allMC, allMC, "tr_dPhi3/simpleTree")
     #qcdClosure("data", data, dataHt)
-    #qcdClosure("gqcd", gjets+qcd)
+    """
+    qcdClosure("gqcd", gjets+qcd)
+    qcdClosure("gqcd_dPhi3", gjets+qcd, treename="tr_dPhi3/simpleTree")
     #qcdClosure("gqcd_emht1000", gjets+qcd, cut="emht<1000")
+    #qcdClosure("gqcd_1000emht2000", gjets+qcd, cut="1000<emht&&emht<2000")
+    #qcdClosure("gqcd_1000emht", gjets+qcd, cut="emht>1000")
     #qcdClosure("gqcd_2000emht", gjets+qcd, cut="emht>2000")
+    #finalDistributionEasy("data", data, dataHt)
+
+    #emhtReweighting()
 
