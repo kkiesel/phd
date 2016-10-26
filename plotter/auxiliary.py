@@ -671,9 +671,9 @@ def getProjection(h, ax="x", cutBin1=0, cutBin2=-1):
     else:
         print "do not know what do do with ", ax
 
-def getSystFromDifference(h1, h2):
+def getSystFromDifference(h1, h2, changeStyle=True):
     out = h1.Clone(randomName())
-    drawOpt(out, "sys")
+    if changeStyle: drawOpt(out, "sys")
     for bin in range(out.GetNbinsX()+2):
         c1 = h1.GetBinContent(bin)
         c2 = h2.GetBinContent(bin)
