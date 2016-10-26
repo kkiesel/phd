@@ -14,16 +14,6 @@ ROOT.RooMsgService.instance().setSilentMode(True)
 fnameData = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
 fnameMC = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
 
-
-def getFromFile(fname, hname):
-    f = ROOT.TFile(fname)
-    x = f.Get(hname)
-    x.SetDirectory(0)
-    return x
-
-def getHistFromEff(eff, num=True):
-    return eff.GetCopyPassedHisto() if num else eff.GetCopyTotalHisto()
-
 def getHist(name, den=False, data=True, yBin1=0, yBin2=-1):
     fname = fnameData if data else fnameMC
     f = ROOT.TFile(fname)
@@ -123,18 +113,17 @@ def binned(hname, selectionInfo="", intOnly=False):
     if hname.startswith("cIsoWorst"): binning = range(0, 8) + [8, 10, 15, 20]
     if hname.startswith("pIso"): binning = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1., 1.5, 2]
     if hname.startswith("hoe"): binning = list(aux.frange(0, 0.05, 0.005))
-    else: return
-    effMC = getFromFile(fnameMC, hname)
+    effMC = aux.getFromFile(fnameMC, hname)
     h2NumMC = effMC.GetCopyPassedHisto()
     h2NumMC = aux.rebin2d(h2NumMC, None, binning)
     h2DenMC = effMC.GetCopyTotalHisto()
     h2DenMC = aux.rebin2d(h2DenMC, None, binning)
-    eff = getFromFile(fnameData, hname)
+    eff = aux.getFromFile(fnameData, hname)
     h2Num = eff.GetCopyPassedHisto()
     h2Num = aux.rebin2d(h2Num, None, binning)
     h2Den = eff.GetCopyTotalHisto()
     h2Den = aux.rebin2d(h2Den, None, binning)
-    effBkg = getFromFile(fnameData, hname+"_bkg")
+    effBkg = aux.getFromFile(fnameData, hname+"_bkg")
     h2Bkg = effBkg.GetCopyTotalHisto()
     h2Bkg = aux.rebin2d(h2Bkg, None, binning)
 
@@ -190,9 +179,10 @@ infos = {"":"", "_40pt":"p_{T}>40GeV", "_EB":"Barrel", "_EB_40pt":"Barrel, p_{T}
 variables = "pt", "jets", "met", "emht", "vtx", "eta", "sie", "sip", "hoe", "r9", "cIso", "nIso", "pIso", "cIsoWorst"
 selections = "", "_40pt", "_EB", "_EB_40pt", "_EB_01eta_40pt", "_EB_100pt"
 selections = ["_EB_40pt"]
+variables = ["vtx"]
 
 for var in variables:
     for sel in selections:
-        binned("{}{}".format(var,sel), selectionInfo=infos[sel], intOnly=True)
+        binned("{}{}".format(var,sel), selectionInfo=infos[sel], intOnly=False)
 
 
