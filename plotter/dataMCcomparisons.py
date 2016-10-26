@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from include import *
 
-def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, binningName=""):
+def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, binningName="", scale=False):
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
@@ -22,8 +22,7 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
         h = d.getHist(name)
         if not h: continue
         if not h.Integral(): continue
-        if True:
-            h.Scale(dataIntegral/bkgIntegral)
+        if scale: h.Scale(dataIntegral/bkgIntegral)
         if binning: h = aux.rebin( h, binning )
 
         aux.appendFlowBin( h )
