@@ -8,30 +8,27 @@ rfile = ROOT.TFile(fname)
 for key in rfile.GetListOfKeys():
     name = key.GetName()
     eff = key.ReadObj()
-    if name.startswith("gen_"):
+    c = ROOT.TCanvas()
+    info = ""
+    if eff.GetDimension() == 1:
         c = ROOT.TCanvas()
-        if eff.GetDimension()>1: continue
         g = eff.CreateGraph()
         g.SetMaximum(0.05)
         g.SetMinimum(0)
         g.Draw("ap")
-        aux.save("fakeRate_"+name, log=False)
-    else:
+        if name.startswith("gen_"): info = "Single #gamma gen match"
+    elif eff.GetDimension() == 2:
         h2Num = eff.GetCopyPassedHisto()
         h2Den = eff.GetCopyTotalHisto()
-
         hOut = h2Den.ProjectionY()
         hOut.Reset("ICES")
         for bin in range(0, h2Den.GetNbinsY()+2):
-            ax = h2Den.GetYaxis()
-            yMin, yMax = ax.GetBinLowEdge(bin), ax.GetBinUpEdge(bin)
-            if not yMin - int(yMin): yMin = int(yMin)
-            if not yMax - int(yMax): yMax = int(yMax)
-            infoText = "{} < {} < {}".format(yMin, ax.GetTitle(), yMax)
             hNum = h2Num.ProjectionX(aux.randomName(), bin, bin)
             hDen = h2Den.ProjectionX(aux.randomName(), bin, bin)
             xMin = hNum.GetXaxis().FindFixBin(60)
             xMax = hNum.GetXaxis().FindFixBin(120)
+            xMin = hNum.GetXaxis().FindFixBin(-10) # temporary try out taking all
+            xMax = hNum.GetXaxis().FindFixBin(1e8)
             num = hNum.Integral(xMin, xMax)
             den = hDen.Integral(xMin, xMax)
             if den:
@@ -43,10 +40,29 @@ for key in rfile.GetListOfKeys():
         aux.drawOpt(hOut, "data")
         hOut.SetMaximum(5)
         hOut.SetMinimum(0)
-        c = ROOT.TCanvas()
         style.defaultStyle()
         hOut.Draw("e hist")
-        l = aux.Label(info="")
-        aux.save("fakeRate_gen_vs_{}".format(name), log=False)
+        if "_gen" in name: info="Probe gen matched"
+    elif eff.GetDimension() == 3:
+        h3Num = eff.GetCopyPassedHisto()
+        h3Den = eff.GetCopyTotalHisto()
+
+        h2Out = h3Num.Project3D("yz")
+        h2Out.Reset("ICES")
+        for ybin in range(h3Num.GetNbinsY()+2):
+            for zbin in range(h3Num.GetNbinsY()+2):
+                hNum = h3Num.ProjectionX(aux.randomName(), ybin, ybin, zbin, zbin)
+                hDen = h3Den.ProjectionX(aux.randomName(), ybin, ybin, zbin, zbin)
+                xMin = hNum.GetXaxis().FindFixBin(60)
+                xMax = hNum.GetXaxis().FindFixBin(120)
+                num = hNum.Integral(xMin, xMax)
+                den = hDen.Integral(xMin, xMax)
+                if den:
+                    h2Out.SetBinContent(ybin, zbin, 100*num/den)
+                    h2Out.SetBinError(ybin, zbin, 100*math.sqrt(num)/den)
+    else:
+        print "Do not know what do do with {} dimensions".format(eff.GetDimension())
+    l = aux.Label(info=info, sim=True)
+    aux.save("fakeRate_DY_"+name, log=False)
 
 
