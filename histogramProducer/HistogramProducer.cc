@@ -722,6 +722,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr_ee", true);
+    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) != 11) fillSelection("tr_ee_noGenE", true);
   }
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
