@@ -92,6 +92,7 @@ def optimizeMetBinning(bkgSet, signalSet, name, minHt, maxHt):
             if signif > maxSig:
                 maxSig = signif
                 maxSigBin = bin
+        if maxSigBin == binning[-1]: break
         binning.append(maxSigBin)
     binning = binning[-1:1:-1]
     print [sig1d.GetBinLowEdge(b) for b in binning]
@@ -99,8 +100,12 @@ def optimizeMetBinning(bkgSet, signalSet, name, minHt, maxHt):
 
 
 if __name__ == "__main__":
-    #optimizeBinnigs2d(data, "data", t5wg_1600_100)
+    optimizeBinnigs2d(data, "data", t5wg_1600_100)
+    optimizeBinnigs2d(data, "data_2", t5wg_1600_1500)
     optimizeMetBinning(data, t5wg_1600_100, "data_highHt", 2000, 5000)
     optimizeMetBinning(data, t5wg_1600_100, "data_mediumHt", 1200, 2000)
     optimizeMetBinning(data, t5wg_1600_100, "data_lowHt", 0, 1200)
-    #optimizeBinnigs2d(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130, "mc", "T5Wg_1550_100")
+    optimizeMetBinning(data, t5wg_1600_1500, "data_2_highHt", 2000, 5000)
+    optimizeMetBinning(data, t5wg_1600_1500, "data_2_mediumHt", 1200, 2000)
+    optimizeMetBinning(data, t5wg_1600_1500, "data_2_lowHt", 0, 1200)
+    optimizeBinnigs2d(gjets+qcd+ttjets+wjets+znunu+ttg+wg_mg+zg_130, "mc", "T5Wg_1550_100")
