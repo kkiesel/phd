@@ -11,6 +11,11 @@ labels = {
     "tr_unmatched": "no #gamma_{gen}",
     "tr_genE": "e_{gen}",
     "tr_noGenE": "no e_{gen}",
+    "tr_gen22": "prompt #gamma",
+    "tr_gen-22": "non-prompt #gamma",
+    "tr_gen11": "prompt e",
+    "tr_gen-11": "non-prompt e",
+    "tr_gen0": "unmatched"
 }
 
 
