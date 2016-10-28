@@ -207,6 +207,15 @@ map<string,TH1F> initHistograms() {
   hMap["metJet4Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metJet5Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
 
+  int maxNjets = 8;
+  for (int i=0; i<maxNjets; i++) {
+    for (int j=0; j<i; j++) {
+      string hname = "metJetSmeared_"+to_string(j)+"_"+to_string(i);
+      hMap[hname+"_up"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+      hMap[hname+"_dn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+    }
+  }
+
   // met projections
   hMap["metPar"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
   hMap["metParUp"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
@@ -334,6 +343,13 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
     if ( pt > 40 && fabs(jet.p.Eta()) < 3) {
       tremht += pt;
     }
+  }
+
+  int nHEJets = selHEJets.size();
+  for (int i=0; i<nHEJets && nHEJets<8; i++) { // histograms only created for up to 7 jets
+    string hname = "metJetSmeared_"+to_string(i)+"_"+to_string(nHEJets);
+    m1->at(hname+"_up").Fill((met->p+selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), selW);
+    m1->at(hname+"_dn").Fill((met->p-selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), selW);
   }
 
   m1->at("metSig").Fill(met->sig, selW);
@@ -546,6 +562,7 @@ void HistogramProducer::defaultSelection()
       || indexOfMatchedParticle<tree::Photon*>(jet, selPhotons, .3) >= 0
       || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3) continue;
     selJets.push_back(&jet);
+    if (jet.p.Pt() > 100 && fabs(jet.p.Eta()) < 1.4442) selHEJets.push_back(&jet);
     if (jet.bDiscriminator > bTaggingWorkingPoints.at(CSVv2M) && fabs(jet.p.Eta()) < 2.5)
       selBJets.push_back(&jet);
   }
