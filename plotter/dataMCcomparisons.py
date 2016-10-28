@@ -71,7 +71,7 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
         saveName = "sameHistograms_{}_{}{}".format(sampleNames, name, binningName )
         aux.save( saveName )
 
-        if "emht" in name:
+        if "emht" in name and dataHist:
             c = ROOT.TCanvas()
             myRatio = dataHist.Clone()
             myRatio.Divide(hsm)
@@ -90,6 +90,9 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
         if "genMatch" in names: names.remove("genMatch")
         if "genHt" in names: names.remove("genHt")
 
+    names = ["met"]
+    dirs = ["tr_jControl", "tr_eControl", "tr"]
+
     for name in names:
         for binningName, binning in aux.getBinningsFromName( name ).iteritems():
             #drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
@@ -104,6 +107,6 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
 if __name__ == "__main__":
     #transitions()
     #drawSameHistograms( "gqcd_data", [gjets, qcd], additional=[data])
-    drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets, wg_mg, zg, znunu], additional=[data])
-    #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets, wg_mg, zg, znunu], additional=[])
+    drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets, wg, zg, znunu], additional=[data])
+    drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets, wg, zg, znunu], additional=[])
 
