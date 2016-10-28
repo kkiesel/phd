@@ -210,6 +210,7 @@ float sampleCrossSection(const string& inputFileName) {
     {"ZGTo2LGmod", 117.864},
     {"DYJetsToLL_M-50", 6025.2},
     {"SMS-T5Wg_1600_100", 0.00810078},
+    {"SMS-T5Wg_1600_1500", 0.00810078},
     {"WGJets_MonoPhoton_PtG-130", 0.834} // source: jlange
   };
   if (xs.count(sampleName)) {
