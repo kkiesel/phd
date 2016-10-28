@@ -213,6 +213,8 @@ dy.label = "Z#rightarrowll"
 
 t5wg_1600_100 = Dataset("SMS-T5Wg_1600_100", 0.00810078, ROOT.kRed, "")
 t5wg_1600_100.label = "T5Wg 1600 100"
+t5wg_1600_1500 = Dataset("SMS-T5Wg_1600_1500", 0.00810078, ROOT.kRed, "")
+t5wg_1600_1500.label = "T5Wg 1600 1500"
 
 import collections
 class SampleCollection(collections.MutableMapping):
