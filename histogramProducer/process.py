@@ -56,7 +56,7 @@ ds={
         ],
     "znunu": [
         "ZJetsToNuNu_HT-100To200_nTuple.root",
-        "ZJetsToNuNu_HT-200To400_nTuple.root",
+        "ZJetsToNuNu_HT-200To400_ext_nTuple.root",
         "ZJetsToNuNu_HT-400To600_nTuple.root",
         "ZJetsToNuNu_HT-600To800_nTuple.root",
         "ZJetsToNuNu_HT-800To1200_nTuple.root",
@@ -64,7 +64,8 @@ ds={
         "ZJetsToNuNu_HT-2500ToInf_nTuple.root",
         ],
     "tt": [
-        "TTJets_nTuple.root",
+        "TTJets-amcatnloFXFX_nTuple.root",
+        "TTJets-madgraphMLM_nTuple.root",
         "TTJets_HT-0to600_nTuple.root",
         "TTJets_HT-600to800_ext_nTuple.root",
         "TTJets_HT-800to1200_ext_nTuple.root",
@@ -82,6 +83,9 @@ ds={
         "WGToLNuG-madgraphMLM_nTuple.root",
         "WGToLNuG-madgraphMLM_PtG-0to130_nTuple.root",
         "WGToLNuG-amcatnloFXFX_nTuple.root",
+        ],
+    "signal": [
+        "SMS-T5Wg_1600_100_nTuple.root",
         ],
 }
 dir = "/user/kiesel/nTuples/v16/"
