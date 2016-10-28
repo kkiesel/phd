@@ -320,7 +320,7 @@ float topPtReweighting(std::vector<tree::GenParticle>& particles) {
     if (pt1>400) pt1=400;
     scaleFactor = exp(a+b*pt1);
   } else if (!selTops.size()) {
-    cout << "Counted " << selTops.size() << " tops, applying scale factor of 1 " << endl;
+    //cout << "Counted " << selTops.size() << " tops, applying scale factor of 1 " << endl;
   }
   return scaleFactor;
 }
@@ -336,5 +336,20 @@ string getSignalPointName(unsigned short nBinos, unsigned short m1, unsigned sho
   out += "_"+to_string(m1);
   out += "_"+to_string(m2);
   return out;
+}
 
+float ZGammaKFactor(std::vector<tree::GenParticle>& particles) {
+  // k-factor from http://cms.cern.ch/iCMS/jsp/db_notes/noteInfo.jsp?cmsnoteid=CMS%20AN-2016/078 EXO-16-014
+  float kfactor = 1.39; // kfactor for pt<175
+  float pt=0;
+  for (auto& genP : particles) {
+    if (fabs(genP.pdgId)==22) {
+      pt = genP.p.Pt();
+      break;
+    }
+  }
+  if (pt>400) kfactor = 1.23;
+  else if (pt>250) kfactor = 1.30;
+  else if (pt>190) kfactor = 1.35;
+  return kfactor;
 }
