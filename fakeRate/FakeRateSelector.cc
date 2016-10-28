@@ -257,6 +257,14 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
       if (abs(probe->p.Eta())<1.4442 && probe->p.Pt()>40) fillSelection(tag, probe, "_EB_40pt");
       if (abs(probe->p.Eta())>0.1 && abs(probe->p.Eta())<1.4442 && probe->p.Pt()>40) fillSelection(tag, probe, "_EB_01eta_40pt");
       if (abs(probe->p.Eta())<1.4442 && probe->p.Pt()>100) fillSelection(tag, probe, "_EB_100pt");
+      if (fabs(genMatchWZDecay(*probe, *intermediateGenParticles)) == 11) {
+        fillSelection(tag, probe, "_gen");
+        if (probe->p.Pt()>40) fillSelection(tag, probe, "_gen_40pt");
+        if (abs(probe->p.Eta())<1.4442) fillSelection(tag, probe, "_gen_EB");
+        if (abs(probe->p.Eta())<1.4442 && probe->p.Pt()>40) fillSelection(tag, probe, "_gen_EB_40pt");
+        if (abs(probe->p.Eta())>0.1 && abs(probe->p.Eta())<1.4442 && probe->p.Pt()>40) fillSelection(tag, probe, "_gen_EB_01eta_40pt");
+        if (abs(probe->p.Eta())<1.4442 && probe->p.Pt()>100) fillSelection(tag, probe, "_gen_EB_100pt");
+      }
     }
     for (auto& probe : selMuons) {
       fillSelection(tag, probe, "_bkg");
