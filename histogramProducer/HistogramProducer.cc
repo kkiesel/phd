@@ -269,7 +269,7 @@ map<string,TH1F> initHistograms() {
 void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
   if (std::isnan(met->p.X())) return;
 
-  float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt;
+  float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight;
   UInt_t tree_njet;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
@@ -280,6 +280,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
     treeMap[s]->Branch("emrecoilt", &tree_emrecoilt);
     treeMap[s]->Branch("emht", &tree_emht);
     treeMap[s]->Branch("weight", &tree_w);
+    treeMap[s]->Branch("topWeight", &tree_topWeight);
 //    treeMap[s]->Branch("pt", &tree_pt);
 //    treeMap[s]->Branch("njet", &tree_njet, "njet/i");
   }
@@ -290,6 +291,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
   tree_mRaw = metRaw->p.Pt();
   tree_w = selW * sampleW;
   tree_pt = 0;
+  tree_topWeight = topPtReweighting(*genParticles);
 
   if (selPhotons.size()) {
     tree_pt = selPhotons.at(0)->p.Pt();
