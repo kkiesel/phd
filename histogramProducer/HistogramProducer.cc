@@ -278,7 +278,7 @@ map<string,TH1F> initHistograms() {
 void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
   if (std::isnan(met->p.X())) return;
 
-  float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight;
+  float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight, tree_dPhi;
   UInt_t tree_njet;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
@@ -290,12 +290,22 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
     treeMap[s]->Branch("emht", &tree_emht);
     treeMap[s]->Branch("weight", &tree_w);
     treeMap[s]->Branch("topWeight", &tree_topWeight);
+    treeMap[s]->Branch("dPhi", &tree_dPhi);
 //    treeMap[s]->Branch("pt", &tree_pt);
 //    treeMap[s]->Branch("njet", &tree_njet, "njet/i");
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
 
+  vector<float> dPhis;
+  int nJets = 0;
+  for (auto& j : *jets ) {
+    if (nJets < 3 && j.p.Pt()>100) {
+      dPhis.push_back(fabs(met->p.DeltaPhi(j.p)));
+      nJets ++;
+    }
+  }
+  tree_dPhi = dPhis.size() ? *std::min_element(dPhis.begin(),dPhis.end()) : 10;
   tree_m = met->p.Pt();
   tree_mRaw = metRaw->p.Pt();
   tree_w = selW * sampleW;
