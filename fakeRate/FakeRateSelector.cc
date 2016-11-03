@@ -99,8 +99,8 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
     effs["gen_nIso"+name] = TEfficiency("",";I_{0} (GeV);#varepsilon", 50, 0, 5);
     effs["gen_pIso"+name] = TEfficiency("",";I_{#gamma} (GeV);#varepsilon", 50, 0, 5);
     effs["gen_cIsoWorst"+name] = TEfficiency("",";worst I_{#pm} (GeV);#varepsilon", 80, 0, 40);
-    effs["gen_pt_vs_vtx"+name] = TEfficiency("", ";#it{p}_{T};vertex multiplicity;#varepsilon", 40, 0, 200, 36, 0.5, 36.5);
-    effs["gen_met_vs_vtx"+name] = TEfficiency("", ";#it{E}_{T}^{miss};vertex multiplicity;#varepsilon", 40, 0, 200, 36, 0.5, 36.5);
+    effs["gen_pt_vs_vtx"+name] = TEfficiency("", ";#it{p}_{T} (GeV);vertex multiplicity", 40, 0, 200, 36, 0.5, 36.5);
+    effs["gen_met_vs_vtx"+name] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);vertex multiplicity", 40, 0, 200, 36, 0.5, 36.5);
   }
 
   bool hasPixelSeed = probe.hasPixelSeed;
