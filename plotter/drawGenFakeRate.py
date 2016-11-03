@@ -8,7 +8,6 @@ rfile = ROOT.TFile(fname)
 for key in rfile.GetListOfKeys():
     name = key.GetName()
     eff = key.ReadObj()
-    c = ROOT.TCanvas()
     info = ""
     if eff.GetDimension() == 1:
         c = ROOT.TCanvas()
@@ -18,6 +17,7 @@ for key in rfile.GetListOfKeys():
         g.Draw("ap")
         if name.startswith("gen_"): info = "Single #gamma gen match"
     elif eff.GetDimension() == 2:
+        c = ROOT.TCanvas()
         h2Num = eff.GetCopyPassedHisto()
         h2Den = eff.GetCopyTotalHisto()
         hOut = h2Den.ProjectionY()
@@ -27,8 +27,6 @@ for key in rfile.GetListOfKeys():
             hDen = h2Den.ProjectionX(aux.randomName(), bin, bin)
             xMin = hNum.GetXaxis().FindFixBin(60)
             xMax = hNum.GetXaxis().FindFixBin(120)
-            xMin = hNum.GetXaxis().FindFixBin(-10) # temporary try out taking all
-            xMax = hNum.GetXaxis().FindFixBin(1e8)
             num = hNum.Integral(xMin, xMax)
             den = hDen.Integral(xMin, xMax)
             if den:
@@ -44,13 +42,19 @@ for key in rfile.GetListOfKeys():
         hOut.Draw("e hist")
         if "_gen" in name: info="Probe gen matched"
     elif eff.GetDimension() == 3:
+#        style.style2d()
+        c = ROOT.TCanvas()
+#        style.defaultStyle()
         h3Num = eff.GetCopyPassedHisto()
         h3Den = eff.GetCopyTotalHisto()
 
         h2Out = h3Num.Project3D("yz")
+        h2Out.SetMaximum(10)
         h2Out.Reset("ICES")
+        h2Out.SetTitle("")
+        h2Out.SetZTitle("f_{e#rightarrow#gamma} (%)")
         for ybin in range(h3Num.GetNbinsY()+2):
-            for zbin in range(h3Num.GetNbinsY()+2):
+            for zbin in range(h3Num.GetNbinsZ()+2):
                 hNum = h3Num.ProjectionX(aux.randomName(), ybin, ybin, zbin, zbin)
                 hDen = h3Den.ProjectionX(aux.randomName(), ybin, ybin, zbin, zbin)
                 xMin = hNum.GetXaxis().FindFixBin(60)
@@ -60,6 +64,21 @@ for key in rfile.GetListOfKeys():
                 if den:
                     h2Out.SetBinContent(ybin, zbin, 100*num/den)
                     h2Out.SetBinError(ybin, zbin, 100*math.sqrt(num)/den)
+        h2Out.Draw("colz")
+        m = multiplot.Multiplot()
+        ROOT.gStyle.SetPalette(51)
+        proj = aux.getProjections(h2Out, axis="y", scale=False)
+        style.defaultStyle()
+        for ih, h in enumerate(proj):
+            for b in range(h.GetNbinsX()+2):
+                if h.GetBinError(b)>0.2:
+                    h.SetBinContent(b,0)
+                    h.SetBinError(b,0)
+            h.SetMinimum(0)
+            h.SetMaximum(5)
+            h.drawOption_ = "l"
+            m.add(h, h.GetName())
+        m.Draw()
     else:
         print "Do not know what do do with {} dimensions".format(eff.GetDimension())
     l = aux.Label(info=info, sim=True)
