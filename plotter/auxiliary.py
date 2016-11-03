@@ -59,7 +59,7 @@ def getDatasetFromKey(key):
     return key
 
 
-def getProjections( h2, axis="x" ):
+def getProjections( h2, axis="x", scale=True ):
     if axis == "x":
         a1 = h2.GetXaxis()
         a2 = h2.GetYaxis()
@@ -81,9 +81,9 @@ def getProjections( h2, axis="x" ):
 
         h = h2.ProjectionX( name, ybin, ybin ) if axis == "x" else h2.ProjectionY( name, ybin, ybin )
         h.SetLineColor(getPaletteColor(1.*ybin/(a2.GetNbins()+2)))
-        if h.GetEntries():
-            h.Scale( 1./h.GetEntries() )
-            hs.append( h )
+        if not h.GetEntries(): continue
+        if scale: h.Scale( 1./h.GetEntries() )
+        hs.append( h )
 
     return hs
 
