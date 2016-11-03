@@ -28,12 +28,15 @@ def drawUnfitted(name, hData, hSig, hBkg, infoText=""):
     aux.drawOpt(hData, "data")
     hData.SetTitle(";{} (GeV);Pairs [abitrary normalization]".format(var))
     hData.Draw("ep")
-    hSig.SetLineColor(ROOT.kRed)
-    hSig.Scale(hData.GetMaximum()/hSig.GetMaximum())
-    hSig.Draw("hist same")
-    hBkg.SetLineColor(ROOT.kGreen)
-    hBkg.Scale(hData.Integral()/hBkg.Integral())
-    hBkg.Draw("hist same")
+    dataMax = hData.GetMaximum() if hSig.GetMaximum() else 1.
+    if hSig.GetMaximum():
+        hSig.SetLineColor(ROOT.kRed)
+        hSig.Scale(hData.GetMaximum()/hSig.GetMaximum())
+        hSig.Draw("hist same")
+    if hBkg.Integral():
+        hBkg.SetLineColor(ROOT.kGreen)
+        hBkg.Scale(hData.Integral()/hBkg.Integral())
+        hBkg.Draw("hist same")
     l = aux.Label(info=infoText, sim=False)
     leg = ROOT.TLegend(.6, .6, .93, .92)
     leg.SetFillStyle(0)
@@ -44,8 +47,8 @@ def drawUnfitted(name, hData, hSig, hBkg, infoText=""):
     aux.save(name+"_raw", log=False)
 
 def fitHist(name, hData, hSig, hBkg, infoText=""):
-    if not hData.GetEntries() or not hSig.GetEntries() or not hBkg.GetEntries(): return 0
     drawUnfitted(name, hData, hSig, hBkg, infoText)
+    if not hData.GetEntries() or not hSig.GetEntries() or not hBkg.GetEntries(): return 0
     totalInt = hData.Integral(0,-1)
     var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
     x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
@@ -140,6 +143,8 @@ def binned(hname, selectionInfo="", intOnly=False):
         hDen = h2Den.ProjectionX(aux.randomName(), bin, bin)
         hDenMC = h2DenMC.ProjectionX(aux.randomName(), bin, bin)
         hBkg = h2Bkg.ProjectionX(aux.randomName(), bin, bin)
+        if not hBkg.Integral():
+            hBkg = h2Bkg.ProjectionX(aux.randomName(), 0, 0)
         if intOnly:
             xMin = hNum.GetXaxis().FindFixBin(80)
             xMax = hNum.GetXaxis().FindFixBin(100)
