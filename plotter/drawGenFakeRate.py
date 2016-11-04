@@ -42,41 +42,40 @@ for key in rfile.GetListOfKeys():
         hOut.Draw("e hist")
         if "_gen" in name: info="Probe gen matched"
     elif eff.GetDimension() == 3:
-#        style.style2d()
+        #style.style2d()
         c = ROOT.TCanvas()
-#        style.defaultStyle()
+        style.defaultStyle()
         h3Num = eff.GetCopyPassedHisto()
         h3Den = eff.GetCopyTotalHisto()
+        h3Num.GetYaxis().SetRangeUser(0,120)
+        h3Den.GetYaxis().SetRangeUser(0,120)
+        h3Num.GetXaxis().SetRangeUser(60,120)
+        h3Den.GetXaxis().SetRangeUser(60,120)
+        h2Num = h3Num.Project3D("zy")
+        h2Den = h3Den.Project3D("zy")
+        yBinning = None
+        if name == "met_vs_jets": yBinning = [-.5, .5, 1.5, 2.5]
+        if name == "met_vs_jetPt": yBinning = [0,5, 30, 40, 50, 80]
+        if name == "met_vs_vtx": yBinning = [0.5, 10.5, 15.5, 20.5, 25.5]
+        if name == "met_vs_pt": yBinning = [15, 20, 25, 30, 40, 60, 90]
+        if yBinning:
+            h2Num = aux.rebin2d(h2Num, range(0,61,5)+[70,80,120], yBinning)
+            h2Den = aux.rebin2d(h2Den, range(0,61,5)+[70,80,120], yBinning)
+        h2Num.Divide(h2Den)
+        h2Num.Draw("colz")
+        h2Num.Scale(100)
+        h2Num.SetZTitle("f_{e#rightarrow#gamma} (%)")
+        h2Num.SetMaximum(10)
+        h2Num.SetTitle("")
 
-        h2Out = h3Num.Project3D("yz")
-        h2Out.SetMaximum(10)
-        h2Out.Reset("ICES")
-        h2Out.SetTitle("")
-        h2Out.SetZTitle("f_{e#rightarrow#gamma} (%)")
-        for ybin in range(h3Num.GetNbinsY()+2):
-            for zbin in range(h3Num.GetNbinsZ()+2):
-                hNum = h3Num.ProjectionX(aux.randomName(), ybin, ybin, zbin, zbin)
-                hDen = h3Den.ProjectionX(aux.randomName(), ybin, ybin, zbin, zbin)
-                xMin = hNum.GetXaxis().FindFixBin(60)
-                xMax = hNum.GetXaxis().FindFixBin(120)
-                num = hNum.Integral(xMin, xMax)
-                den = hDen.Integral(xMin, xMax)
-                if den:
-                    h2Out.SetBinContent(ybin, zbin, 100*num/den)
-                    h2Out.SetBinError(ybin, zbin, 100*math.sqrt(num)/den)
-        h2Out.Draw("colz")
         m = multiplot.Multiplot()
-        ROOT.gStyle.SetPalette(51)
-        proj = aux.getProjections(h2Out, axis="y", scale=False)
+        ROOT.gStyle.SetPalette(55)
+        proj = aux.getProjections(h2Num, scale=False)
         style.defaultStyle()
         for ih, h in enumerate(proj):
-            for b in range(h.GetNbinsX()+2):
-                if h.GetBinError(b)>0.2:
-                    h.SetBinContent(b,0)
-                    h.SetBinError(b,0)
             h.SetMinimum(0)
             h.SetMaximum(5)
-            h.drawOption_ = "l"
+            h.drawOption_ = "hist e"
             m.add(h, h.GetName())
         m.Draw()
     else:
