@@ -167,6 +167,7 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
     effs["met_vs_jets"+name] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);jet multiplicity", 200, 40, 140, 40, 0, 200, 8, -0.5, 7.5);
     effs["met_vs_pt"+name] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
     effs["met_vs_jetPt"+name] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{1.jet} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
+    effs["eta_vs_phi"+name] = TEfficiency("", ";m (GeV);#eta;#phi", 200, 40, 140, 250, 0, 2.5, 64, -3.2, 3.2);
   }
 
   bool hasPixelSeed = probe->hasPixelSeed;
@@ -207,6 +208,7 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   effs.at("met_vs_jets"+name).Fill(!hasPixelSeed, mll, thisMet, nJet);
   effs.at("met_vs_pt"+name).Fill(!hasPixelSeed, mll, thisMet, probe->p.Pt());
   effs.at("met_vs_jetPt"+name).Fill(!hasPixelSeed, mll, thisMet, leadingJetPt);
+  effs.at("eta_vs_phi"+name).Fill(!hasPixelSeed, mll, probe->p.Eta(), probe->p.Phi());
 }
 
 Bool_t FakeRateSelector::Process(Long64_t entry)
@@ -322,6 +324,7 @@ void FakeRateSelector::Terminate()
 {
   auto outputName = getOutputFilename(fReader.GetTree()->GetCurrentFile()->GetName(), "fake");
   TFile file(outputName.c_str(), "RECREATE");
+  for (auto& it : h1Map ) it.second.Write(it.first.c_str());
   for (auto& it : effs ) it.second.Write(it.first.c_str());
   file.Close();
   cout << "Created " << outputName << endl;
