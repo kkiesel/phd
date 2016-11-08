@@ -178,16 +178,17 @@ def inclusive():
     den = fitHist("fakeRate_inclusive_den", hDen, hDenMC, hBkg)
     print "Inclusive fake-rate: {:.2f}%".format(100.*num/den)
 
-#inclusive()
 infos = {"":"", "_40pt":"p_{T}>40GeV", "_EB":"Barrel", "_EB_40pt":"Barrel, p_{T}>40GeV", "_EB_01eta_40pt":"Barrel, p_{T}>40GeV, |#eta|>0.1", "_EB_100pt":"Barrel, p_{T}>100GeV"}
 
-variables = "pt", "jets", "met", "emht", "vtx", "eta", "sie", "sip", "hoe", "r9", "cIso", "nIso", "pIso", "cIsoWorst"
-selections = "", "_40pt", "_EB", "_EB_40pt", "_EB_01eta_40pt", "_EB_100pt"
-selections = ["_EB_40pt"]
-variables = ["vtx"]
+if name == "__main__":
+    #inclusive()
+    variables = "pt", "jets", "met", "emht", "vtx", "eta", "sie", "sip", "hoe", "r9", "cIso", "nIso", "pIso", "cIsoWorst"
+    selections = "" , "_40pt", "_EB", "_EB_40pt" #, "_EB_01eta_40pt", "_EB_100pt"
+    selections = ["_EB_01eta_40pt"]
+    variables = ["pt", "eta"]
 
-for var in variables:
-    for sel in selections:
-        binned("{}{}".format(var,sel), selectionInfo=infos[sel], intOnly=False)
+    for var in variables:
+        for sel in selections:
+            binned("{}{}".format(var,sel), selectionInfo=infos[sel], intOnly=False)
 
 
