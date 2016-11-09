@@ -276,7 +276,8 @@ map<string,TH1F> initHistograms() {
 }
 
 void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
-  if (std::isnan(met->p.X())) return;
+  //auto signalPointName = getSignalPointName(*signal_nBinos, *signal_m1, *signal_m2);
+  if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
 
   float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight, tree_dPhi;
   UInt_t tree_njet;
@@ -515,9 +516,9 @@ HistogramProducer::HistogramProducer():
   hlt_ht600(fReader, "HLT_PFHT600_v"),
   hlt_ht800(fReader, "HLT_PFHT800_v"),
   hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
-  signal_nBinos(fReader, "signal_nBinos"),
-  signal_m1(fReader, "signal_m1"),
-  signal_m2(fReader, "signal_m2"),
+  //signal_nBinos(fReader, "signal_nBinos"),
+  //signal_m1(fReader, "signal_m1"),
+  //signal_m2(fReader, "signal_m2"),
   looseCutFlowPhoton({{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
     {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} }),
   startTime(time(NULL)),
@@ -532,7 +533,7 @@ void HistogramProducer::Init(TTree *tree)
   isData = inputName.find("Run201") != string::npos;
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
 
-  float lumi = 27.22e3; // pb^{-1}
+  float lumi = 36.53e3; // pb^{-1}
   cutFlow = *((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"));
   fReader.GetEntries(true); // jumps to last file
   string lastInputName = fReader.GetTree()->GetCurrentFile()->GetName();
@@ -545,6 +546,7 @@ void HistogramProducer::Init(TTree *tree)
 
   genPt130 = inputName.find("0to130") != string::npos;
   genHt600 = inputName.find("HT-0to600") != string::npos;
+  isScan = inputName.find("SMS-T5Wg_nTuple") != string::npos;
 
   initTriggerStudies();
   initUncut();
