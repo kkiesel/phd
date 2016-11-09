@@ -112,7 +112,7 @@ map<string,TEfficiency> initGenEfficiencies() {
   m["met_vs_jets"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);jet multiplicity", 40, 0, 200, 8, -0.5, 7.5);
   m["met_vs_pt"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 40, 0, 200, 40, 0, 200);
   m["met_vs_jetPt"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{1.jet} (GeV)", 40, 0, 200, 40, 0, 200);
-  m["eta_vs_phi"] = TEfficiency("", ";#eta;#phi", 250, 0, 2.5, 64, -3.2, 3.2);
+  m["eta_vs_phi"] = TEfficiency("", ";#eta;#phi", 250, -2.5, 2.5, 64, -3.2, 3.2);
   return m;
 }
 
@@ -183,7 +183,7 @@ map<string,TEfficiency> initEfficiencies() {
   m["met_vs_jets"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);jet multiplicity", 200, 40, 140, 40, 0, 200, 8, -0.5, 7.5);
   m["met_vs_pt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
   m["met_vs_jetPt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{1.jet} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
-  m["eta_vs_phi"] = TEfficiency("", ";m (GeV);#eta;#phi", 200, 40, 140, 250, 0, 2.5, 64, -3.2, 3.2);
+  m["eta_vs_phi"] = TEfficiency("", ";m (GeV);#eta;#phi", 200, 40, 140, 250, -2.5, 2.5, 64, -3.2, 3.2);
   return m;
 }
 
