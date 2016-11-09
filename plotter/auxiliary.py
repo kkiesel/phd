@@ -159,6 +159,7 @@ def checkRebinningConsistence( axis, newBinning ):
         if i not in oldBinning: print "New bin edge is not compatible with old binning", i, "old binning:", oldBinning
 
 def rebin2d( h, binEdgesX=None, binEdgesY=None ):
+    if not binEdgesX and not binEdgesY: return h
     # Check consistency with old binning
     if binEdgesX:
         checkRebinningConsistence( h.GetXaxis(), binEdgesX )
@@ -191,6 +192,7 @@ def rebin2d( h, binEdgesX=None, binEdgesY=None ):
     return hnew
 
 def rebin3d( h, binEdgesX=None, binEdgesY=None, binEdgesZ=None ):
+    if not binEdgesX and not binEdgesY and not binEdgesZ: return h
     # Check consistency with old binning
     if binEdgesX:
         checkRebinningConsistence( h.GetXaxis(), binEdgesX )
@@ -232,12 +234,22 @@ def rebin3d( h, binEdgesX=None, binEdgesY=None, binEdgesZ=None ):
 def rebin( h, binEdges, scale=True ):
     if not binEdges: return h
     checkRebinningConsistence( h.GetXaxis(), binEdges )
-    import array
     binEdgesArr = array.array( 'd', binEdges )
     hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
     hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
     #if scale: hnew.Scale( 1., "width" )
     return hnew
+
+def rebinX(h, binEdgesX=None, binEdgesY=None, binEdgesZ=None):
+    nDim = h.GetDimension()
+    if nDim == 1:
+        return rebin(h, binEdgesX, False)
+    elif nDim == 2:
+        return rebin2d(h, binEdgesX, binEdgesY)
+    elif nDim == 3:
+        return rebin3d(h, binEdgesX, binEdgesY, binEdgesZ)
+    else:
+        print "Do not know what to do with dimension", nDim
 
 def absHistWeighted( origHist ):
     origNbins = origHist.GetNbinsX()
