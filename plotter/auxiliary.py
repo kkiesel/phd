@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-import ROOT
-import re
-import math
-from math import *
+import array
 import ConfigParser
 import itertools
+from math import *
+import numpy
+import pickle
+import re
+import ROOT
 
 binCfg = ConfigParser.SafeConfigParser()
 binCfg.readfp(open('rebin.cfg'))
@@ -15,8 +17,6 @@ def frange(x, y, jump):
         x += jump
 
 def getXsecInfoSMS( mother_mass, pklfilename ):
-    import pickle
-
     info = 0
     with open( pklfilename, 'rb') as f:
         data = pickle.load( f )
@@ -171,7 +171,6 @@ def rebin2d( h, binEdgesX=None, binEdgesY=None ):
         binEdgesY = [ h.GetYaxis().GetBinLowEdge(bin+1) for bin in range(h.GetNbinsY())]
 
     # Create
-    import array
     binEdgesXArr = array.array( 'd', binEdgesX )
     binEdgesYArr = array.array( 'd', binEdgesY )
     hnew = ROOT.TH2F(h.GetName()+randomName(),h.GetTitle(), len(binEdgesX)-1, binEdgesXArr, len(binEdgesY)-1, binEdgesYArr )
@@ -207,7 +206,6 @@ def rebin3d( h, binEdgesX=None, binEdgesY=None, binEdgesZ=None ):
         binEdgesZ = [ h.GetZaxis().GetBinLowEdge(bin+1) for bin in range(h.GetNbinsZ())]
 
     # Create
-    import array
     binEdgesXArr = array.array( 'd', binEdgesX )
     binEdgesYArr = array.array( 'd', binEdgesY )
     binEdgesZArr = array.array( 'd', binEdgesZ )
@@ -252,7 +250,7 @@ def absHistWeighted( origHist ):
         return origHist
 
     h = origHist.Clone()
-    newN = int(math.ceil(origNbins/2.))
+    newN = int(ceil(origNbins/2.))
     # TODO: doesn not work, only first bin in filled
     h = rebin( h, [ origXmax *i/newN for i in range(newN+1)] )
 
@@ -266,7 +264,7 @@ def absHistWeighted( origHist ):
 
         if e1 and e2:
             h.SetBinContent( newBin, ( c1*e1**-2 + c2*e2**-2 )/(e1**-2 + e2**-2) )
-            h.SetBinError( newBin, 1./math.sqrt( e1**-2 + e2**-2 ) )
+            h.SetBinError( newBin, 1./sqrt( e1**-2 + e2**-2 ) )
 
         else:
             h.SetBinContent( newBin, origHist.GetBinContent(origBin) )
@@ -286,7 +284,6 @@ def randomName():
 
 def TH1F_binning( name, title, binEdges ):
     # Wrapper for the TH1F constructor for variable binning
-    import array
     binEdgesArray = array.array( "d", binEdges )
     return ROOT.TH1F( name, ";%s;Events"%xVar.title, len(binEdgesArray)-1, binEdgesArray )
 
@@ -324,7 +321,6 @@ def integralAndError( h, binx1=0, binx2=-1, bins=True ):
 
 
 def getValAndError( val, err, sig=2 ):
-    from math import floor, log10
     digit = sig - int(floor(log10(err))) - 1
     return ( round(val,digit), round(err,digit) )
 
@@ -389,7 +385,6 @@ def getROC( hSig, hBkg, highX=True ):
         sigEff.append( sigNum / sigDen )
         bkgEff.append( bkgNum / bkgDen )
 
-    import numpy
     rocGraph = ROOT.TGraph( nRocBins, numpy.array(bkgEff), numpy.array(sigEff) )
     rocGraph.SetTitle(";#varepsilon_{bkg};#varepsilon_{sig}")
     return rocGraph
@@ -526,7 +521,7 @@ def addHistUncert(*histograms):
     out = histograms[0].Clone()
     for h in histograms[1:]:
         for bin in range(out.GetNbinsX()+2):
-            out.SetBinError(bin, math.sqrt( out.GetBinError(bin)**2 + h.GetBinError(bin)**2 ))
+            out.SetBinError(bin, sqrt( out.GetBinError(bin)**2 + h.GetBinError(bin)**2 ))
     return out
 
 def maxBinWidth( h ):
@@ -704,9 +699,9 @@ def dataCardToLatexTable(filename):
                     vals[p][1] += (err-1)**2
         columns.append( [ \
             bin, \
-            "{}\\pm{}".format(vals['bg'][0], vals['bg'][0]*math.sqrt(vals['bg'][1])), \
+            "{}\\pm{}".format(vals['bg'][0], vals['bg'][0]*sqrt(vals['bg'][1])), \
             str(obs), \
-            "{}\\pm{}".format(vals['sig'][0], vals['sig'][0]*math.sqrt(vals['sig'][1]))])
+            "{}\\pm{}".format(vals['sig'][0], vals['sig'][0]*sqrt(vals['sig'][1]))])
     content = '\n'.join([' & '.join(x) for x in zip(*columns)])
     print "\\begin{tabular}{%s}\n"%('c'*len(columns)) + content + "\n\\end{tabular}\n"
 
