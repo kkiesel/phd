@@ -10,7 +10,7 @@ fnameData = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
 fnameMC = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
 
 selectionTex = {
-    "all":"inclusive",
+    "all":"p_{T}>25GeV",
     "40pt":"p_{T}>40GeV",
     "EB":"Barrel",
     "EB_40pt":"Barrel, p_{T}>40GeV",
@@ -102,18 +102,14 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     aux.save(name+"_fit", log=False)
     return nSig.getVal()
 
-def draw1dEfficiency(savename, eff):
+def draw1dEfficiency(savename, eff, selection=""):
     c = ROOT.TCanvas()
     g = eff.CreateGraph()
     g.SetMaximum(0.05)
     g.SetMinimum(0)
     g.Draw("ap")
-    l = aux.Label(info="Simple Efficiency")
+    l = aux.Label(sim=True, info="Gen-Match "+selectionTex[selection.replace("_gen","")])
     aux.save(savename, log=False)
-
-def selectBinYZ(h3, ybin, zbin):
-    h3.GetYaxis().SetRangeUser(ybin,ybin)
-    h3.GetZaxis().SetRangeUser(zbin,zbin)
 
 def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intOnly=False):
     savename = "fakeRate_"
@@ -123,9 +119,10 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
     effMc = aux.getFromFile(fnameMC, "{}{}/{}".format(selection, "" if selection.endswith("_gen") else "_Zmatch", variable) )
     nDim = effMc.GetDimension()
     if nDim == 1:
-        draw1dEfficiency(savename+"_1d", effMc)
+        draw1dEfficiency(savename+"_1d", effMc, selection)
         return
 
+    print "Prepare histograms"
     hMcNum = effMc.GetCopyPassedHisto()
     hMcDen = effMc.GetCopyTotalHisto()
     hMcNum = aux.rebinX(hMcNum, *binning)
@@ -141,10 +138,11 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
         hDataNum = aux.rebinX(hDataNum, *binning)
         hDataDen = aux.rebinX(hDataDen, *binning)
         hBkg = aux.rebinX(hBkg, *binning)
+    print "Histograms prepared"
 
     if nDim == 2:
         hOut = hMcNum.ProjectionY()
-        hOut.Reset("ICES")
+        hOut.Reset("ICESM")
         for bin in range(0, hOut.GetNbinsX()+2):
             ax = hMcNum.GetYaxis()
             yMin, yMax = ax.GetBinLowEdge(bin), ax.GetBinUpEdge(bin)
@@ -190,29 +188,26 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
         style.defaultStyle()
 
         hOut = hMcNum.Project3D("yz")
-        hOut.Reset("ICES")
-        for xbin in range(0, hOut.GetNbinsX()+2):
-            for ybin in range(0, hOut.GetNbinsY()+2):
-                print xbin, ybin
-                selectBinYZ(hMcNum, xbin, ybin)
-                selectBinYZ(hMcDen, xbin, ybin)
-                hMcNum_mll = hMcNum.Project3D("x")
-                hMcDen_mll = hMcDen.Project3D("x")
+        hOut.Reset("ICESM")
+        for xbin in range(1, hOut.GetNbinsX()+1):
+            print 1.*xbin/(hOut.GetNbinsX()+1)
+            for ybin in range(1, hOut.GetNbinsY()+1):
+                num, den = 0, 0
+                hMcNum_mll = hMcNum.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
+                hMcDen_mll = hMcDen.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
                 xMin = hMcNum_mll.GetXaxis().FindFixBin(80)
                 xMax = hMcNum_mll.GetXaxis().FindFixBin(100)-1
                 if isData:
-                    selectBinYZ(hDataNum, xbin, ybin)
-                    selectBinYZ(hDataDen, xbin, ybin)
-                    selectBinYZ(hBkg, xbin, ybin)
-                    hDataNum_mll = hDataNum.Project3D("x")
-                    hDataDen_mll = hDataDen.Project3D("x")
-                    hBkg_mll = hBkg.Project3D("x")
+                    hDataNum_mll = hDataNum.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
+                    hDataDen_mll = hDataDen.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
+                    hBkg_mll = hBkg.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
                     if not hBkg_mll.Integral():
-                        hBkg_mll = hBkg.ProjectionX(aux.randomName(), 0, 0)
+                        hBkg_mll = hBkg.ProjectionX(aux.randomName())
                     if intOnly:
                         num = hDataNum_mll.Integral(xMin, xMax)
                         den = hDataDen_mll.Integral(xMin, xMax)
                     else:
+                        infoText = "bin{}_{}".format(xbin,ybin)
                         num = fitHist("{}_bin{}_{}_num".format(savename,xbin,ybin), hDataNum_mll, hMcNum_mll, hBkg_mll, infoText)
                         den = fitHist("{}_bin{}_{}_den".format(savename,xbin,ybin), hDataDen_mll, hMcDen_mll, hBkg_mll, infoText)
                 else:
@@ -221,13 +216,13 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
                 if den:
                     hOut.SetBinContent(xbin, ybin, 100*num/den)
                     hOut.SetBinError(xbin, ybin, 100*aux.sqrt(num)/den*aux.sqrt(1.+num/den))
-        h2Num.Draw("colz")
-        """
-        h2Num.Scale(100)
-        h2Num.SetZTitle("f_{e#rightarrow#gamma} (%)")
-        h2Num.SetMaximum(10)
-        h2Num.SetTitle("")
+        hOut.Draw("colz")
+        hOut.SetZTitle("f_{e#rightarrow#gamma} (%)")
+        hOut.SetMinimum(0)
+        hOut.SetMaximum(5)
+        hOut.SetTitle("")
 
+        """
         m = multiplot.Multiplot()
         ROOT.gStyle.SetPalette(55)
         proj = aux.getProjections(h2Num, scale=False)
@@ -239,7 +234,12 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
             m.add(h, h.GetName())
         m.Draw()
         """
-        l = aux.Label(sim=not isData, info=selectionTex[selection])
+        l = aux.Label(drawAll=False, sim=not isData, info=selectionTex[selection])
+        l.cms.SetX(0.01)
+        l.cms.SetY(0.05)
+        l.pub.SetX(0.01)
+        l.pub.SetY(0.01)
+        l.draw()
         aux.save(savename, log=False)
 
 
@@ -256,6 +256,7 @@ binnings = {
     "cIsoWorst": range(0, 8) + [8, 10, 15, 20],
     "pIso": [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1., 1.5, 2],
     "hoe": list(aux.frange(0, 0.05, 0.005)),
+    "nTracksPV": [-.5, .5, 1.5, 2.5, 3.5, 4.5, 25.5, 49.5],
 }
 
 if __name__ == "__main__":
@@ -266,7 +267,11 @@ if __name__ == "__main__":
     #binnedFakeRate("pt", "all", True, binning=[None, binnings["pt"]])
     #binnedFakeRate("pt", "all", False, binning=[None, binnings["pt"]])
     #binnedFakeRate("eta_vs_phi", "all", isData=False, intOnly=True)
-    binnedFakeRate("nTracksPV", "all_gen", isData=False, intOnly=True)
+    binnedFakeRate("eta_vs_phi", "all", isData=True)
+    #binnedFakeRate("nTracksPV", "all", isData=False, intOnly=True)
+    #binnedFakeRate("nTracksPV", "all", isData=True, intOnly=True, binning=[None, binnings["nTracksPV"]])
+    #binnedFakeRate("pt_vs_nTracksPV", "all", isData=True, intOnly=True, binning=[None, binnings["pt"], binnings["nTracksPV"]])
+    #binnedFakeRate("pt_vs_nTracksPV", "all", isData=True, intOnly=True)
 
 
 
