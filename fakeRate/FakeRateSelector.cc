@@ -125,7 +125,6 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
 
   bool hasPixelSeed = probe.hasPixelSeed;
   float thisMet = met->p.Pt();
-  auto nVertex = *nGoodVertices;
   unsigned nJet = 0;
   float emht = probe.p.Pt();;
   for (auto& j : *jets ) {
@@ -137,7 +136,7 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
   effs->at("pt").Fill(!hasPixelSeed, probe.p.Pt());
   effs->at("pt").Fill(!hasPixelSeed, probe.p.Pt());
   effs->at("eta").Fill(!hasPixelSeed, fabs(probe.p.Eta()));
-  effs->at("vtx").Fill(!hasPixelSeed, nVertex);
+  effs->at("vtx").Fill(!hasPixelSeed, *nGoodVertices);
   effs->at("emht").Fill(!hasPixelSeed, emht);
   effs->at("jets").Fill(!hasPixelSeed, nJet);
   effs->at("met").Fill(!hasPixelSeed, thisMet);
@@ -151,9 +150,10 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
   effs->at("cIsoWorst").Fill(!hasPixelSeed, probe.cIsoWorst);
   effs->at("nTracksPV").Fill(!hasPixelSeed, *nTracksPV);
 
-  effs->at("pt_vs_vtx").Fill(!hasPixelSeed, probe.p.Pt(), nVertex);
+  effs->at("pt_vs_vtx").Fill(!hasPixelSeed, probe.p.Pt(), *nGoodVertices);
   effs->at("pt_vs_nTracksPV").Fill(!hasPixelSeed, probe.p.Pt(), *nTracksPV);
-  effs->at("met_vs_vtx").Fill(!hasPixelSeed, thisMet, nVertex);
+  effs->at("vtx_vs_nTracksPV").Fill(!hasPixelSeed, *nGoodVertices, *nTracksPV);
+  effs->at("met_vs_vtx").Fill(!hasPixelSeed, thisMet, *nGoodVertices);
   effs->at("met_vs_jets").Fill(!hasPixelSeed, thisMet, nJet);
   effs->at("met_vs_pt").Fill(!hasPixelSeed, thisMet, probe.p.Pt());
   //effs->at("met_vs_jetPt").Fill(!hasPixelSeed, thisMet, leadingJetPt);
@@ -197,7 +197,6 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   auto effs = &effMaps.at(name);
 
   bool hasPixelSeed = probe->hasPixelSeed;
-  auto nVertex = *nGoodVertices;
   float thisMet = met->p.Pt();
   float mll = m(tag->p, probe->p);
   float emht = tag->p.Pt() + probe->p.Pt();
@@ -214,7 +213,7 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   effs->at("pt").Fill(!hasPixelSeed, mll, probe->p.Pt());
   effs->at("pt").Fill(!hasPixelSeed, mll, probe->p.Pt());
   effs->at("eta").Fill(!hasPixelSeed, mll, fabs(probe->p.Eta()));
-  effs->at("vtx").Fill(!hasPixelSeed, mll, nVertex);
+  effs->at("vtx").Fill(!hasPixelSeed, mll, *nGoodVertices);
   effs->at("emht").Fill(!hasPixelSeed, mll, emht);
   effs->at("jets").Fill(!hasPixelSeed, mll, nJet);
   effs->at("met").Fill(!hasPixelSeed, mll, thisMet);
@@ -228,9 +227,10 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   effs->at("cIsoWorst").Fill(!hasPixelSeed, mll, probe->cIsoWorst);
   effs->at("nTracksPV").Fill(!hasPixelSeed, mll, *nTracksPV);
 
-  effs->at("pt_vs_vtx").Fill(!hasPixelSeed, mll, probe->p.Pt(), nVertex);
+  effs->at("pt_vs_vtx").Fill(!hasPixelSeed, mll, probe->p.Pt(), *nGoodVertices);
   effs->at("pt_vs_nTracksPV").Fill(!hasPixelSeed, mll, probe->p.Pt(), *nTracksPV);
-  effs->at("met_vs_vtx").Fill(!hasPixelSeed, mll, thisMet, nVertex);
+  effs->at("vtx_vs_nTracksPV").Fill(!hasPixelSeed, mll, *nGoodVertices, *nTracksPV);
+  effs->at("met_vs_vtx").Fill(!hasPixelSeed, mll, thisMet, *nGoodVertices);
   effs->at("met_vs_jets").Fill(!hasPixelSeed, mll, thisMet, nJet);
   effs->at("met_vs_pt").Fill(!hasPixelSeed, mll, thisMet, probe->p.Pt());
   effs->at("met_vs_jetPt").Fill(!hasPixelSeed, mll, thisMet, leadingJetPt);
