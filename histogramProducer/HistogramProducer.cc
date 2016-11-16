@@ -21,6 +21,8 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_met"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
   effMap["eff_hlt_met_ct"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
   effMap["eff_hlt_met_ct2"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
+  effMap["eff_hlt_ele_pt"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 100, 0, 100);
+
 }
 
 void HistogramProducer::fillTriggerStudies() {
@@ -79,6 +81,11 @@ void HistogramProducer::fillTriggerStudies() {
   }
 
   if (ht > 700 && *hlt_ht600) {
+    for (auto& el : *electrons) {
+      if (fabs(el.p.Eta())>2.1 || !el.isTight) continue;
+      effMap.at("eff_hlt_ele_pt").Fill(*hlt_el27, el.p.Pt());
+      break; // only leading electron
+    }
     for (auto& photon : *photons) {
       if (photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel) {
         if (looseCutFlowPhoton.check(photon)) {
@@ -518,6 +525,7 @@ HistogramProducer::HistogramProducer():
   hlt_photon90(fReader, "HLT_Photon90_v"),
   hlt_ht600(fReader, "HLT_PFHT600_v"),
   hlt_ht800(fReader, "HLT_PFHT800_v"),
+  hlt_el27(fReader, "HLT_Ele27_eta2p1_WPLoose_Gsf_v"),
   hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
   //signal_nBinos(fReader, "signal_nBinos"),
   //signal_m1(fReader, "signal_m1"),

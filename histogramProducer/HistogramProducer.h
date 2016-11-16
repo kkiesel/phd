@@ -67,6 +67,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Bool_t> hlt_photon90;
   TTreeReaderValue<Bool_t> hlt_ht600;
   TTreeReaderValue<Bool_t> hlt_ht800;
+  TTreeReaderValue<Bool_t> hlt_el27;
   TTreeReaderValue<Int_t> hlt_ht600_pre;
 
   // signal scan
