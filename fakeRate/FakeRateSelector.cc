@@ -108,6 +108,7 @@ map<string,TEfficiency> initGenEfficiencies() {
   m["nTracksPV"] = TEfficiency("",";PV track multiplicity;#varepsilon", 50, -.5, 49.5);
   m["pt_vs_vtx"] = TEfficiency("", ";#it{p}_{T} (GeV);vertex multiplicity", 40, 0, 200, 36, 0.5, 36.5);
   m["pt_vs_nTracksPV"] = TEfficiency("", ";#it{p}_{T} (GeV);PV track multiplicity", 40, 0, 200, 50, -0.5, 49.5);
+  m["vtx_vs_nTracksPV"] = TEfficiency("", ";m (GeV);vertex multiplicity ;PV track multiplicity", 200, 40, 140, 36, .5, 36.5, 50, -0.5, 49.5);
   m["met_vs_vtx"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);vertex multiplicity", 40, 0, 200, 36, 0.5, 36.5);
   m["met_vs_jets"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);jet multiplicity", 40, 0, 200, 8, -0.5, 7.5);
   m["met_vs_pt"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 40, 0, 200, 40, 0, 200);
@@ -179,6 +180,7 @@ map<string,TEfficiency> initEfficiencies() {
   m["nTracksPV"] = TEfficiency("",";m (GeV);PV track multiplicity;#varepsilon", 200, 40, 140, 50, -.5, 49.5);
   m["pt_vs_vtx"] = TEfficiency("", ";m (GeV);#it{p}_{T} (GeV);vertex multiplicity", 200, 40, 140, 40, 0, 200, 36, 0.5, 36.5);
   m["pt_vs_nTracksPV"] = TEfficiency("", ";m (GeV);#it{p}_{T} (GeV);PV track multiplicity", 200, 40, 140, 40, 0, 200, 50, -0.5, 49.5);
+  m["vtx_vs_nTracksPV"] = TEfficiency("", ";m (GeV);vertex multiplicity ;PV track multiplicity", 200, 40, 140, 36, .5, 36.5, 50, -0.5, 49.5);
   m["met_vs_vtx"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);vertex multiplicity", 200, 40, 140, 40, 0, 200, 36, 0.5, 36.5);
   m["met_vs_jets"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);jet multiplicity", 200, 40, 140, 40, 0, 200, 8, -0.5, 7.5);
   m["met_vs_pt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
