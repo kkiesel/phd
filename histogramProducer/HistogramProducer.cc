@@ -268,6 +268,7 @@ map<string,TH1F> initHistograms() {
   hMap["n_electron"] = TH1F("", ";electron multiplicity", 4, -0.5, 3.5);
   hMap["n_muon"] = TH1F("", ";muon multiplicity", 4, -0.5, 3.5);
   hMap["n_heJet"] = TH1F("", ";photon-like jet multiplicity", 11, -0.5, 10.5);
+  hMap["n_tracksPV"] = TH1F("", ";PV track multiplicity", 51, -0.5, 50.5);
 
   hMap["genMatch"] = TH1F("", ";pdg id for gen match", 47, -23.5, 23.5);
   hMap["genHt"] = TH1F("", ";#it{H}_{T}^{gen}", 3000, 0, 3000);
@@ -456,6 +457,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
   m1->at("n_electron").Fill(selElectrons.size(), selW);
   m1->at("n_muon").Fill(selMuons.size(), selW);
   m1->at("n_heJet").Fill(selJets.size(), selW);
+  m1->at("n_tracksPV").Fill(*nTracksPV, selW);
   m1->at("genHt").Fill(*genHt, selW);
 
   m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size(), selW);
@@ -506,6 +508,7 @@ HistogramProducer::HistogramProducer():
   met(fReader, "met"),
   metRaw(fReader, "met_raw"),
   nGoodVertices(fReader, "nGoodVertices"),
+  nTracksPV(fReader, "nTracksPV"),
   pu_weight(fReader, "pu_weight"),
   mc_weight(fReader, "mc_weight"),
   genHt(fReader, "genHt"),
@@ -618,6 +621,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   fillUncut();
 
   if (isData) fillTriggerStudies();
+
+  // selection: nTracksPV >= 2 for e->gamma fake-rate
+  if (*nTracksPV<2) return kTRUE;
 
   // set weight
   selW = *mc_weight * *pu_weight;

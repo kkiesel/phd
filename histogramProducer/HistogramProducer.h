@@ -57,6 +57,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Float_t> pu_weight;
   TTreeReaderValue<Char_t> mc_weight;
   TTreeReaderValue<Int_t> nGoodVertices;
+  TTreeReaderValue<Int_t> nTracksPV;
   TTreeReaderValue<Float_t> genHt;
   TTreeReaderValue<Float_t> rho;
   TTreeReaderValue<ULong64_t> eventNo;
