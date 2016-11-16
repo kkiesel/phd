@@ -123,7 +123,8 @@ def createHistoFromDatasetTree(dset, variable, weight, nBins, treename="tr/simpl
     return h
 
 def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins):
-    saveName = "__".join([name, str(len(dirSet.names)), treename.replace("/","_"), str(len(preSet.names)), weight.replace("(","").replace(")","").replace("*","").replace(">","").replace("<",""), variable, str(len(nBins))])
+    weightName = weight.replace("(","").replace(")","").replace("*","").replace(">","").replace("<","").replace("&&","").replace(" ", "")
+    saveName = "__".join([name, str(len(dirSet.names)), treename.replace("/","_"), str(len(preSet.names)), weightName, variable, str(len(nBins))])
     saveNameRoot = "savedFitPredictions/{}.root".format(saveName)
     if os.path.isfile(saveNameRoot):
         print "Using saved events from", saveName
