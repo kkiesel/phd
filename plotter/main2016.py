@@ -139,7 +139,7 @@ def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weigh
         print "Calculating new", saveName
         dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
         dirHist.SetName("dir")
-        scales = [.85+.01*i for i in range(20)]
+        scales = [.85+.01*i for i in range(25)]
         preHists = {}
         for iscale, scale in enumerate(scales):
             preHist = createHistoFromTree(preTree, "{}*{}".format(variable,scale), weight, nBins)
