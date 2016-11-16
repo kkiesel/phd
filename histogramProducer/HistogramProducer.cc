@@ -697,6 +697,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr", true);
+    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_genE");
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", true);
     if (dPhiMin>0.3 && dPhiMax<3.1415-0.3) fillSelection("tr_dPhi3", true);
     if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB");
@@ -711,6 +712,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
+    auto saveW = selW;
+    if (isData) selW *= *hlt_ht600_pre;
     fillSelection("tr_jControl", true);
     if (dPhiMin>0.3 && dPhiMax<3.1415-0.3) fillSelection("tr_jControl_dPhi3", true);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep", true);
@@ -726,6 +729,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
         break;
       }
     }
+    if (isData) selW = saveW;
   }
 
 
@@ -773,7 +777,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr_eControl", true);
-    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_eControl_genE");
+    auto saveW = selW;
+    if (isData) {
+      selW *= (1.238+0.0935**nGoodVertices)/100; // fit on z->ee
+    } else {
+      selW *= (1.051+0.0318**nGoodVertices)/100; // fit on z->ee
+    }
+    fillSelection("tr_eControl_weighted", true);
+    selW = saveW;
   }
 
 
@@ -794,7 +805,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr_eControl_ee", true);
-    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_eControl_genE_ee");
   }
 
   resetSelection();
