@@ -326,6 +326,16 @@ def appendFlowBin( h, under=True, over=True ):
     if over:
         mergeBins( h, h.GetNbinsX(), h.GetNbinsX()+1 )
 
+def appendFlowBin2d(h, mergeX=True, mergeY=True):
+    if mergeY:
+        for b in range(h.GetNbinsX()+2):
+            mergeBins(h, h.GetBin(b,1), h.GetBin(b,0))
+            mergeBins(h, h.GetBin(b,h.GetNbinsY()), h.GetBin(b,h.GetNbinsY()+1))
+    if mergeX:
+        for b in range(h.GetNbinsY()+2):
+            mergeBins(h, h.GetBin(1,b), h.GetBin(0,b))
+            mergeBins(h, h.GetBin(h.GetNbinsX(),b), h.GetBin(h.GetNbinsX()+1,b))
+
 def integralAndError( h, binx1=0, binx2=-1, bins=True ):
     if not bins:
         binx1 = h.FindFixBin(binx1)
