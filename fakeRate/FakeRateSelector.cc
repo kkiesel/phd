@@ -114,6 +114,7 @@ map<string,TEfficiency> initGenEfficiencies() {
   m["met_vs_pt"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 40, 0, 200, 40, 0, 200);
   m["met_vs_jetPt"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{1.jet} (GeV)", 40, 0, 200, 40, 0, 200);
   m["eta_vs_phi"] = TEfficiency("", ";#eta;#phi", 250, -2.5, 2.5, 64, -3.2, 3.2);
+  m["cIso_vs_vtx"] = TEfficiency("", ";I_{#pm} (GeV);vertex multiplicity", 35, 0, 3.5, 36, 0.5, 36.5);
   return m;
 }
 
@@ -159,6 +160,7 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
   effs->at("met_vs_pt").Fill(!hasPixelSeed, thisMet, probe.p.Pt());
   //effs->at("met_vs_jetPt").Fill(!hasPixelSeed, thisMet, leadingJetPt);
   effs->at("eta_vs_phi").Fill(!hasPixelSeed, probe.p.Eta(), probe.p.Phi());
+  effs->at("cIso_vs_vtx").Fill(!hasPixelSeed, probe.cIso, *nGoodVertices);
 }
 
 map<string,TEfficiency> initEfficiencies() {
@@ -186,6 +188,7 @@ map<string,TEfficiency> initEfficiencies() {
   m["met_vs_pt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
   m["met_vs_jetPt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{1.jet} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
   m["eta_vs_phi"] = TEfficiency("", ";m (GeV);#eta;#phi", 200, 40, 140, 250, -2.5, 2.5, 64, -3.2, 3.2);
+  m["cIso_vs_vtx"] = TEfficiency("", "m (GeV);I_{#pm} (GeV);vertex multiplicity", 200, 40, 140, 35, 0, 3.5, 36, 0.5, 36.5);
   return m;
 }
 
@@ -237,6 +240,7 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   effs->at("met_vs_pt").Fill(!hasPixelSeed, mll, thisMet, probe->p.Pt());
   effs->at("met_vs_jetPt").Fill(!hasPixelSeed, mll, thisMet, leadingJetPt);
   effs->at("eta_vs_phi").Fill(!hasPixelSeed, mll, probe->p.Eta(), probe->p.Phi());
+  effs->at("cIso_vs_vtx").Fill(!hasPixelSeed, mll, probe->cIso, *nGoodVertices);
 }
 
 Bool_t FakeRateSelector::Process(Long64_t entry)
