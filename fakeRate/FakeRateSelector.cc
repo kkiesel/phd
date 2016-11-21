@@ -101,9 +101,9 @@ map<string,TEfficiency> initGenEfficiencies() {
   m["sip"] = TEfficiency("",";#sigma_{i#phii#phi};#varepsilon", 80, 0, 0.08);
   m["hoe"] = TEfficiency("",";H/E;#varepsilon", 100, 0, 0.05);
   m["r9"] = TEfficiency("",";r9;#varepsilon", 60, 0, 1.1);
-  m["cIso"] = TEfficiency("",";I_{#pm} (GeV);#varepsilon", 50, 0, 5);
+  m["cIso"] = TEfficiency("",";I_{#pm} (GeV);#varepsilon", 35, 0, 3.5);
   m["nIso"] = TEfficiency("",";I_{0} (GeV);#varepsilon", 50, 0, 5);
-  m["pIso"] = TEfficiency("",";I_{#gamma} (GeV);#varepsilon", 50, 0, 5);
+  m["pIso"] = TEfficiency("",";I_{#gamma} (GeV);#varepsilon", 20, 0, 2);
   m["cIsoWorst"] = TEfficiency("",";worst I_{#pm} (GeV);#varepsilon", 80, 0, 40);
   m["nTracksPV"] = TEfficiency("",";PV track multiplicity;#varepsilon", 50, -.5, 49.5);
   m["pt_vs_vtx"] = TEfficiency("", ";#it{p}_{T} (GeV);vertex multiplicity", 40, 0, 200, 36, 0.5, 36.5);
