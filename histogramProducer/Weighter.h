@@ -14,9 +14,8 @@ class Weighter {
       f.Close();
     }
 
-    ~Weighter() {
-      if (h) delete h;
-    }
+    // deleting the histogram pointer leads to segmentation violations
+    ~Weighter() {}
 
     float getWeight(float value) {
       return h ? h->GetBinContent( h->FindFixBin(value) ) : 1.;
