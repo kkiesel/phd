@@ -127,8 +127,9 @@ void HistogramProducer::fillTriggerStudies() {
 
 void HistogramProducer::initUncut() {
   map<string,TH1F> h;
+  h["genHt"] = TH1F("", ";#it{H}_{T}^{gen}", 3000, 0, 3000);
+  h["ht600_prescale"] = TH1F("", ";Prescales for HLT_PFHT600", 65, 0.5, 65.5);
   h1Maps["uncut"] = h;
-
   map<string,TH2F> h2;
   h2["dr_vs_relpt"] = TH2F("", ";#DeltaR;#it{p}_{T}^{jet}/#it{p}_{T}^{#gamma}", 100, 0, 0.5, 300, 0, 3);
   h2["dr_vs_relpt_genG"] = TH2F("", ";#DeltaR;#it{p}_{T}^{jet}/#it{p}_{T}^{#gamma}", 100, 0, 0.5, 300, 0, 3);
@@ -137,6 +138,7 @@ void HistogramProducer::initUncut() {
 
 void HistogramProducer::fillUncut() {
   h1Maps["uncut"]["genHt"].Fill(*genHt);
+  h1Maps["uncut"]["ht600_prescale"].Fill(*hlt_ht600_pre);
 
   for (auto& g : *photons) {
     if (g.isLoose && !g.hasPixelSeed && g.p.Pt() > 100 && fabs(g.p.Eta()) < photonsEtaMaxBarrel) {
