@@ -136,7 +136,6 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
     }
   }
   effs->at("pt").Fill(!hasPixelSeed, probe.p.Pt());
-  effs->at("pt").Fill(!hasPixelSeed, probe.p.Pt());
   effs->at("eta").Fill(!hasPixelSeed, fabs(probe.p.Eta()));
   effs->at("vtx").Fill(!hasPixelSeed, *nGoodVertices);
   effs->at("emht").Fill(!hasPixelSeed, emht);
