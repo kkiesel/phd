@@ -285,7 +285,8 @@ map<string,TH1F> initHistograms() {
   return hMap;
 }
 
-void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
+void HistogramProducer::fillSelection(string const& s, bool fillTree=false, float addWeight=1.) {
+  auto weight = selW*addWeight;
   //auto signalPointName = getSignalPointName(*signal_nBinos, *signal_m1, *signal_m2);
   if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
 
@@ -319,7 +320,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
   tree_dPhi = dPhis.size() ? *std::min_element(dPhis.begin(),dPhis.end()) : 10;
   tree_m = met->p.Pt();
   tree_mRaw = metRaw->p.Pt();
-  tree_w = selW * sampleW;
+  tree_w = weight * sampleW;
   tree_pt = 0;
   tree_topWeight = topPtReweighting(*genParticles);
 
@@ -369,139 +370,123 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
   int nHEJets = selHEJets.size();
   for (int i=0; i<nHEJets && nHEJets<8; i++) { // histograms only created for up to 7 jets
     string hname = "metJetSmeared_"+to_string(i)+"_"+to_string(nHEJets);
-    m1->at(hname+"_up").Fill((met->p+selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), selW);
-    m1->at(hname+"_dn").Fill((met->p-selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), selW);
+    m1->at(hname+"_up").Fill((met->p+selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), weight);
+    m1->at(hname+"_dn").Fill((met->p-selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), weight);
   }
 
-  m1->at("metSig").Fill(met->sig, selW);
-  m1->at("emhtNoLep").Fill(emhtNoLep, selW);
-  m1->at("tremht").Fill(tremht, selW);
-  m1->at("emht").Fill(emht, selW);
-  m1->at("emhtStar").Fill(emhtStar, selW);
-  m1->at("ht").Fill(ht, selW);
-  m1->at("st").Fill(st, selW);
-  m1->at("recoilt").Fill(recoil.Pt(), selW);
-  m1->at("emrecoilt").Fill(emrecoil.Pt(), selW);
+  m1->at("metSig").Fill(met->sig, weight);
+  m1->at("emhtNoLep").Fill(emhtNoLep, weight);
+  m1->at("tremht").Fill(tremht, weight);
+  m1->at("emht").Fill(emht, weight);
+  m1->at("emhtStar").Fill(emhtStar, weight);
+  m1->at("ht").Fill(ht, weight);
+  m1->at("st").Fill(st, weight);
+  m1->at("recoilt").Fill(recoil.Pt(), weight);
+  m1->at("emrecoilt").Fill(emrecoil.Pt(), weight);
 
-  m1->at("met").Fill(met->p.Pt(), selW);
-  m1->at("metRaw").Fill(metRaw->p.Pt(), selW);
-  m1->at("metUncertUp").Fill(met->p.Pt()+met->uncertainty, selW);
-  m1->at("metUncertDn").Fill(met->p.Pt()-met->uncertainty, selW);
+  m1->at("met").Fill(met->p.Pt(), weight);
+  m1->at("metRaw").Fill(metRaw->p.Pt(), weight);
+  m1->at("metUncertUp").Fill(met->p.Pt()+met->uncertainty, weight);
+  m1->at("metUncertDn").Fill(met->p.Pt()-met->uncertainty, weight);
 
-  if (selJets.size()>4) m1->at("metJet5Res").Fill((met->p+selJets.at(4)->p*rand.Gaus(0, selJets.at(4)->ptRes)).Pt(), selW);
-  if (selJets.size()>3) m1->at("metJet4Res").Fill((met->p+selJets.at(3)->p*rand.Gaus(0, selJets.at(3)->ptRes)).Pt(), selW);
-  if (selJets.size()>2) m1->at("metJet3Res").Fill((met->p+selJets.at(2)->p*rand.Gaus(0, selJets.at(2)->ptRes)).Pt(), selW);
-  if (selJets.size()>1) m1->at("metJet2Res").Fill((met->p+selJets.at(1)->p*rand.Gaus(0, selJets.at(1)->ptRes)).Pt(), selW);
-  if (selJets.size()>0) m1->at("metJet1Res").Fill((met->p+selJets.at(0)->p*rand.Gaus(0, selJets.at(0)->ptRes)).Pt(), selW);
+  if (selJets.size()>4) m1->at("metJet5Res").Fill((met->p+selJets.at(4)->p*rand.Gaus(0, selJets.at(4)->ptRes)).Pt(), weight);
+  if (selJets.size()>3) m1->at("metJet4Res").Fill((met->p+selJets.at(3)->p*rand.Gaus(0, selJets.at(3)->ptRes)).Pt(), weight);
+  if (selJets.size()>2) m1->at("metJet3Res").Fill((met->p+selJets.at(2)->p*rand.Gaus(0, selJets.at(2)->ptRes)).Pt(), weight);
+  if (selJets.size()>1) m1->at("metJet2Res").Fill((met->p+selJets.at(1)->p*rand.Gaus(0, selJets.at(1)->ptRes)).Pt(), weight);
+  if (selJets.size()>0) m1->at("metJet1Res").Fill((met->p+selJets.at(0)->p*rand.Gaus(0, selJets.at(0)->ptRes)).Pt(), weight);
   if (selJets.size()>0) {
     auto thisJet = selJets.at(0)->p;
     thisJet.SetPhi(thisJet.Phi()+rand.Gaus(0,selJets.at(0)->phiRes));
-    m1->at("metJet1ResPhi").Fill((met->p+thisJet-selJets.at(0)->p).Pt(), selW);
+    m1->at("metJet1ResPhi").Fill((met->p+thisJet-selJets.at(0)->p).Pt(), weight);
   }
 
   if (selPhotons.size() > 0) {
     auto g = selPhotons.at(0);
-    m1->at("genMatch").Fill(genMatchNegativePrompt(*g, *genParticles), selW);
-    m1->at("metPhotonPtUp").Fill((met->p+g->sigmaPt/g->p.Pt()*g->p).Pt(), selW);
-    m1->at("metPhotonPtDn").Fill((met->p-g->sigmaPt/g->p.Pt()*g->p).Pt(), selW);
+    m1->at("genMatch").Fill(genMatchNegativePrompt(*g, *genParticles), weight);
+    m1->at("metPhotonPtUp").Fill((met->p+g->sigmaPt/g->p.Pt()*g->p).Pt(), weight);
+    m1->at("metPhotonPtDn").Fill((met->p-g->sigmaPt/g->p.Pt()*g->p).Pt(), weight);
     auto mJet = matchedJet(*g);
     if (mJet) {
-      m1->at("g_ptStar").Fill(mJet->p.Pt(), selW);
-      m1->at("metSmearedPhotonByJERUp").Fill((met->p+g->p*mJet->ptRes).Pt(), selW);
-      m1->at("metSmearedPhotonByJERDn").Fill((met->p-g->p*mJet->ptRes).Pt(), selW);
-      for (int i=0;i<1000;i++) m1->at("metSmearedPhotonByJER").Fill((met->p-g->p*rand.Gaus(0, mJet->ptRes)).Pt(), selW);
+      m1->at("g_ptStar").Fill(mJet->p.Pt(), weight);
+      m1->at("metSmearedPhotonByJERUp").Fill((met->p+g->p*mJet->ptRes).Pt(), weight);
+      m1->at("metSmearedPhotonByJERDn").Fill((met->p-g->p*mJet->ptRes).Pt(), weight);
+      for (int i=0;i<1000;i++) m1->at("metSmearedPhotonByJER").Fill((met->p-g->p*rand.Gaus(0, mJet->ptRes)).Pt(), weight);
     }
     float res = resolution.get(g->p.Pt(), g->p.Eta(), 15.4);
-    m1->at("metSmearedPhotonByJERUp_fixedRho").Fill((met->p+res*g->p).Pt(), selW);
-    m1->at("metSmearedPhotonByJERDn_fixedRho").Fill((met->p-res*g->p).Pt(), selW);
-    for (int i=0;i<1000;i++) m1->at("metSmearedPhotonByJER_fixedRho").Fill((met->p-rand.Gaus(0,res)*g->p).Pt(), selW);
+    m1->at("metSmearedPhotonByJERUp_fixedRho").Fill((met->p+res*g->p).Pt(), weight);
+    m1->at("metSmearedPhotonByJERDn_fixedRho").Fill((met->p-res*g->p).Pt(), weight);
+    for (int i=0;i<1000;i++) m1->at("metSmearedPhotonByJER_fixedRho").Fill((met->p-rand.Gaus(0,res)*g->p).Pt(), weight);
 
-    m1->at("mt_g_met").Fill((g->p + met->p).Pt(), selW);
-    m1->at("g_pt").Fill(g->p.Pt(), selW);
-    m1->at("g_e").Fill(g->p.Mag(), selW);
-    m1->at("g_eta").Fill(fabs(g->p.Eta()), selW);
+    m1->at("mt_g_met").Fill((g->p + met->p).Pt(), weight);
+    m1->at("g_pt").Fill(g->p.Pt(), weight);
+    m1->at("g_e").Fill(g->p.Mag(), weight);
+    m1->at("g_eta").Fill(fabs(g->p.Eta()), weight);
     float dphi_met_g = fabs(met->p.DeltaPhi(g->p));
-    m1->at("dphi_met_g").Fill(dphi_met_g, selW);
-    m1->at("metPar").Fill(met->p.Pt()*cos(dphi_met_g), selW);
-    m1->at("metParUp").Fill(met->p.Pt()*cos(dphi_met_g)+g->sigmaPt, selW);
-    m1->at("metParDn").Fill(met->p.Pt()*cos(dphi_met_g)-g->sigmaPt, selW);
-    m1->at("metPer").Fill(fabs(met->p.Pt()*sin(dphi_met_g)), selW);
-    m1->at("metParRaw").Fill(metRaw->p.Pt()*cos(met->p.DeltaPhi(g->p)), selW);
-    m1->at("metPerRaw").Fill(fabs(metRaw->p.Pt()*sin(met->p.DeltaPhi(g->p))), selW);
-    m2->at("metPar_vs_emht").Fill(met->p.Pt()*cos(dphi_met_g), emht, selW);
-    m2->at("metPer_vs_emht").Fill(met->p.Pt()*sin(dphi_met_g), emht, selW);
-    m2->at("metParRaw_vs_emht").Fill(metRaw->p.Pt()*cos(dphi_met_g), emht, selW);
-    m2->at("metPerRaw_vs_emht").Fill(metRaw->p.Pt()*sin(dphi_met_g), emht, selW);
+    m1->at("dphi_met_g").Fill(dphi_met_g, weight);
+    m1->at("metPar").Fill(met->p.Pt()*cos(dphi_met_g), weight);
+    m1->at("metParUp").Fill(met->p.Pt()*cos(dphi_met_g)+g->sigmaPt, weight);
+    m1->at("metParDn").Fill(met->p.Pt()*cos(dphi_met_g)-g->sigmaPt, weight);
+    m1->at("metPer").Fill(fabs(met->p.Pt()*sin(dphi_met_g)), weight);
+    m1->at("metParRaw").Fill(metRaw->p.Pt()*cos(met->p.DeltaPhi(g->p)), weight);
+    m1->at("metPerRaw").Fill(fabs(metRaw->p.Pt()*sin(met->p.DeltaPhi(g->p))), weight);
+    m2->at("metPar_vs_emht").Fill(met->p.Pt()*cos(dphi_met_g), emht, weight);
+    m2->at("metPer_vs_emht").Fill(met->p.Pt()*sin(dphi_met_g), emht, weight);
+    m2->at("metParRaw_vs_emht").Fill(metRaw->p.Pt()*cos(dphi_met_g), emht, weight);
+    m2->at("metPerRaw_vs_emht").Fill(metRaw->p.Pt()*sin(dphi_met_g), emht, weight);
     unsigned photonPosition=0;
     for (;photonPosition<selJets.size() && selJets.at(photonPosition)->p.Pt() > g->p.Pt();photonPosition++);
-    m2->at("n_jets_vs_photonPosition").Fill(selJets.size(), photonPosition, selW);
-    m2->at("g_eta_vs_g_phi").Fill(g->p.Eta(), g->p.Phi(), selW);
+    m2->at("n_jets_vs_photonPosition").Fill(selJets.size(), photonPosition, weight);
+    m2->at("g_eta_vs_g_phi").Fill(g->p.Eta(), g->p.Phi(), weight);
   }
 
   if (selJets.size() > 2) {
-    m1->at("j3_pt").Fill(selJets.at(2)->p.Pt(), selW);
-    m1->at("j3_eta").Fill(fabs(selJets.at(2)->p.Eta()), selW);
-    m1->at("dphi_met_j3").Fill(fabs(met->p.DeltaPhi(selJets.at(2)->p)), selW);
+    m1->at("j3_pt").Fill(selJets.at(2)->p.Pt(), weight);
+    m1->at("j3_eta").Fill(fabs(selJets.at(2)->p.Eta()), weight);
+    m1->at("dphi_met_j3").Fill(fabs(met->p.DeltaPhi(selJets.at(2)->p)), weight);
   }
   if (selJets.size() > 1) {
-    m1->at("j2_pt").Fill(selJets.at(1)->p.Pt(), selW);
-    m1->at("j2_eta").Fill(fabs(selJets.at(1)->p.Eta()), selW);
-    m1->at("dphi_met_j2").Fill(fabs(met->p.DeltaPhi(selJets.at(1)->p)), selW);
-    if (selPhotons.size() > 0) m1->at("dphi_g_j2").Fill(fabs(selPhotons.at(0)->p.DeltaPhi(selJets.at(1)->p)), selW);
+    m1->at("j2_pt").Fill(selJets.at(1)->p.Pt(), weight);
+    m1->at("j2_eta").Fill(fabs(selJets.at(1)->p.Eta()), weight);
+    m1->at("dphi_met_j2").Fill(fabs(met->p.DeltaPhi(selJets.at(1)->p)), weight);
+    if (selPhotons.size() > 0) m1->at("dphi_g_j2").Fill(fabs(selPhotons.at(0)->p.DeltaPhi(selJets.at(1)->p)), weight);
   }
   if (selJets.size() > 0) {
-    m1->at("j1_pt").Fill(selJets.at(0)->p.Pt(), selW);
-    m1->at("j1_eta").Fill(fabs(selJets.at(0)->p.Eta()), selW);
-    m1->at("dphi_met_j1").Fill(fabs(met->p.DeltaPhi(selJets.at(0)->p)), selW);
-    if (selPhotons.size() > 0) m1->at("dphi_g_j1").Fill(fabs(selPhotons.at(0)->p.DeltaPhi(selJets.at(0)->p)), selW);
+    m1->at("j1_pt").Fill(selJets.at(0)->p.Pt(), weight);
+    m1->at("j1_eta").Fill(fabs(selJets.at(0)->p.Eta()), weight);
+    m1->at("dphi_met_j1").Fill(fabs(met->p.DeltaPhi(selJets.at(0)->p)), weight);
+    if (selPhotons.size() > 0) m1->at("dphi_g_j1").Fill(fabs(selPhotons.at(0)->p.DeltaPhi(selJets.at(0)->p)), weight);
   }
 
-  m1->at("dphi_met_recoil").Fill(fabs(met->p.DeltaPhi(recoil)), selW);
+  m1->at("dphi_met_recoil").Fill(fabs(met->p.DeltaPhi(recoil)), weight);
 
-  m1->at("n_vertex").Fill(*nGoodVertices, selW);
+  m1->at("n_vertex").Fill(*nGoodVertices, weight);
   m1->at("n_vertex_unw").Fill(*nGoodVertices);
-  m1->at("n_photon").Fill(selPhotons.size(), selW);
-  m1->at("n_jet").Fill(selJets.size(), selW);
-  m1->at("n_bjet").Fill(selBJets.size(), selW);
-  m1->at("n_electron").Fill(selElectrons.size(), selW);
-  m1->at("n_muon").Fill(selMuons.size(), selW);
-  m1->at("n_heJet").Fill(selJets.size(), selW);
-  m1->at("n_tracksPV").Fill(*nTracksPV, selW);
-  m1->at("genHt").Fill(*genHt, selW);
+  m1->at("n_photon").Fill(selPhotons.size(), weight);
+  m1->at("n_jet").Fill(selJets.size(), weight);
+  m1->at("n_bjet").Fill(selBJets.size(), weight);
+  m1->at("n_electron").Fill(selElectrons.size(), weight);
+  m1->at("n_muon").Fill(selMuons.size(), weight);
+  m1->at("n_heJet").Fill(selJets.size(), weight);
+  m1->at("n_tracksPV").Fill(*nTracksPV, weight);
+  m1->at("genHt").Fill(*genHt, weight);
 
-  m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size(), selW);
-  m2->at("met_vs_n_obj").Fill(met->p.Pt(), selJets.size()+selPhotons.size(), selW);
-  m2->at("metRaw_vs_n_jet").Fill(metRaw->p.Pt(), selJets.size(), selW);
-  m2->at("metRaw_vs_n_obj").Fill(metRaw->p.Pt(), selJets.size()+selPhotons.size(), selW);
-  if (selJets.size()) m2->at("met_vs_j1_pt").Fill(met->p.Pt(), selJets.at(0)->p.Pt() , selW);
+  m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size(), weight);
+  m2->at("met_vs_n_obj").Fill(met->p.Pt(), selJets.size()+selPhotons.size(), weight);
+  m2->at("metRaw_vs_n_jet").Fill(metRaw->p.Pt(), selJets.size(), weight);
+  m2->at("metRaw_vs_n_obj").Fill(metRaw->p.Pt(), selJets.size()+selPhotons.size(), weight);
+  if (selJets.size()) m2->at("met_vs_j1_pt").Fill(met->p.Pt(), selJets.at(0)->p.Pt() , weight);
   if (selPhotons.size()) {
-    m2->at("met_vs_g_pt").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
-    m2->at("metRaw_vs_g_pt").Fill(metRaw->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
-    m2->at("met_vs_g_e").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , selW);
+    m2->at("met_vs_g_pt").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , weight);
+    m2->at("metRaw_vs_g_pt").Fill(metRaw->p.Pt(), selPhotons.at(0)->p.Pt() , weight);
+    m2->at("met_vs_g_e").Fill(met->p.Pt(), selPhotons.at(0)->p.Pt() , weight);
   } else {
-    m2->at("metRaw_vs_g_pt").Fill(metRaw->p.Pt(), 0., selW);
+    m2->at("metRaw_vs_g_pt").Fill(metRaw->p.Pt(), 0., weight);
   }
-  m2->at("met_vs_emht").Fill(met->p.Pt(), emht, selW);
-  m2->at("metRaw_vs_emht").Fill(metRaw->p.Pt(), emht, selW);
-  m2->at("met_vs_mht").Fill(met->p.Pt(), recoil.Pt(), selW);
-  m2->at("memht_vs_emht").Fill(emrecoil.Pt(), emht, selW);
-  m2->at("mht_vs_emht").Fill(recoil.Pt(), emht, selW);
-
-  /*
-  // razor
-  std::vector<TVector3> razorObjects;
-  for (auto j: *jets) {
-    razorObjects.push_back(j.p);
-  }
-
-  auto megaJets = megajets(razorObjects);
-  auto razorVar = razorVariables(megaJets, met->p);
-  m2->at("razor").Fill(razorVar.first, razorVar.second, selW);
-
-  // st stuff
-  m2->at("st_vs_n_jet").Fill(st, selJets.size(), selW);
-  */
-
+  m2->at("met_vs_emht").Fill(met->p.Pt(), emht, weight);
+  m2->at("metRaw_vs_emht").Fill(metRaw->p.Pt(), emht, weight);
+  m2->at("met_vs_mht").Fill(met->p.Pt(), recoil.Pt(), weight);
+  m2->at("memht_vs_emht").Fill(emrecoil.Pt(), emht, weight);
+  m2->at("mht_vs_emht").Fill(recoil.Pt(), emht, weight);
 
 } // end fill
 
