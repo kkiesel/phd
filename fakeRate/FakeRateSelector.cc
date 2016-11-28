@@ -326,43 +326,48 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   for (auto& tag : selTags) {
     for (auto& probe : selProbes) {
       auto eta = abs(probe->p.Eta());
+      auto pt = probe->p.Pt();
       fillSelection(tag, probe, "all");
-      if (probe->p.Pt()>40) fillSelection(tag, probe, "40pt");
+      if (pt>40) fillSelection(tag, probe, "40pt");
       if (eta<photonsEtaMaxBarrel) {
         fillSelection(tag, probe, "EB");
-        if (probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt");
-        if (probe->p.Pt()>40 && *nTracksPV>2 ) fillSelection(tag, probe, "EB_40pt_3nTracks");
-        if (eta>0.1 && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt");
+        if (pt>40) fillSelection(tag, probe, "EB_40pt");
+        if (pt>40 && *nTracksPV>2 ) fillSelection(tag, probe, "EB_40pt_3nTracks");
+        if (eta>0.1 && pt>40) fillSelection(tag, probe, "EB_01eta_40pt");
+        if (pt>100) fillSelection(tag, probe, "EB_100pt");
       } else if ( eta>photonsEtaMinEndcap && eta<2.3) {
-        if (probe->p.Pt()>40) fillSelection(tag, probe, "EE_40pt");
-        if (probe->p.Pt()>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks");
+        if (pt>40) fillSelection(tag, probe, "EE_40pt");
+        if (pt>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks");
       }
       if (fabs(genMatchWZDecay(*tag, *intermediateGenParticles)) == 11 && fabs(genMatchWZDecay(*probe, *intermediateGenParticles)) == 11) {
         fillSelection(tag, probe, "all_Zmatch");
-        if (probe->p.Pt()>40) fillSelection(tag, probe, "40pt_Zmatch");
+        if (pt>40) fillSelection(tag, probe, "40pt_Zmatch");
         if (eta<photonsEtaMaxBarrel) {
           fillSelection(tag, probe, "EB_Zmatch");
-          if (probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt_Zmatch");
-          if (probe->p.Pt()>40 && *nTracksPV>2 ) fillSelection(tag, probe, "EB_40pt_3nTracks_Zmatch");
-          if (eta>0.1 && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt_Zmatch");
+          if (pt>40) fillSelection(tag, probe, "EB_40pt_Zmatch");
+          if (pt>40 && *nTracksPV>2 ) fillSelection(tag, probe, "EB_40pt_3nTracks_Zmatch");
+          if (eta>0.1 && pt>40) fillSelection(tag, probe, "EB_01eta_40pt_Zmatch");
+          if (pt>100) fillSelection(tag, probe, "EB_100pt_Zmatch");
         } else if (eta<2.3) {
-          if (probe->p.Pt()>40) fillSelection(tag, probe, "EE_40pt_Zmatch");
-          if (probe->p.Pt()>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks_Zmatch");
+          if (pt>40) fillSelection(tag, probe, "EE_40pt_Zmatch");
+          if (pt>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks_Zmatch");
         }
       }
     }
     for (auto& probe : selMuons) {
       auto eta = abs(probe->p.Eta());
+      auto pt = probe->p.Pt();
       fillSelection(tag, probe, "all_bkg");
-      if (probe->p.Pt()>40) fillSelection(tag, probe, "40pt_bkg");
+      if (pt>40) fillSelection(tag, probe, "40pt_bkg");
       if (eta<photonsEtaMaxBarrel) {
         fillSelection(tag, probe, "EB_bkg");
-        if (probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt_bkg");
-        if (probe->p.Pt()>40 && *nTracksPV>2) fillSelection(tag, probe, "EB_40pt_3nTracks_bkg");
-        if (eta>0.1 && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt_bkg");
+        if (pt>40) fillSelection(tag, probe, "EB_40pt_bkg");
+        if (pt>40 && *nTracksPV>2) fillSelection(tag, probe, "EB_40pt_3nTracks_bkg");
+        if (eta>0.1 && pt>40) fillSelection(tag, probe, "EB_01eta_40pt_bkg");
+        if (pt>100) fillSelection(tag, probe, "EB_100pt_bkg");
       } else if (eta<2.3) {
-        if (probe->p.Pt()>40) fillSelection(tag, probe, "EE_40pt_bkg");
-        if (probe->p.Pt()>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks_bkg");
+        if (pt>40) fillSelection(tag, probe, "EE_40pt_bkg");
+        if (pt>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks_bkg");
       }
     }
   }
