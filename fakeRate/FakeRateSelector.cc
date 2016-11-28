@@ -290,7 +290,7 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   vector<tree::Photon*> selProbes;
   for (auto& pho : *photons) {
     if (!pho.isLoose) continue;
-    if (pho.p.Pt()<25) continue;
+    if (pho.p.Pt()<15) continue;
     auto eta = fabs(pho.p.Eta());
     if (photonsEtaMaxBarrel < eta and eta < photonsEtaMinEndcap) continue;
     selProbes.push_back(&pho);
@@ -300,7 +300,7 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
   vector<tree::Photon> artificialPhotons;
   vector<tree::Photon*> selMuons;
   for (auto& mu : *muons) {
-    if (mu.p.Pt() < 25) continue;
+    if (mu.p.Pt() < 15) continue;
     auto eta = fabs(mu.p.Eta());
     if (photonsEtaMaxBarrel < eta and eta < photonsEtaMinEndcap) continue;
     tree::Photon x;
