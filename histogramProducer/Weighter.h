@@ -11,6 +11,7 @@ class Weighter {
         cerr << "Error in <Weighter::Weighter>:  Could not find histogram "
              << histname << " in file " << filename << endl;
       }
+      f.Close();
     }
 
     ~Weighter() {
