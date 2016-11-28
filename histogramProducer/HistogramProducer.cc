@@ -530,6 +530,8 @@ void HistogramProducer::Init(TTree *tree)
   inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
+  weighters["fakeRate_eta"] = Weighter("../plotter/weights.root", isData?"fakeRate__data_40pt_eta":"fakeRate__sim_40pt_eta");
+  weighters["fakeRate_pt"] = Weighter("../plotter/weights.root", isData?"fakeRate__data_x17_EB_40pt_pt":"fakeRate__sim_x17_EB_40pt_pt");
 
   float lumi = 36.53e3; // pb^{-1}
   cutFlow = *((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"));
@@ -764,14 +766,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr_eControl", true);
-    auto saveW = selW;
-    if (isData) {
-      selW *= (1.238+0.0935**nGoodVertices)/100; // fit on z->ee
-    } else {
-      selW *= (1.051+0.0318**nGoodVertices)/100; // fit on z->ee
-    }
-    fillSelection("tr_eControl_weighted", true);
-    selW = saveW;
+    fillSelection("tr_eControl_vtxWeighted", true,
+        isData ? (1.238+0.0935**nGoodVertices)/100 : (1.051+0.0318**nGoodVertices)/100);
+    fillSelection("tr_eControl_etaWeighted", true,
+        weighters.at("fakeRate_eta").getWeight(fabs(selPhotons.at(0)->p.Eta())));
+    fillSelection("tr_eControl_ptWeighted", true,
+        weighters.at("fakeRate_pt").getWeight(selPhotons.at(0)->p.Pt()));
+    fillSelection("tr_eControl_ptFitWeighted", true,
+        isData ? (2.63678-0.00158909*selPhotons.at(0)->p.Pt())/100 : (1.55717-0.00230683*selPhotons.at(0)->p.Pt())/100);
   }
 
 

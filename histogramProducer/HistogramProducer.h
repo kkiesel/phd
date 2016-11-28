@@ -34,7 +34,7 @@ class HistogramProducer : public TSelector {
 
   void resetSelection();
   void defaultSelection();
-  void fillSelection(string const& s, bool);
+  void fillSelection(string const& s, bool, float w);
   void fillSelectedPhotons(const tree::Particle& p);
   tree::Jet* matchedJet(const tree::Particle& p);
 
@@ -102,7 +102,7 @@ class HistogramProducer : public TSelector {
   string inputName;
 
   CutFlowPhoton looseCutFlowPhoton;
-  Weighter nVtxWeighter;
+  map<string,Weighter> weighters;
   Resolution resolution;
 
   double startTime;
