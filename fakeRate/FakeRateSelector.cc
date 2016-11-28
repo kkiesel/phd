@@ -187,7 +187,7 @@ map<string,TEfficiency> initEfficiencies() {
   m["met_vs_pt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
   m["met_vs_jetPt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{1.jet} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
   m["eta_vs_phi"] = TEfficiency("", ";m (GeV);#eta;#phi", 200, 40, 140, 250, -2.5, 2.5, 64, -3.2, 3.2);
-  m["cIso_vs_vtx"] = TEfficiency("", "m (GeV);I_{#pm} (GeV);vertex multiplicity", 200, 40, 140, 35, 0, 3.5, 36, 0.5, 36.5);
+  m["cIso_vs_vtx"] = TEfficiency("", ";m (GeV);I_{#pm} (GeV);vertex multiplicity", 200, 40, 140, 35, 0, 3.5, 36, 0.5, 36.5);
   return m;
 }
 
