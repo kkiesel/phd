@@ -342,6 +342,24 @@ def appendFlowBin( h, under=True, over=True ):
     if over:
         mergeBins( h, h.GetNbinsX(), h.GetNbinsX()+1 )
 
+def appendFlowBin3d(h, mergeX=True, mergeY=True, mergeZ=True):
+    if mergeZ:
+        for xb in range(h.GetNbinsX()+2):
+            for yb in range(h.GetNbinsY()+2):
+                mergeBins(h, h.GetBin(xb,yb,1), h.GetBin(xb,yb,0))
+                mergeBins(h, h.GetBin(xb,yb,h.GetNbinsZ()), h.GetBin(xb,yb,h.GetNbinsZ()+1))
+    if mergeY:
+        for xb in range(h.GetNbinsX()+2):
+            for zb in range(h.GetNbinsZ()+2):
+                mergeBins(h, h.GetBin(xb,1,zb), h.GetBin(xb,0,zb))
+                mergeBins(h, h.GetBin(xb,h.GetNbinsY(),zb), h.GetBin(xb,h.GetNbinsY()+1,zb))
+    if mergeX:
+        for yb in range(h.GetNbinsY()+2):
+            for zb in range(h.GetNbinsZ()+2):
+                mergeBins(h, h.GetBin(1,yb,zb), h.GetBin(0,yb,zb))
+                mergeBins(h, h.GetBin(h.GetNbinsX(),yb,zb), h.GetBin(h.GetNbinsX()+1,yb,zb))
+
+
 def appendFlowBin2d(h, mergeX=True, mergeY=True):
     if mergeY:
         for b in range(h.GetNbinsX()+2):
