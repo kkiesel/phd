@@ -28,6 +28,10 @@ class Multiplot:
     def getMaximum( self ):
         return max( [ h.GetMaximum() for h in self.hists ] )
 
+    def getStack(self):
+        stacks = [h for h in self.hists if isinstance(h, ROOT.THStack)]
+        return stacks[0] if stacks else None
+
     def stackHists( self ):
         if not self.histsToStack:
             return
