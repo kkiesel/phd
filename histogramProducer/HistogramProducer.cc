@@ -22,6 +22,8 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_met_ct"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
   effMap["eff_hlt_met_ct2"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
   effMap["eff_hlt_ele_pt"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 100, 0, 100);
+  effMap["eff_hlt_pt_endcap"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
+  effMap["eff_hlt_eta_endcap"] = TEfficiency("", ";|#eta|;#varepsilon", 15, 1.5, 3);
 
 }
 
@@ -76,7 +78,9 @@ void HistogramProducer::fillTriggerStudies() {
     }
     if (ht > 700 && *hlt_ht600) {
       effMap.at("eff_hlt_pt").Fill(*hlt_photon90_ht600, thisPhoton->p.Pt());
-      effMap.at("eff_hlt_eta").Fill(*hlt_photon90_ht600, fabs(thisPhoton->p.Eta()));
+      if (thisPhoton->p.Pt()>100) {
+        effMap.at("eff_hlt_eta").Fill(*hlt_photon90_ht600, fabs(thisPhoton->p.Eta()));
+      }
     }
   }
 
@@ -120,6 +124,10 @@ void HistogramProducer::fillTriggerStudies() {
           looseCutFlowPhoton.passSie()
           && looseCutFlowPhoton.passIso()
        ) effMap.at("eff_hlt_hoe").Fill(*hlt_photon90_ht600, photon.hOverE);
+      }
+      if (photon.isLoose && fabs(photon.p.Eta())>photonsEtaMinEndcap) {
+        effMap.at("eff_hlt_pt_endcap").Fill(*hlt_photon90_ht600, photon.p.Pt());
+        if (photon.p.Pt()>100) effMap.at("eff_hlt_eta_endcap").Fill(*hlt_photon90_ht600, fabs(photon.p.Eta()));
       }
     } // photon loop
   } // ht cross trigger
