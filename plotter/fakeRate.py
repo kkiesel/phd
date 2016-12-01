@@ -55,7 +55,7 @@ def histToKdePdf(h, x, name):
 
 def fitHist(name, hData, hSig, hBkg, infoText=""):
     drawUnfitted(name, hData, hSig, hBkg, infoText)
-    if not hData.GetEntries() or not hSig.GetEntries() or not hBkg.GetEntries(): return 0
+    if not hData.GetEntries() or not hSig.GetEntries() or not hBkg.GetEntries(): return 0, 0
     totalInt = hData.Integral(0,-1)
     var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
     x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
@@ -112,7 +112,7 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     #frameRes.Draw()
     l = aux.Label(info=infoText, sim=False)
     aux.save(name+"_fit", log=False)
-    return nSig.getVal()
+    return nSig.getVal(), nSig.getError()
 
 def draw1dEfficiency(savename, eff, selection=""):
     c = ROOT.TCanvas()
@@ -174,15 +174,18 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
                 if intOnly:
                     num = hDataNum_mll.Integral(xMin, xMax)
                     den = hDataDen_mll.Integral(xMin, xMax)
+                    numE, denE = aux.sqrt(num), aux.sqrt(den)
                 else:
-                    num = fitHist("{}_bin{}_num".format(savename,bin), hDataNum_mll, hMcNum_mll, hBkg_mll, infoText)
-                    den = fitHist("{}_bin{}_den".format(savename,bin), hDataDen_mll, hMcDen_mll, hBkg_mll, infoText)
+                    num, numE = fitHist("{}_bin{}_num".format(savename,bin), hDataNum_mll, hMcDen_mll, hBkg_mll, infoText)
+                    den, denE = fitHist("{}_bin{}_den".format(savename,bin), hDataDen_mll, hMcDen_mll, hBkg_mll, infoText)
             else:
                 num = hMcNum_mll.Integral(xMin, xMax)
                 den = hMcDen_mll.Integral(xMin, xMax)
+                numE, denE = aux.sqrt(num), aux.sqrt(den)
             if den:
                 hOut.SetBinContent(bin, 100*num/den)
-                hOut.SetBinError(bin, 100*aux.sqrt(num)/den*aux.sqrt(1.+num/den))
+                hOut.SetBinError(bin, 100*aux.sqrt((numE/den)**2 + (denE*num/den**2)**2))
+
         hOut.SetTitle("")
         hOut.SetYTitle("N_{e#gamma}/N_{ee} (%)")
         hOut.SetTitleOffset(0.9,"y")
