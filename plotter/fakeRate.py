@@ -22,7 +22,7 @@ selectionTex = {
 }
 
 def drawUnfitted(name, hData, hSig, hBkg, infoText=""):
-    var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
+    var = "m_{e#gamma}" if "num" in name else "m_{ee}"
     aux.drawOpt(hData, "data")
     hData.SetTitle(";{} (GeV);Pairs [abitrary normalization]".format(var))
     hData.Draw("ep")
@@ -136,6 +136,7 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
 
     hMcNum = effMc.GetCopyPassedHisto()
     hMcDen = effMc.GetCopyTotalHisto()
+    hMcDen.Add(hMcNum, -1)
     hMcNum = aux.rebinX(hMcNum, *binning)
     hMcDen = aux.rebinX(hMcDen, *binning)
 
@@ -143,6 +144,7 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
         effData = aux.getFromFile(fnameData, "{}/{}".format(selection, variable))
         hDataNum = effData.GetCopyPassedHisto()
         hDataDen = effData.GetCopyTotalHisto()
+        hDataDen.Add(hDataNum, -1)
         effBkg = aux.getFromFile(fnameData, "{}_bkg/{}".format(selection, variable))
         hBkg = effBkg.GetCopyTotalHisto()
 
@@ -182,7 +184,7 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
                 hOut.SetBinContent(bin, 100*num/den)
                 hOut.SetBinError(bin, 100*aux.sqrt(num)/den*aux.sqrt(1.+num/den))
         hOut.SetTitle("")
-        hOut.SetYTitle("f_{e#rightarrow#gamma} (%)")
+        hOut.SetYTitle("N_{e#gamma}/N_{ee} (%)")
         hOut.SetTitleOffset(0.9,"y")
         aux.drawOpt(hOut, "data")
         hOut.SetMaximum(5)
@@ -232,7 +234,7 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
                     hOut.SetBinContent(xbin, ybin, 100*num/den)
                     hOut.SetBinError(xbin, ybin, 100*aux.sqrt(num)/den*aux.sqrt(1.+num/den))
         hOut.Draw("colz")
-        hOut.SetZTitle("f_{e#rightarrow#gamma} (%)")
+        hOut.SetZTitle("N_{e#gamma}/N_{ee} (%)")
         hOut.SetMinimum(0)
         hOut.SetMaximum(5)
         hOut.SetTitle("")
