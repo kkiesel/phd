@@ -10,12 +10,15 @@ fnameData = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
 fnameMC = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
 
 selectionTex = {
-    "all":"p_{T}>25GeV",
-    "40pt":"p_{T}>40GeV",
-    "EB":"Barrel",
-    "EB_40pt":"Barrel, p_{T}>40GeV",
-    "EB_01eta_40pt":"Barrel, p_{T}>40GeV, |#eta|>0.1",
-    "EB_100pt":"Barrel, p_{T}>100GeV"
+    "all":"p_{T}>25",
+    "40pt":"p_{T}>40",
+    "EB":"EB",
+    "EB_40pt":"EB, p_{T}>40",
+    "EB_40pt_3nTracks":"EB, p_{T}>40, #geq3tr",
+    "EB_01eta_40pt":"EB, p_{T}>40, |#eta|>0.1",
+    "EB_100pt":"EB, p_{T}>100",
+    "EE_40pt": "EE, p_{T}>40",
+    "EE_40pt_3nTracks":"EE, p_{T}>40 #geq3tr",
 }
 
 def drawUnfitted(name, hData, hSig, hBkg, infoText=""):
