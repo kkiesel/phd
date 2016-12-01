@@ -78,6 +78,11 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
                 r.draw(rMean/2,1.5*rMean)
             else:
                 r.draw(.5,1.5)
+        else:
+            ratio.clearXaxisCurrentPad()
+            p = ratio.createBottomPad()
+            x = aux.drawContributions(m.getStack())
+
 
         l = aux.Label(sim=data not in additional)
 
