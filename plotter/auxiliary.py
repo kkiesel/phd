@@ -92,6 +92,20 @@ def getProjections( h2, axis="x", scale=True ):
 
     return hs
 
+def drawContributions(stack):
+    total = stack.GetStack().Last()
+    b = total.GetNbinsX()-1
+    newStack = ROOT.THStack()
+    hists = [h.Clone(h.GetName()+randomName()) for h in stack.GetStack()]
+    for ih in range(len(hists)-1, 0, -1):
+        hists[ih].Add(hists[ih-1],-1)
+    for h in hists:
+        h.Divide(total)
+        h.SetFillColor(h.GetFillColor())
+        newStack.Add(h)
+    newStack.SetTitle(";{};Fractions".format(h.GetXaxis().GetTitle()))
+    newStack.Draw("hist")
+    return newStack
 
 def write2File( obj2Write, name, fname ):
     obj = obj2Write.Clone()
