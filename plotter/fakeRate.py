@@ -258,6 +258,13 @@ def binnedFakeRate(variable, selection, isData, xbins=None, ybins=None, intOnly=
         hBkg = aux.rebinX(hBkg, *binning)
 
     if nDim == 2:
+        aux.appendFlowBin2d(hMcNum, mergeX=False)
+        aux.appendFlowBin2d(hMcDen, mergeX=False)
+        if isData:
+            aux.appendFlowBin2d(hDataNum, mergeX=False)
+            aux.appendFlowBin2d(hDataDen, mergeX=False)
+            aux.appendFlowBin2d(hBkg, mergeX=False)
+
         hOut = hMcNum.ProjectionY()
         hOut.Reset("ICESM")
         for bin in range(0, hOut.GetNbinsX()+2):
@@ -275,7 +282,7 @@ def binnedFakeRate(variable, selection, isData, xbins=None, ybins=None, intOnly=
                 hDataDen_mll = hDataDen.ProjectionX(aux.randomName(), bin, bin)
                 hBkg_mll = hBkg.ProjectionX(aux.randomName(), bin, bin)
                 if not hBkg_mll.Integral():
-                    hBkg_mll = hBkg.ProjectionX(aux.randomName(), 0, 0)
+                    hBkg_mll = hBkg.ProjectionX(aux.randomName(), 0, -1)
                 if intOnly:
                     num = hDataNum_mll.Integral(xMin, xMax)
                     den = hDataDen_mll.Integral(xMin, xMax)
@@ -311,12 +318,25 @@ def binnedFakeRate(variable, selection, isData, xbins=None, ybins=None, intOnly=
             text = ROOT.TLatex()
             text.DrawLatexNDC(.6, .15, "N_{{e#gamma}}/N_{{ee}} = {:.2f}%".format(incFakeRate))
         if variable == "vtx":
-            res = hOut.Fit("pol1", "SQ")
+            res = hOut.Fit("pol1", "QS")
+            f = hOut.GetFunction("pol1")
+            f.SetLineColor(ROOT.kRed)
+            f.Draw("same")
             text = ROOT.TLatex()
             text.DrawLatexNDC(.2, .7, "f(x)={:.3f}+{:.4f}x".format(res.Parameter(0), res.Parameter(1)))
             text.DrawLatexNDC(.2, .6, "#chi^{{2}}/NDF = {:.2f}".format(res.Chi2()/res.Ndf()))
+        if saveToFile:
+            if not hOut.GetBinContent(hOut.GetNbinsX()+1): hOut.SetBinContent(hOut.GetNbinsX()+1,hOut.GetNbinsX()+1,  hOut.GetBinContent(hOut.GetNbinsX())) # fill overflow bin
+            hOut.Scale(0.01) # from percent to normal
+            aux.write2File(hOut, savename.replace("/","__"), "weights.root")
         aux.save(savename, log=False)
     elif nDim == 3:
+        aux.appendFlowBin3d(hMcNum, mergeX=False)
+        aux.appendFlowBin3d(hMcDen, mergeX=False)
+        if isData:
+            aux.appendFlowBin3d(hDataNum, mergeX=False)
+            aux.appendFlowBin3d(hDataDen, mergeX=False)
+            aux.appendFlowBin3d(hBkg, mergeX=False)
         style.style2d()
         c = ROOT.TCanvas()
         style.defaultStyle()
@@ -340,34 +360,23 @@ def binnedFakeRate(variable, selection, isData, xbins=None, ybins=None, intOnly=
                     if intOnly:
                         num = hDataNum_mll.Integral(xMin, xMax)
                         den = hDataDen_mll.Integral(xMin, xMax)
+                        numE, denE = aux.sqrt(num), aux.sqrt(den)
                     else:
                         infoText = "bin{}_{}".format(xbin,ybin)
-                        num = fitHist("{}_bin{}_{}_num".format(savename,xbin,ybin), hDataNum_mll, hMcNum_mll, hBkg_mll, infoText)
-                        den = fitHist("{}_bin{}_{}_den".format(savename,xbin,ybin), hDataDen_mll, hMcDen_mll, hBkg_mll, infoText)
+                        num, numE = fitHist("{}_bin{}_{}_num".format(savename,xbin,ybin), hDataNum_mll, hMcDen_mll, hBkg_mll, infoText)
+                        den, denE = fitHist("{}_bin{}_{}_den".format(savename,xbin,ybin), hDataDen_mll, hMcDen_mll, hBkg_mll, infoText)
                 else:
                     num = hMcNum_mll.Integral(xMin, xMax)
                     den = hMcDen_mll.Integral(xMin, xMax)
+                    numE, denE = aux.sqrt(num), aux.sqrt(den)
                 if den:
                     hOut.SetBinContent(xbin, ybin, 100*num/den)
-                    hOut.SetBinError(xbin, ybin, 100*aux.sqrt(num)/den*aux.sqrt(1.+num/den))
+                    hOut.SetBinError(xbin, ybin, 100*aux.sqrt((numE/den)**2 + (denE*num/den**2)**2))
         hOut.Draw("colz")
         hOut.SetZTitle("N_{e#gamma}/N_{ee} (%)")
         hOut.SetMinimum(0)
         hOut.SetMaximum(5)
         hOut.SetTitle("")
-
-        """
-        m = multiplot.Multiplot()
-        ROOT.gStyle.SetPalette(55)
-        proj = aux.getProjections(h2Num, scale=False)
-        style.defaultStyle()
-        for ih, h in enumerate(proj):
-            h.SetMinimum(0)
-            h.SetMaximum(5)
-            h.drawOption_ = "hist e"
-            m.add(h, h.GetName())
-        m.Draw()
-        """
         l = aux.Label(drawAll=False, sim=not isData, info=selectionTex[selection])
         l.cms.SetX(0.01)
         l.cms.SetY(0.05)
@@ -375,6 +384,34 @@ def binnedFakeRate(variable, selection, isData, xbins=None, ybins=None, intOnly=
         l.pub.SetY(0.01)
         l.draw()
         aux.save(savename, log=False)
+
+        if True:
+            c = ROOT.TCanvas()
+            m = multiplot.Multiplot()
+            ROOT.gStyle.SetPalette(55)
+            proj = aux.getProjections(hOut, scale=False)
+            style.defaultStyle()
+            for ih, h in enumerate(proj):
+                h.SetMinimum(0)
+                h.SetMaximum(5)
+                h.drawOption_ = "hist e"
+                m.add(h, h.GetName())
+            m.Draw()
+            l = aux.Label(sim=not isData, info=selectionTex[selection])
+            aux.save(savename+"_x", log=False)
+
+            m = multiplot.Multiplot()
+            ROOT.gStyle.SetPalette(55)
+            proj = aux.getProjections(hOut, "y", scale=False)
+            style.defaultStyle()
+            for ih, h in enumerate(proj):
+                h.SetMinimum(0)
+                h.SetMaximum(5)
+                h.drawOption_ = "hist e"
+                m.add(h, h.GetName())
+            m.Draw()
+            l = aux.Label(sim=not isData, info=selectionTex[selection])
+            aux.save(savename+"_y", log=False)
 
 
 
@@ -386,8 +423,9 @@ binnings = {
     "vtx": [0.5, 10.5, 15.5, 20.5, 25.5],
     #"pt": [15, 20, 25, 30, 40, 60, 90],
     "pt": range(30, 90, 5) + [90,100,120,150,200],
-    "met": range(0,50,5)+range(50,120,10),
+    "met": range(0,50,5)+[50,60,70,100,120],
     "cIsoWorst": range(0, 8) + [8, 10, 15, 20],
+    "cIso": [0, .1, .5, 1., 1.5, 2.0, 2.5, 3.5],
     "pIso": [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1., 1.5, 2],
     "hoe": list(aux.frange(0, 0.05, 0.005)),
     "nTracksPV": [-.5, .5, 1.5, 2.5, 3.5, 4.5, 25.5, 49.5],
