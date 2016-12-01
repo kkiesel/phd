@@ -44,6 +44,15 @@ def drawUnfitted(name, hData, hSig, hBkg, infoText=""):
     leg.Draw()
     aux.save(name+"_raw", log=False)
 
+def histToKdePdf(h, x, name):
+    centers = aux.array.array( 'd', [h.GetBinCenter(i) for i in range(1, h.GetNbinsX()+1)] )
+    contents = aux.array.array( 'd', [h.GetBinContent(i) for i in range(1, h.GetNbinsX()+1)] )
+    kde = ROOT.TKDE(len(centers), centers, contents, h.GetBinLowEdge(1), h.GetBinLowEdge(h.GetNbinsX()+1), "", 1./aux.sqrt(12))
+    func = kde.GetFunction()
+    func.Draw()
+    pdf = ROOT.RooTFnPdfBinding(name, "", func, ROOT.RooArgList(x))
+    return pdf
+
 def fitHist(name, hData, hSig, hBkg, infoText=""):
     drawUnfitted(name, hData, hSig, hBkg, infoText)
     if not hData.GetEntries() or not hSig.GetEntries() or not hBkg.GetEntries(): return 0
