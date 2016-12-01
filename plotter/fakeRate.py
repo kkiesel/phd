@@ -57,35 +57,29 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     drawUnfitted(name, hData, hSig, hBkg, infoText)
     if not hData.GetEntries() or not hSig.GetEntries() or not hBkg.GetEntries(): return 0, 0
     totalInt = hData.Integral(0,-1)
-    var = "m_{e#gamma}" if "num" in name else "m_{ee+e#gamma}"
+    var = "m_{e#gamma}" if "num" in name else "m_{ee}"
     x = ROOT.RooRealVar("x", var, 60, 120, "GeV")
 
-    dhSig = ROOT.RooDataHist("dhSig", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hSig))
-    dhBkg = ROOT.RooDataHist("dhBkg", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hBkg))
+    # datahist
     dh = ROOT.RooDataHist("dhData", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hData))
 
+    # background shape
+    pdfBkg = histToKdePdf(hBkg, x, "pdfBkg")
+    nBkg = ROOT.RooRealVar("nBkg", "number of events", totalInt/10, 0, 2*totalInt)
+    bkg = ROOT.RooExtendPdf("bkg", "", pdfBkg, nBkg)
+
+    # signal shape
+    dhSig = ROOT.RooDataHist("dhSig", "", ROOT.RooArgList(x), ROOT.RooFit.Import(hSig))
     pdfSig = ROOT.RooHistPdf("histpdf1", "", ROOT.RooArgSet(x), dhSig, 2)
-    pdfBkg = ROOT.RooHistPdf("histpdf2", "", ROOT.RooArgSet(x), dhBkg, 2)
-
-    meanSig = ROOT.RooRealVar("meanSig", "meanSig", 0, -5, 5)
-    widthSig = ROOT.RooRealVar("widthSig", "widthSig", 2, 0, 10)
-    a1Sig = ROOT.RooRealVar("a1Sig", "", 1, 0, 25)
-    a2Sig = ROOT.RooRealVar("a2Sig", "", 1, 0, 25)
+    #pdfSig = histToKdePdf(hSig, x, "pdfSig")
+    meanSig = ROOT.RooRealVar("meanSig", "meanSig", 0, -2, 2)
+    widthSig = ROOT.RooRealVar("widthSig", "widthSig", 1, 0, 3)
     smearSig = ROOT.RooGaussian("gausSig", "", x, meanSig, widthSig)
-
-    meanBkg = ROOT.RooRealVar("meanBkg", "meanBkg", 0, -5, 5)
-    widthBkg = ROOT.RooRealVar("widthBkg", "widthBkg", 2, 0, 10)
-    smearBkg = ROOT.RooGaussian("gausBkg", "", x, meanBkg, widthBkg)
-
     smearedSig = ROOT.RooFFTConvPdf("smearedSig","", x, pdfSig, smearSig)
-    smearedBkg = ROOT.RooFFTConvPdf("smearedBkg","", x, pdfBkg, smearBkg)
-
     nSig = ROOT.RooRealVar("nSig","number of events", totalInt, 0, 2*totalInt)
     signal = ROOT.RooExtendPdf("signal", "", smearedSig, nSig)
 
-    nBkg = ROOT.RooRealVar("nBkg", "number of events", totalInt/10, 0, 2*totalInt)
-    bkg = ROOT.RooExtendPdf("bkg", "", smearedBkg, nBkg)
-
+    # add signal and background shapes
     total = ROOT.RooAddPdf("total", "sig+bkg", ROOT.RooArgList(signal, bkg))
 
     # fit
@@ -98,13 +92,12 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     dh.plotOn(frame)
     frame.SetYTitle(frame.GetYaxis().GetTitle().replace("Events", "Pairs"))
     total.plotOn(frame)
-    total.plotOn(frame, ROOT.RooFit.Components("smearedBkg"), ROOT.RooFit.LineColor(ROOT.kGreen), ROOT.RooFit.LineStyle(ROOT.kDashed))
+    total.plotOn(frame, ROOT.RooFit.Components("pdfBkg"), ROOT.RooFit.LineColor(ROOT.kGreen), ROOT.RooFit.LineStyle(ROOT.kDashed))
     total.plotOn(frame, ROOT.RooFit.Components("smearedSig"), ROOT.RooFit.LineColor(ROOT.kRed))
 
-    #residuals = frame.residHist()
-
-    #frameRes = x.frame(ROOT.RooFit.Title(" "))
-    #frameRes.addPlotable(residuals, "P")
+    residuals = frame.residHist()
+    frameRes = x.frame(ROOT.RooFit.Title(" "))
+    frameRes.addPlotable(residuals, "P")
 
     c = ROOT.TCanvas()
     frame.Draw()
