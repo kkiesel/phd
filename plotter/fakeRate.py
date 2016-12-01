@@ -120,10 +120,118 @@ def draw1dEfficiency(savename, eff, selection="", xbins=None):
     l = aux.Label(sim=True, info="Gen-Match "+selectionTex[selection.replace("_gen","")])
     aux.save(savename, log=False)
 
-def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intOnly=False):
-    savename = "fakeRate_"
+def inclusiveFakeRate(savename, variable, selection, isData, intOnly=False):
+    effMc = aux.getFromFile(fnameMC, "{}{}/{}".format(selection, "" if selection.endswith("_gen") else "_Zmatch", variable) )
+    nDim = effMc.GetDimension()
+    if nDim == 1:
+        print "not implemented"
+        return 0
+
+    hMcNum = effMc.GetCopyPassedHisto()
+    hMcDen = effMc.GetCopyTotalHisto()
+
+    if isData:
+        effData = aux.getFromFile(fnameData, "{}/{}".format(selection, variable))
+        hDataNum = effData.GetCopyPassedHisto()
+        hDataDen = effData.GetCopyTotalHisto()
+        effBkg = aux.getFromFile(fnameData, "{}_bkg/{}".format(selection, variable))
+        hBkg = effBkg.GetCopyTotalHisto()
+
+    if nDim == 2:
+        hMcNum_mll = hMcNum.ProjectionX(aux.randomName(), 0, -1)
+        hMcDen_mll = hMcDen.ProjectionX(aux.randomName(), 0, -1)
+        xMin = hMcNum_mll.GetXaxis().FindFixBin(80)
+        xMax = hMcNum_mll.GetXaxis().FindFixBin(100)-1
+        if isData:
+            hDataNum_mll = hDataNum.ProjectionX(aux.randomName(), 0, -1)
+            hDataDen_mll = hDataDen.ProjectionX(aux.randomName(), 0, -1)
+            hBkg_mll = hBkg.ProjectionX(aux.randomName(), 0, -1)
+            if not hBkg_mll.Integral():
+                hBkg_mll = hBkg.ProjectionX(aux.randomName(), 0, -1)
+            if intOnly:
+                num = hDataNum_mll.Integral(xMin, xMax)
+                den = hDataDen_mll.Integral(xMin, xMax)
+            else:
+                num, numE = fitHist("{}_bin{}_num".format(savename,"incl"), hDataNum_mll, hMcDen_mll, hBkg_mll, "")
+                den, denE = fitHist("{}_bin{}_den".format(savename,"incl"), hDataDen_mll, hMcDen_mll, hBkg_mll, "")
+        else:
+            num = hMcNum_mll.Integral(xMin, xMax)
+            den = hMcDen_mll.Integral(xMin, xMax)
+        if den:
+            return num/den*100
+        else:
+            return 0
+    elif nDim == 3:
+        print "not implemented"
+        return 0
+        style.style2d()
+        c = ROOT.TCanvas()
+        style.defaultStyle()
+
+        hOut = hMcNum.Project3D("yz")
+        hOut.Reset("ICESM")
+        for xbin in range(1, hOut.GetNbinsX()+1):
+            print 1.*xbin/(hOut.GetNbinsX()+1)
+            for ybin in range(1, hOut.GetNbinsY()+1):
+                num, den = 0, 0
+                hMcNum_mll = hMcNum.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
+                hMcDen_mll = hMcDen.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
+                xMin = hMcNum_mll.GetXaxis().FindFixBin(80)
+                xMax = hMcNum_mll.GetXaxis().FindFixBin(100)-1
+                if isData:
+                    hDataNum_mll = hDataNum.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
+                    hDataDen_mll = hDataDen.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
+                    hBkg_mll = hBkg.ProjectionX(aux.randomName(), ybin, ybin, xbin, xbin)
+                    if not hBkg_mll.Integral():
+                        hBkg_mll = hBkg.ProjectionX(aux.randomName())
+                    if intOnly:
+                        num = hDataNum_mll.Integral(xMin, xMax)
+                        den = hDataDen_mll.Integral(xMin, xMax)
+                    else:
+                        infoText = "bin{}_{}".format(xbin,ybin)
+                        num, numE = fitHist("{}_bin{}_{}_num".format(savename,xbin,ybin), hDataNum_mll, hMcDen_mll, hBkg_mll, infoText)
+                        den, denE = fitHist("{}_bin{}_{}_den".format(savename,xbin,ybin), hDataDen_mll, hMcDen_mll, hBkg_mll, infoText)
+                else:
+                    num = hMcNum_mll.Integral(xMin, xMax)
+                    den = hMcDen_mll.Integral(xMin, xMax)
+                if den:
+                    hOut.SetBinContent(xbin, ybin, 100*num/den)
+                    hOut.SetBinError(xbin, ybin, 100*aux.sqrt(num)/den*aux.sqrt(1.+num/den))
+        hOut.Draw("colz")
+        hOut.SetZTitle("f_{e#rightarrow#gamma} (%)")
+        hOut.SetMinimum(0)
+        hOut.SetMaximum(5)
+        hOut.SetTitle("")
+
+        """
+        m = multiplot.Multiplot()
+        ROOT.gStyle.SetPalette(55)
+        proj = aux.getProjections(h2Num, scale=False)
+        style.defaultStyle()
+        for ih, h in enumerate(proj):
+            h.SetMinimum(0)
+            h.SetMaximum(5)
+            h.drawOption_ = "hist e"
+            m.add(h, h.GetName())
+        m.Draw()
+        """
+        l = aux.Label(drawAll=False, sim=not isData, info=selectionTex[selection])
+        l.cms.SetX(0.01)
+        l.cms.SetY(0.05)
+        l.pub.SetX(0.01)
+        l.pub.SetY(0.01)
+        l.draw()
+        aux.save(savename, log=False)
+
+
+def binnedFakeRate(variable, selection, isData, xbins=None, ybins=None, intOnly=False, drawInclusive=False, saveToFile=False):
+    binning = [None, xbins, ybins]
+    savename = "fakeRate/"
     savename += "data" if isData else "sim"
     if intOnly: savename += "_intOnly"
+    if drawInclusive: savename += "_errorBand"
+    if xbins: savename += "_x{}".format(len(xbins))
+    if ybins: savename += "_y{}".format(len(ybins))
     savename += "_{}_{}".format(selection, variable)
     effMc = aux.getFromFile(fnameMC, "{}{}/{}".format(selection, "" if selection.endswith("_gen") else "_Zmatch", variable) )
     nDim = effMc.GetDimension()
@@ -189,10 +297,19 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
         aux.drawOpt(hOut, "data")
         hOut.SetMaximum(5)
         hOut.SetMinimum(0)
+        if drawInclusive: incFakeRate = inclusiveFakeRate(savename, variable, selection, isData, intOnly)
         c = ROOT.TCanvas()
         style.defaultStyle()
         hOut.Draw("e hist")
         l = aux.Label(sim=not isData, info=selectionTex[selection])
+        if drawInclusive:
+            hError = ROOT.TH1F("","",1, hOut.GetBinLowEdge(0), hOut.GetBinLowEdge(hOut.GetNbinsX()+2))
+            hError.SetBinContent(1, incFakeRate)
+            hError.SetBinError(1, hError.GetBinContent(1)*.3)
+            aux.drawOpt(hError, "sysUnc")
+            hError.Draw("same"+hError.drawOption_)
+            text = ROOT.TLatex()
+            text.DrawLatexNDC(.6, .15, "N_{{e#gamma}}/N_{{ee}} = {:.2f}%".format(incFakeRate))
         if variable == "vtx":
             res = hOut.Fit("pol1", "SQ")
             text = ROOT.TLatex()
