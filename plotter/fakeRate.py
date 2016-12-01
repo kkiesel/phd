@@ -107,8 +107,12 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
     aux.save(name+"_fit", log=False)
     return nSig.getVal(), nSig.getError()
 
-def draw1dEfficiency(savename, eff, selection=""):
+def draw1dEfficiency(savename, eff, selection="", xbins=None):
     c = ROOT.TCanvas()
+    if xbins:
+        num = aux.rebin(eff.GetCopyPassedHisto(), xbins, scale=False)
+        den = aux.rebin(eff.GetCopyTotalHisto(), xbins, scale=False)
+        eff = ROOT.TEfficiency(num, den)
     g = eff.CreateGraph()
     g.SetMaximum(0.05)
     g.SetMinimum(0)
@@ -124,7 +128,7 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
     effMc = aux.getFromFile(fnameMC, "{}{}/{}".format(selection, "" if selection.endswith("_gen") else "_Zmatch", variable) )
     nDim = effMc.GetDimension()
     if nDim == 1:
-        draw1dEfficiency(savename+"_1d", effMc, selection)
+        draw1dEfficiency(savename+"_1d", effMc, selection, xbins)
         return
 
     hMcNum = effMc.GetCopyPassedHisto()
