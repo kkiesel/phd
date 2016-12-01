@@ -83,7 +83,9 @@ def getProjections( h2, axis="x", scale=True ):
         if ybin == a2.GetNbins()+1: name = "{} #leq {}".format( ylow, label )
 
         h = h2.ProjectionX( name, ybin, ybin ) if axis == "x" else h2.ProjectionY( name, ybin, ybin )
+        h.GetXaxis().SetTitleOffset(h2.GetXaxis().GetTitleOffset())
         h.SetLineColor(getPaletteColor(1.*ybin/(a2.GetNbins()+2)))
+        h.SetTitle(";{};{}".format(h.GetXaxis().GetTitle(),h2.GetZaxis().GetTitle()))
         if not h.GetEntries(): continue
         if scale: h.Scale( 1./h.GetEntries() )
         hs.append( h )
