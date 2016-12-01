@@ -764,6 +764,53 @@ def dataCardToLatexTable(filename):
     content = '\n'.join([' & '.join(x) for x in zip(*columns)])
     print "\\begin{tabular}{%s}\n"%('c'*len(columns)) + content + "\n\\end{tabular}\n"
 
+############################### tree stuff ####################################
+
+def createHistoFromTree(tree, variable, weight="", nBins=20, firstBin=None, lastBin=None ):
+    """
+    tree: tree to create histo from
+    variable: variable to plot (must be a branch of the tree)
+    weight: weights to apply (e.g. "var1*(var2 > 15)" will use weights from var1 and cut on var2 > 15
+    nBins, firstBin, lastBin: number of bins, first bin and last bin (same as in TH1F constructor)
+    nBins: if nBins is a list, and to a int, a user binned plot will be generated
+    returns: histogram
+    """
+    from ROOT import TH1F
+    name = randomName()
+    if isinstance( nBins, list ):
+        import array
+        xBins = array.array('d', nBins )
+        result = TH1F(name, variable, len(nBins)-1, xBins)
+        result.Sumw2()
+        tree.Draw("%s>>%s"%(variable, name), weight, "goff")
+    elif firstBin==None and lastBin==None:
+        import ROOT
+        tree.Draw("%s>>%s(%s,,)"%(variable,name,nBins), weight, "goff")
+        result = ROOT.gDirectory.Get( name )
+        if isinstance( result, ROOT.TTree ):
+            print "Warning, no entries"
+            return ROOT.TH1F()
+        result.Sumw2() # applying the errors here is perhaps not entirely correct
+    else:
+        result = TH1F(name, variable, nBins, firstBin, lastBin)
+        result.Sumw2()
+        tree.Draw("%s>>%s"%(variable, name), weight, "goff")
+    appendFlowBin(result)
+    result.SetTitle("")
+    if variable.startswith("met"):
+        result.SetXTitle("#it{E}_{T}^{miss} (GeV)")
+    setYAxisTitle(result)
+    return result
+
+def createHistoFromDatasetTree(dset, variable, weight, nBins, treename="tr/simpleTree"):
+    tree = ROOT.TChain(treename)
+    for f in dset.files: tree.Add(f)
+    h = createHistoFromTree(tree, variable, weight, nBins)
+    h.SetLineColor(dset.color)
+    return h
+
+
+
 intLumi = 36.53e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2721.html
 
 class Label:
