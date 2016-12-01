@@ -2,6 +2,21 @@
 # -*- coding: utf-8 -*-
 from include import *
 
+def sampleCompositionFromTree(name, samples, dirName, variable, cut, binning):
+    c = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+    for s in samples:
+        h = aux.createHistoFromDatasetTree(s, variable, "weight*({})".format(cut), binning, dirName+"/simpleTree")
+        m.addStack(h, s.label)
+    m.sortStackByIntegral()
+    m.Draw()
+    ratio.clearXaxisCurrentPad()
+    p = ratio.createBottomPad()
+    x = aux.drawContributions(m.getStack())
+    l = aux.Label(sim=True)
+    saveName = "sameHistogramsFromTree_{}_{}_{}_{}".format(name, dirName, variable, len(binning))
+    aux.save( saveName )
+
 def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, binningName="", scale=False):
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
