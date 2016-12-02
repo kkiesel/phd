@@ -613,6 +613,18 @@ tree::Jet* HistogramProducer::matchedJet(const tree::Particle& p) {
   return 0;
 }
 
+float HistogramProducer::getPhotonWeight(const tree::Photon& p) {
+  float weight = 1.;
+  if (!isData) {
+    auto pt = p.p.Pt();
+    auto eta = p.p.Eta();
+    // sf for id and electron veto
+    weight = weighters.at("sf_photon_id_loose").getWeight(eta, pt) * weighters.at("sf_photon_pixel").getWeight(fabs(eta), pt);
+    // trigger efficiency
+    weight *= fabs(eta)<photonsEtaMaxBarrel ? 0.977 : 0.953;
+  }
+  return weight;
+}
 
 Bool_t HistogramProducer::Process(Long64_t entry)
 {
@@ -669,7 +681,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    auto addWeight = isData ? 1. : weighters.at("sf_photon_id_loose").getWeight(selPhotons.at(0)->p.Pt(), selPhotons.at(0)->p.Eta()) * weighters.at("sf_photon_pixel").getWeight(selPhotons.at(0)->p.Pt(), fabs(selPhotons.at(0)->p.Eta()));
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
     fillSelection("tr", true, addWeight);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", true, addWeight);
     if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB", false, addWeight);
@@ -726,7 +738,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    auto addWeight = isData ? 1. : weighters.at("sf_photon_id_loose").getWeight(selPhotons.at(0)->p.Pt(), selPhotons.at(0)->p.Eta()) * weighters.at("sf_photon_pixel").getWeight(selPhotons.at(0)->p.Pt(), fabs(selPhotons.at(0)->p.Eta()));
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
     fillSelection("tr_ee", true, addWeight);
     if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) {
       fillSelection("tr_ee_genE", true, addWeight);
@@ -756,7 +768,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selPhotons) myHt += p->p.Pt();
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    auto addWeight = isData ? 1. : weighters.at("sf_photon_id_loose").getWeight(selPhotons.at(0)->p.Pt(), selPhotons.at(0)->p.Eta()) * weighters.at("sf_photon_pixel").getWeight(selPhotons.at(0)->p.Pt(), fabs(selPhotons.at(0)->p.Eta()));
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
     fillSelection("tr_eControl", true, addWeight);
     fillSelection("tr_eControl_vtxWeighted", true,
         isData ? (1.238+0.0935**nGoodVertices)/100 : (1.051+0.0318**nGoodVertices)/100*addWeight);
@@ -783,7 +795,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selPhotons) myHt += p->p.Pt();
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    auto addWeight = isData ? 1. : weighters.at("sf_photon_id_loose").getWeight(selPhotons.at(0)->p.Pt(), selPhotons.at(0)->p.Eta()) * weighters.at("sf_photon_pixel").getWeight(selPhotons.at(0)->p.Pt(), fabs(selPhotons.at(0)->p.Eta()));
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
     fillSelection("tr_eControl_ee", true, addWeight);
   }
 

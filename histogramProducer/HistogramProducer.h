@@ -37,6 +37,7 @@ class HistogramProducer : public TSelector {
   void fillSelection(string const& s, bool, float w);
   void fillSelectedPhotons(const tree::Particle& p);
   tree::Jet* matchedJet(const tree::Particle& p);
+  float getPhotonWeight(const tree::Photon& p);
 
   void initTriggerStudies();
   void fillTriggerStudies();
