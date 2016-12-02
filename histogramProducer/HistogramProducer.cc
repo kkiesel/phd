@@ -23,7 +23,9 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_met_ct2"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
   effMap["eff_hlt_ele_pt"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 100, 0, 100);
   effMap["eff_hlt_pt_endcap"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
+  effMap["eff_hlt_pt_endcap_ps"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
   effMap["eff_hlt_eta_endcap"] = TEfficiency("", ";|#eta|;#varepsilon", 15, 1.5, 3);
+  effMap["eff_hlt_eta_endcap_ps"] = TEfficiency("", ";|#eta|;#varepsilon", 15, 1.5, 3);
 
 }
 
@@ -80,6 +82,7 @@ void HistogramProducer::fillTriggerStudies() {
       effMap.at("eff_hlt_pt").Fill(*hlt_photon90_ht600, thisPhoton->p.Pt());
       if (thisPhoton->p.Pt()>100) {
         effMap.at("eff_hlt_eta").Fill(*hlt_photon90_ht600, fabs(thisPhoton->p.Eta()));
+        effMap.at("eff_hlt_eta").Fill(*hlt_photon90_ht600, fabs(thisPhoton->p.Eta()));
       }
     }
   }
@@ -127,7 +130,9 @@ void HistogramProducer::fillTriggerStudies() {
       }
       if (photon.isLoose && fabs(photon.p.Eta())>photonsEtaMinEndcap) {
         effMap.at("eff_hlt_pt_endcap").Fill(*hlt_photon90_ht600, photon.p.Pt());
+        if (!photon.hasPixelSeed) effMap.at("eff_hlt_pt_endcap_ps").Fill(*hlt_photon90_ht600, photon.p.Pt());
         if (photon.p.Pt()>100) effMap.at("eff_hlt_eta_endcap").Fill(*hlt_photon90_ht600, fabs(photon.p.Eta()));
+        if (photon.p.Pt()>100 && !photon.hasPixelSeed) effMap.at("eff_hlt_eta_endcap_ps").Fill(*hlt_photon90_ht600, fabs(photon.p.Eta()));
       }
     } // photon loop
   } // ht cross trigger
@@ -540,6 +545,10 @@ void HistogramProducer::Init(TTree *tree)
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
   weighters["fakeRate_eta"] = Weighter("../plotter/weights.root", isData?"fakeRate__data_40pt_eta":"fakeRate__sim_40pt_eta");
   weighters["fakeRate_pt"] = Weighter("../plotter/weights.root", isData?"fakeRate__data_x17_EB_40pt_pt":"fakeRate__sim_x17_EB_40pt_pt");
+  weighters["sf_photon_id_loose"] = Weighter("../plotter/data/egammaEffi.txt_SF2DLoose.root", "EGamma_SF2D");
+  weighters["sf_photon_pixel"] = Weighter("../plotter/data/EleVeto_SFs_80X.root", "Scaling Factors_HasPix_InclusiveR9");
+  weighters.at("sf_photon_id_loose").fillOverflow2d();
+  weighters.at("sf_photon_pixel").fillOverflow2d();
 
   float lumi = 36.53e3; // pb^{-1}
   cutFlow = *((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"));
@@ -637,39 +646,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // signal sample
   /////////////////////////////////////////////////////////////////////////////
 
-/*
-  if( met->p.Pt()>600) {
-    if (jetJets->GetSize() == jets->GetSize()) {
-      TVector3 jetMet(0,0,0);
-      TVector3 genJetMet(0,0,0);
-      for (auto& j : *jets) {
-        jetMet += j.p;
-      }
-      vector<TVector3> genMatchedJets;
-      for (auto& gj : *genJets) {
-        genJetMet += j.p;
-        for (auto& j : *jets) {
-          if (gj.p.DeltaR(j.p)<.3) {
-            genMatchedJets.push_back(j.p);
-            break;
-          }
-        }
-      }
-      if (genMatchedJets.size() != genJets->GetSize()) {
-        cout << "not all matches" << endl;
-      }
-      cout << "met  = " << met->p << endl;
-      cout << "jmet = " << jetMet << endl;
-      cout << "gmet = " << genJetMet << endl;
-    } else {
-        // cout << "not same number of jets" <<endl;
-    }
-  } else {
-    //cout << " to few met" << endl;
-  }
-    return true;
- */
-
   vector<float> dPhis;
   int nJets = 0;
   for (auto& j : *jets ) {
@@ -693,46 +669,42 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    fillSelection("tr", true);
-    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_genE");
-    if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", true);
-    if (dPhiMin>0.3 && dPhiMax<3.1415-0.3) fillSelection("tr_dPhi3", true);
-    if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB");
-    else if (selPhotons.at(0)->isTrue == MATCHED_FROM_PI0) fillSelection("tr_true_pi0");
-    else if (selPhotons.at(0)->isTrue == MATCHED_FROM_OTHER_SOURCES) fillSelection("tr_true_other");
-    else fillSelection("tr_unmatched");
-    if (selPhotons.at(0)->isTight) fillSelection("tr_tight");
-    if (met->p.Pt() < 100) fillSelection("tr_0met100");
-    else                    fillSelection("tr_100met");
-    fillSelection(string("tr_genWZ")+to_string(genMatchWZDecay(*selPhotons.at(0), *intermediateGenParticles)), true);
-    fillSelection(string("tr_gen")+to_string(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)), true);
+    auto addWeight = isData ? 1. : weighters.at("sf_photon_id_loose").getWeight(selPhotons.at(0)->p.Pt(), selPhotons.at(0)->p.Eta()) * weighters.at("sf_photon_pixel").getWeight(selPhotons.at(0)->p.Pt(), fabs(selPhotons.at(0)->p.Eta()));
+    fillSelection("tr", true, addWeight);
+    if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", true, addWeight);
+    if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB", false, addWeight);
+    else if (selPhotons.at(0)->isTrue == MATCHED_FROM_PI0) fillSelection("tr_true_pi0", false, addWeight);
+    else if (selPhotons.at(0)->isTrue == MATCHED_FROM_OTHER_SOURCES) fillSelection("tr_true_other", false, addWeight);
+    else fillSelection("tr_unmatched", false, addWeight);
+    if (selPhotons.at(0)->isTight) fillSelection("tr_tight", false, addWeight);
+    if (met->p.Pt() < 100) fillSelection("tr_0met100", false, addWeight);
+    else                    fillSelection("tr_100met", false, addWeight);
+    fillSelection(string("tr_genWZ")+to_string(genMatchWZDecay(*selPhotons.at(0), *intermediateGenParticles)), false, addWeight);
+    fillSelection(string("tr_gen")+to_string(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)), false, addWeight);
     if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) {
-      fillSelection("tr_genE", true);
+      fillSelection("tr_genE", true, addWeight);
     } else {
-      fillSelection("tr_noGenE", true);
+      fillSelection("tr_noGenE", true, addWeight);
     }
 
   }
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
-    auto saveW = selW;
     if (isData) selW *= *hlt_ht600_pre;
-    fillSelection("tr_jControl", true);
-    if (dPhiMin>0.3 && dPhiMax<3.1415-0.3) fillSelection("tr_jControl_dPhi3", true);
-    if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep", true);
+    fillSelection("tr_jControl", true, *hlt_ht600_pre);
+    if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep", true, *hlt_ht600_pre);
     for (auto& j : selJets) {
       if (j->nef>.9 && j->p.Pt()>100 && fabs(j->p.Eta())<1.4442) {
-        fillSelection("tr_jControl_neutralEM9");
+        fillSelection("tr_jControl_neutralEM9", false, *hlt_ht600_pre);
         break;
       }
     }
     for (auto& j : selJets) {
       if (j->chf>.9 && j->p.Pt()>100 && fabs(j->p.Eta())<1.4442) {
-        fillSelection("tr_jControl_neutralCH");
+        fillSelection("tr_jControl_neutralCH", false, *hlt_ht600_pre);
         break;
       }
     }
-    if (isData) selW = saveW;
   }
 
 
@@ -754,17 +726,18 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    fillSelection("tr_ee", true);
+    auto addWeight = isData ? 1. : weighters.at("sf_photon_id_loose").getWeight(selPhotons.at(0)->p.Pt(), selPhotons.at(0)->p.Eta()) * weighters.at("sf_photon_pixel").getWeight(selPhotons.at(0)->p.Pt(), fabs(selPhotons.at(0)->p.Eta()));
+    fillSelection("tr_ee", true, addWeight);
     if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) {
-      fillSelection("tr_ee_genE", true);
+      fillSelection("tr_ee_genE", true, addWeight);
     } else {
-      fillSelection("tr_ee_noGenE", true);
+      fillSelection("tr_ee_noGenE", true, addWeight);
     }
   }
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
-    fillSelection("tr_jControl_ee", true);
-    if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep_ee", true);
+    fillSelection("tr_jControl_ee", true, *hlt_ht600_pre);
+    if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep_ee", true, *hlt_ht600_pre);
   }
 
   resetSelection();
@@ -783,15 +756,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selPhotons) myHt += p->p.Pt();
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    fillSelection("tr_eControl", true);
+    auto addWeight = isData ? 1. : weighters.at("sf_photon_id_loose").getWeight(selPhotons.at(0)->p.Pt(), selPhotons.at(0)->p.Eta()) * weighters.at("sf_photon_pixel").getWeight(selPhotons.at(0)->p.Pt(), fabs(selPhotons.at(0)->p.Eta()));
+    fillSelection("tr_eControl", true, addWeight);
     fillSelection("tr_eControl_vtxWeighted", true,
-        isData ? (1.238+0.0935**nGoodVertices)/100 : (1.051+0.0318**nGoodVertices)/100);
+        isData ? (1.238+0.0935**nGoodVertices)/100 : (1.051+0.0318**nGoodVertices)/100*addWeight);
     fillSelection("tr_eControl_etaWeighted", true,
-        weighters.at("fakeRate_eta").getWeight(fabs(selPhotons.at(0)->p.Eta())));
+        weighters.at("fakeRate_eta").getWeight(fabs(selPhotons.at(0)->p.Eta())) * addWeight);
     fillSelection("tr_eControl_ptWeighted", true,
-        weighters.at("fakeRate_pt").getWeight(selPhotons.at(0)->p.Pt()));
-    fillSelection("tr_eControl_ptFitWeighted", true,
-        isData ? (2.63678-0.00158909*selPhotons.at(0)->p.Pt())/100 : (1.55717-0.00230683*selPhotons.at(0)->p.Pt())/100);
+        weighters.at("fakeRate_pt").getWeight(selPhotons.at(0)->p.Pt()) * addWeight);
   }
 
 
@@ -811,7 +783,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selPhotons) myHt += p->p.Pt();
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
-    fillSelection("tr_eControl_ee", true);
+    auto addWeight = isData ? 1. : weighters.at("sf_photon_id_loose").getWeight(selPhotons.at(0)->p.Pt(), selPhotons.at(0)->p.Eta()) * weighters.at("sf_photon_pixel").getWeight(selPhotons.at(0)->p.Pt(), fabs(selPhotons.at(0)->p.Eta()));
+    fillSelection("tr_eControl_ee", true, addWeight);
   }
 
   resetSelection();
