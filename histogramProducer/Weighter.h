@@ -4,7 +4,7 @@ class Weighter {
     Weighter() {}
     Weighter(const string& filename, const string& histname) {
       TFile f(filename.c_str());
-      h = (TH1F*) f.Get(histname.c_str());
+      h = (TH1*) f.Get(histname.c_str());
       if (h) {
         h->SetDirectory(0);
       } else {
@@ -21,6 +21,10 @@ class Weighter {
       return h ? h->GetBinContent( h->FindFixBin(value) ) : 1.;
     }
 
+    float getWeight(float x, float y) {
+      return h ? h->GetBinContent( h->FindFixBin(x,y) ) : 1.;
+    }
+
   private:
-    TH1F* h = 0;
+    TH1* h = 0;
 };
