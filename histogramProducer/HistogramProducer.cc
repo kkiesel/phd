@@ -702,7 +702,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
-    if (isData) selW *= *hlt_ht600_pre;
     fillSelection("tr_jControl", true, *hlt_ht600_pre);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep", true, *hlt_ht600_pre);
     for (auto& j : selJets) {
