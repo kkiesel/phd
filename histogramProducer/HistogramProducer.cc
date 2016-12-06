@@ -313,14 +313,10 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
     h2Maps[s] = initHistograms2();
     treeMap[s] = new TTree("simpleTree", "");
     treeMap[s]->Branch("met", &tree_m);
-    treeMap[s]->Branch("metRaw", &tree_mRaw);
-    treeMap[s]->Branch("emrecoilt", &tree_emrecoilt);
     treeMap[s]->Branch("emht", &tree_emht);
     treeMap[s]->Branch("weight", &tree_w);
     treeMap[s]->Branch("topWeight", &tree_topWeight);
     treeMap[s]->Branch("dPhi", &tree_dPhi);
-//    treeMap[s]->Branch("pt", &tree_pt);
-//    treeMap[s]->Branch("njet", &tree_njet, "njet/i");
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
