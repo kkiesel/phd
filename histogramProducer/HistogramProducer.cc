@@ -289,6 +289,7 @@ map<string,TH1F> initHistograms() {
   hMap["n_photon"] = TH1F("", ";photon multiplicity", 6, -0.5, 5.5);
   hMap["n_jet"] = TH1F("", ";jet multiplicity", 16, -0.5, 15.5);
   hMap["n_bjet"] = TH1F("", ";b-jet multiplicity", 16, -0.5, 15.5);
+  hMap["n_hejet"] = TH1F("", ";(EB,#it{p}_{T}>100) jet multiplicity", 16, -0.5, 15.5);
   hMap["n_electron"] = TH1F("", ";electron multiplicity", 4, -0.5, 3.5);
   hMap["n_muon"] = TH1F("", ";muon multiplicity", 4, -0.5, 3.5);
   hMap["n_heJet"] = TH1F("", ";photon-like jet multiplicity", 11, -0.5, 10.5);
@@ -479,6 +480,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   m1->at("n_photon").Fill(selPhotons.size(), weight);
   m1->at("n_jet").Fill(selJets.size(), weight);
   m1->at("n_bjet").Fill(selBJets.size(), weight);
+  m1->at("n_hejet").Fill(nHEJets, weight);
   m1->at("n_electron").Fill(selElectrons.size(), weight);
   m1->at("n_muon").Fill(selMuons.size(), weight);
   m1->at("n_heJet").Fill(selJets.size(), weight);
