@@ -230,14 +230,15 @@ map<string,TH1F> initHistograms() {
   hMap["metJet4Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metJet5Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
 
-  int maxNjets = 8;
-  for (int i=0; i<maxNjets; i++) {
-    for (int j=0; j<i; j++) {
-      string hname = "metJetSmeared_"+to_string(j)+"_"+to_string(i);
-      hMap[hname+"_up"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-      hMap[hname+"_dn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-    }
-  }
+
+//  int maxNjets = 8;
+//  for (int i=0; i<maxNjets; i++) {
+//    for (int j=0; j<i; j++) {
+//      string hname = "metJetSmeared_"+to_string(j)+"_"+to_string(i);
+//      hMap[hname+"_up"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+//      hMap[hname+"_dn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+//    }
+//  }
 
   // met projections
   hMap["metPar"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
@@ -382,11 +383,11 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   }
 
   int nHEJets = selHEJets.size();
-  for (int i=0; i<nHEJets && nHEJets<8; i++) { // histograms only created for up to 7 jets
-    string hname = "metJetSmeared_"+to_string(i)+"_"+to_string(nHEJets);
-    m1->at(hname+"_up").Fill((met->p+selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), weight);
-    m1->at(hname+"_dn").Fill((met->p-selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), weight);
-  }
+//  for (int i=0; i<nHEJets && nHEJets<8; i++) { // histograms only created for up to 7 jets
+//    string hname = "metJetSmeared_"+to_string(i)+"_"+to_string(nHEJets);
+//    m1->at(hname+"_up").Fill((met->p+selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), weight);
+//    m1->at(hname+"_dn").Fill((met->p-selHEJets.at(i)->p*selHEJets.at(i)->ptRes).Pt(), weight);
+//  }
 
   m1->at("metSig").Fill(met->sig, weight);
   m1->at("emhtNoLep").Fill(emhtNoLep, weight);
