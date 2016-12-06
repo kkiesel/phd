@@ -2,6 +2,13 @@
 #include <regex>
 #include <TH2F.h>
 
+const float photonsEtaMaxBarrel = 1.4442;
+//const float photonsEtaMinEndcap = 1.566;
+//const float photonsEtaMaxEndcap = 2.5;
+// Changed values to reduce e->g backgronud
+const float photonsEtaMinEndcap = 1.6;
+const float photonsEtaMaxEndcap = 2.5;
+
 // https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation74X
 enum bTaggingEnum { CSVv2L, CSVv2M, CSVv2T };
 map<bTaggingEnum,float> bTaggingWorkingPoints = {
@@ -119,10 +126,6 @@ inline int pseudoRandom( float f ) {
 inline bool pseudoRandomSort(const tree::Particle p1, const tree::Particle p2) {
   return pseudoRandom(p1.p.Phi()) > pseudoRandom(p2.p.Phi());
 }
-
-const float photonsEtaMaxBarrel = 1.4442;
-const float photonsEtaMinEndcap = 1.566;
-const float photonsEtaMaxEndcap = 2.5;
 
 class JetSelector {
   public:
