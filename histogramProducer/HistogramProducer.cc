@@ -94,7 +94,8 @@ void HistogramProducer::fillTriggerStudies() {
       break; // only leading electron
     }
     for (auto& photon : *photons) {
-      if (photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel) {
+      auto eta = fabs(photon.p.Eta());
+      if (photon.p.Pt() > 100 && eta < photonsEtaMaxBarrel) {
         if (looseCutFlowPhoton.check(photon)) {
           effMap.at("eff_hlt_r9").Fill(*hlt_photon90_ht600, photon.r9);
           effMap.at("eff_hlt_nVertex").Fill(*hlt_photon90_ht600, *nGoodVertices);
@@ -128,7 +129,7 @@ void HistogramProducer::fillTriggerStudies() {
           && looseCutFlowPhoton.passIso()
        ) effMap.at("eff_hlt_hoe").Fill(*hlt_photon90_ht600, photon.hOverE);
       }
-      if (photon.isLoose && fabs(photon.p.Eta())>photonsEtaMinEndcap) {
+      if (photon.isLoose && photonsEtaMinEndcap<eta && eta<photonsEtaMaxEndcap) {
         effMap.at("eff_hlt_pt_endcap").Fill(*hlt_photon90_ht600, photon.p.Pt());
         if (!photon.hasPixelSeed) effMap.at("eff_hlt_pt_endcap_ps").Fill(*hlt_photon90_ht600, photon.p.Pt());
         if (photon.p.Pt()>100) effMap.at("eff_hlt_eta_endcap").Fill(*hlt_photon90_ht600, fabs(photon.p.Eta()));
@@ -727,7 +728,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   for (auto& photon : *photons) {
     auto eta = fabs(photon.p.Eta());
-    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && 1.6 < eta && eta < 2.2) {
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && photonsEtaMinEndcap < eta && eta < photonsEtaMaxEndcap) {
       selPhotons.push_back(&photon);
     }
   }
@@ -785,7 +786,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   /////////////////////////////////////////////////////////////////////////////
 
   for (auto& photon : *photons) {
-    if (photon.isLoose && photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) > photonsEtaMaxBarrel) {
+    auto eta = fabs(photon.p.Eta());
+    if (photon.isLoose && photon.hasPixelSeed && photon.p.Pt() > 100 && photonsEtaMinEndcap < eta && eta < photonsEtaMaxEndcap) {
       selPhotons.push_back(&photon);
     }
   }
