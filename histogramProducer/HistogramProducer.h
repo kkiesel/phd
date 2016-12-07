@@ -96,7 +96,6 @@ class HistogramProducer : public TSelector {
   map<int,pair<int,int>> rawEff_vs_run;
 
   bool isData;
-  bool isScan;
   bool genPt130;
   bool genHt600;
   TH1F cutFlow;

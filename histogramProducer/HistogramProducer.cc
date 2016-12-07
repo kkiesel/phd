@@ -563,7 +563,6 @@ void HistogramProducer::Init(TTree *tree)
 
   genPt130 = inputName.find("0to130") != string::npos;
   genHt600 = inputName.find("HT-0to600") != string::npos;
-  isScan = inputName.find("SMS-T5Wg_nTuple") != string::npos;
 
   initTriggerStudies();
   initUncut();
