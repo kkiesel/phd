@@ -65,14 +65,16 @@ class Ratio:
     def calculateRatio( self ):
         for bin in range(self.denominator.GetNbinsX()+2): self.denominator.SetBinError(bin,0)
         self.ratio.Divide( self.denominator )
+        self.ratioGraph = ROOT.TGraphAsymmErrors(self.ratio)
+        for bin in range(self.ratio.GetNbinsX()+2):
+            self.ratioGraph.SetPointEYhigh(bin-1, self.numerator.GetBinErrorUp(bin)/self.denominator.GetBinContent(bin))
+            self.ratioGraph.SetPointEYlow(bin-1, self.numerator.GetBinErrorLow(bin)/self.denominator.GetBinContent(bin))
         self.ratioStat.Divide( self.denominator )
         if self.sysHisto:
             self.ratioSys.Divide( self.denominator )
-            #self.totalUncert.Add( self.ratioSys, self.ratioStat, .5, .5 )
             for bin in range(self.denominator.GetNbinsX()+2):
                 self.totalUncert.SetBinContent(bin, 1)
                 self.totalUncert.SetBinError(bin, sqrt(self.ratioSys.GetBinError(bin)**2+self.ratioStat.GetBinError(bin)**2))
-            #self.totalUncert.Add( self.ratioSys, self.ratioStat, .5, .5 )
 
 
     def getYrange( self ):
@@ -123,7 +125,8 @@ class Ratio:
         if self.sysHisto:
             self.ratioSys.Draw("same e2")
             self.totalUncert.Draw("same e2")
-        self.ratio.Draw("same "+self.ratio.drawOption_)
+        #self.ratio.Draw("same "+self.ratio.drawOption_)
+        self.ratioGraph.Draw("same pz")
 
         if yMin < 1 and yMax > 1:
             oneLine = ROOT.TLine()
