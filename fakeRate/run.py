@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
-#import suppressor
-#with suppressor.suppress_stdout_stderr():
-#    import ROOT
+import suppressor
+with suppressor.suppress_stdout_stderr():
+    import ROOT
 import ROOT
 import argparse
 import os

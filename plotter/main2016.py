@@ -123,7 +123,8 @@ def createHistoFromDatasetTree(dset, variable, weight, nBins, treename="tr/simpl
     return h
 
 def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins):
-    saveName = "__".join([name, str(len(dirSet.names)), treename.replace("/","_"), str(len(preSet.names)), weight.replace("(","").replace(")","").replace("*","").replace(">","").replace("<",""), variable, str(len(nBins))])
+    weightName = weight.replace("(","").replace(")","").replace("*","").replace(">","").replace("<","").replace("&&","").replace(" ", "")
+    saveName = "__".join([name, str(len(dirSet.names)), treename.replace("/","_"), str(len(preSet.names)), weightName, variable, str(len(nBins))])
     saveNameRoot = "savedFitPredictions/{}.root".format(saveName)
     if os.path.isfile(saveNameRoot):
         print "Using saved events from", saveName
@@ -138,7 +139,7 @@ def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weigh
         print "Calculating new", saveName
         dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
         dirHist.SetName("dir")
-        scales = [.85+.01*i for i in range(20)]
+        scales = [.85+.01*i for i in range(25)]
         preHists = {}
         for iscale, scale in enumerate(scales):
             preHist = createHistoFromTree(preTree, "{}*{}".format(variable,scale), weight, nBins)
@@ -151,7 +152,7 @@ def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weigh
         f.Close()
 
     maxBin = dirHist.FindFixBin(100)-1 # do not take met=100 bin
-    dirInt = dirHist.Integral(0, maxBin)
+    dirInt, dirIntErr = aux.integralAndError(dirHist, 0, maxBin)
     for bin in range(maxBin+1, dirHist.GetNbinsX()+2):
         dirHist.SetBinContent(bin, 0)
         dirHist.SetBinError(bin, 0)
@@ -163,15 +164,17 @@ def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weigh
             preHist.SetBinError(bin, 0)
 
         preHist.Scale(dirInt/preHist.Integral(0,maxBin))
-        chi2 = dirHist.Chi2Test(preHist, "OF UF CHI2 UU NORM" if dirSet==data else "OF UF CHI2 WW")
+        chi2 = dirHist.Chi2Test(preHist, "OF UF CHI2 WW")
         c = ROOT.TCanvas()
+        dirHist.GetXaxis().SetRangeUser(0,100)
+        preHist.GetXaxis().SetRangeUser(0,100)
         dirHist.Draw()
         preHist.SetLineColor(2)
         preHist.Draw("same")
-        r = ratio.Ratio("g/p", dirHist,preHist)
-        r.draw(.5,1.5)
-        l = aux.Label(info="scale={}  chi2={}".format(scale, chi2))
-        aux.save(saveName+"_scale{}percent".format(int(scale*100)), "savedFitPredictions/",log=False)
+        r = ratio.Ratio("#gamma/Jet", dirHist,preHist)
+        r.draw(.95,1.05)
+        l = aux.Label(info="Scale={}  #chi^{{2}}={}".format(scale, chi2))
+        #aux.save(saveName+"_scale{}percent".format(int(scale*100)), "savedFitPredictions/",log=False)
         gr.SetPoint(iscale, scale, chi2)
     c = ROOT.TCanvas()
     points = [(i, gr.GetX()[i],gr.GetY()[i]) for i in range(gr.GetN())]
@@ -185,14 +188,21 @@ def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weigh
     gr.SetTitle(";Scale;#chi^{2}")
     gr.SetMarkerStyle(20)
     gr.Draw("ap")
-    gr.Fit("pol2", "W")
-    gr.GetFunction("pol2").SetLineColor(ROOT.kRed)
-    aux.save(saveName+"_fit", "savedFitPredictions/",log=False)
-    parameters = gr.GetFunction("pol2").GetParameters()
+    gr.Fit("pol2", "Q")
+    fitFunc = gr.GetFunction("pol2")
+    fitFunc.SetLineColor(ROOT.kRed)
+    parameters = fitFunc.GetParameters()
     a1, a2 = parameters[1], parameters[2]
     fitScale = -a1/(2*a2)
     deltaChi2 = 1 # change chi2 by this value for the uncertainty
     fitErr = aux.sqrt(deltaChi2/a2) if a2>0 else 0
+    errFunc = fitFunc.Clone()
+    errFunc.SetRange(fitScale-fitErr, fitScale+fitErr)
+    errFunc.SetFillColorAlpha(errFunc.GetLineColor(), .5)
+    errFunc.SetFillStyle(1001)
+
+    errFunc.Draw("FC same")
+    aux.save(saveName+"_fit", "savedFitPredictions/",log=False)
 
     err = aux.sqrt(fitErr**2 + (1-fitScale)**2)
     fitScaleUp = fitScale + err
@@ -203,7 +213,12 @@ def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weigh
     syst = aux.getSystFromDifference(preHistDn, preHistUp)
 
     # Scale
-    preInt = preHist.Integral(0, maxBin)
+    preInt, preIntErr = aux.integralAndError(preHist, 0, maxBin)
+    preIntUp, preIntErrUp = aux.integralAndError(preHistUp, 0, maxBin)
+    preIntDn, preIntErrDn = aux.integralAndError(preHistDn, 0, maxBin)
+    preIntErr2 = abs(preIntDn-preIntUp)/2.
+    relScaleUncert = aux.sqrt( (dirIntErr/dirInt)**2 + (preIntErr/preInt)**2 + (preIntErr2/preInt)**2 )
+
     for h in preHist, syst:
         h.Scale(dirInt/preInt)
         h.SetDirectory(0)
@@ -211,7 +226,8 @@ def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weigh
     # Force symmetric systematic uncertainty
     for bin in range(syst.GetNbinsX()+2):
         syst.SetBinContent(bin, preHist.GetBinContent(bin))
-    return preHist, syst
+        syst.SetBinError(bin, aux.sqrt(syst.GetBinError(bin)**2 + (relScaleUncert*syst.GetBinContent(bin))**2))
+    return preHist, syst, fitScale, dirInt/preInt
 
 
 
@@ -226,19 +242,21 @@ def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSe
 
     variable = "met"
     weight = "weight*({})".format(cut)
-    nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
+    nBins = range(0,100,10)+[130, 170, 230, 300, 400, 500, 600]
+    #range(100,200,10)+[200, 250, 300, 600]
+    nBins = range(0,200,10)+[200, 300, 400, 500, 600]
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     if dirSet == data:
         for bin in range(dirHist.FindBin(100),dirHist.GetNbinsX()+2):
             dirHist.SetBinContent(bin, 0)
             dirHist.SetBinError(bin, 0)
-    preHist, gjetSyst = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
+    preHist, gjetSyst, fitScale, err = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
     #preHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
     totUnc = aux.addHistUncert(preHist, gjetSyst)
 
     gjetHistUnw = createHistoFromTree(preTree, variable, weight, nBins)
-    gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100))/gjetHistUnw.Integral(0,dirHist.FindBin(100)))
+    gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100)-1)/gjetHistUnw.Integral(0,dirHist.FindBin(100)-1))
 
     # beautify
     aux.drawOpt(dirHist, "data")
@@ -280,7 +298,7 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
     nBins = range(0,200,10)+[200,250]+range(300,500,20)+[600,700,800,900,910]
-    nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 350, 400,450, 500,600,700,800,900,910 ]
+    nBins = range(0,200,10)+[200, 300, 400, 500, 600]
 
     dirHist = createHistoFromTree(dirTree, variable, weight, nBins)
     if dirSet == data:
@@ -288,8 +306,16 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
             if dirHist.GetBinCenter(bin) > 160 and False:
                 dirHist.SetBinContent(bin,0)
                 dirHist.SetBinError(bin,0)
-    gjetHist, gjetSyst = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
+    gjetHist, gjetSyst, fitScale, norm = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
     gjetHist.SetLineColor(ROOT.kCyan)
+    # correct for other backgrounds
+    mcPreHist = createHistoFromDatasetTree(zg+wg+ttg+wjets+ttjets_ht+znunu, "{}*{}".format(variable,fitScale), weight, nBins, treename.replace("tr", "tr_jControl"))
+    mcPreHist.Scale(norm) # scale also with trigger prescale?
+    for bin in range(gjetHist.GetNbinsX()+2):
+        cOld = gjetHist.GetBinContent(bin)
+        subT = mcPreHist.GetBinContent(bin)
+        #gjetHist.SetBinContent(bin, cOld - subT)
+
     gjetHistUnw = createHistoFromTree(preTree, variable, weight, nBins)
     gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100)-1)/gjetHistUnw.Integral(0,dirHist.FindBin(100)-1))
 

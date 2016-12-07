@@ -63,7 +63,7 @@ class Multiplot:
         for h in self.hists:
             if isinstance( h, ROOT.THStack ): continue
             if not hasattr( h, "drawOption_" ): h.drawOption_ = ""
-            if "Data" in h.GetName():
+            if "Data" in h.GetName() or "Pseudodata" in h.GetName():
                 self.leg.AddEntry( h, h.GetName(), "pe" )
 
         # Stacked histograms
@@ -75,7 +75,7 @@ class Multiplot:
         for h in self.hists:
             if not h.GetName(): continue
             if isinstance( h, ROOT.THStack ): continue
-            if "Data" in h.GetName(): continue
+            if "Data" in h.GetName() or "Pseudodata" in h.GetName(): continue
 
             if "p" in h.drawOption_:
                 self.leg.AddEntry( h, h.GetName(), "ep" )

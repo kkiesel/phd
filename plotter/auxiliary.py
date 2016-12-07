@@ -16,6 +16,9 @@ def frange(x, y, jump):
         yield x
         x += jump
 
+def frange(x, y, jump):
+    return [ x+jump*i for i in range(int(floor((y-x)/jump)))]
+
 def getXsecInfoSMS( mother_mass, pklfilename ):
     info = 0
     with open( pklfilename, 'rb') as f:

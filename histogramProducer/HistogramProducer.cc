@@ -21,6 +21,8 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_met"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
   effMap["eff_hlt_met_ct"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
   effMap["eff_hlt_met_ct2"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
+  effMap["eff_hlt_ele_pt"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 100, 0, 100);
+
 }
 
 void HistogramProducer::fillTriggerStudies() {
@@ -79,6 +81,11 @@ void HistogramProducer::fillTriggerStudies() {
   }
 
   if (ht > 700 && *hlt_ht600) {
+    for (auto& el : *electrons) {
+      if (fabs(el.p.Eta())>2.1 || !el.isTight) continue;
+      effMap.at("eff_hlt_ele_pt").Fill(*hlt_el27, el.p.Pt());
+      break; // only leading electron
+    }
     for (auto& photon : *photons) {
       if (photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel) {
         if (looseCutFlowPhoton.check(photon)) {
@@ -268,6 +275,7 @@ map<string,TH1F> initHistograms() {
   hMap["n_electron"] = TH1F("", ";electron multiplicity", 4, -0.5, 3.5);
   hMap["n_muon"] = TH1F("", ";muon multiplicity", 4, -0.5, 3.5);
   hMap["n_heJet"] = TH1F("", ";photon-like jet multiplicity", 11, -0.5, 10.5);
+  hMap["n_tracksPV"] = TH1F("", ";PV track multiplicity", 51, -0.5, 50.5);
 
   hMap["genMatch"] = TH1F("", ";pdg id for gen match", 47, -23.5, 23.5);
   hMap["genHt"] = TH1F("", ";#it{H}_{T}^{gen}", 3000, 0, 3000);
@@ -276,7 +284,8 @@ map<string,TH1F> initHistograms() {
 }
 
 void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
-  if (std::isnan(met->p.X())) return;
+  //auto signalPointName = getSignalPointName(*signal_nBinos, *signal_m1, *signal_m2);
+  if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
 
   float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight, tree_dPhi;
   UInt_t tree_njet;
@@ -455,6 +464,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false) {
   m1->at("n_electron").Fill(selElectrons.size(), selW);
   m1->at("n_muon").Fill(selMuons.size(), selW);
   m1->at("n_heJet").Fill(selJets.size(), selW);
+  m1->at("n_tracksPV").Fill(*nTracksPV, selW);
   m1->at("genHt").Fill(*genHt, selW);
 
   m2->at("met_vs_n_jet").Fill(met->p.Pt(), selJets.size(), selW);
@@ -505,6 +515,7 @@ HistogramProducer::HistogramProducer():
   met(fReader, "met"),
   metRaw(fReader, "met_raw"),
   nGoodVertices(fReader, "nGoodVertices"),
+  nTracksPV(fReader, "nTracksPV"),
   pu_weight(fReader, "pu_weight"),
   mc_weight(fReader, "mc_weight"),
   genHt(fReader, "genHt"),
@@ -514,10 +525,11 @@ HistogramProducer::HistogramProducer():
   hlt_photon90(fReader, "HLT_Photon90_v"),
   hlt_ht600(fReader, "HLT_PFHT600_v"),
   hlt_ht800(fReader, "HLT_PFHT800_v"),
+  hlt_el27(fReader, "HLT_Ele27_eta2p1_WPLoose_Gsf_v"),
   hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
-  signal_nBinos(fReader, "signal_nBinos"),
-  signal_m1(fReader, "signal_m1"),
-  signal_m2(fReader, "signal_m2"),
+  //signal_nBinos(fReader, "signal_nBinos"),
+  //signal_m1(fReader, "signal_m1"),
+  //signal_m2(fReader, "signal_m2"),
   looseCutFlowPhoton({{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
     {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} }),
   startTime(time(NULL)),
@@ -532,7 +544,7 @@ void HistogramProducer::Init(TTree *tree)
   isData = inputName.find("Run201") != string::npos;
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
 
-  float lumi = 27.22e3; // pb^{-1}
+  float lumi = 36.53e3; // pb^{-1}
   cutFlow = *((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"));
   fReader.GetEntries(true); // jumps to last file
   string lastInputName = fReader.GetTree()->GetCurrentFile()->GetName();
@@ -545,6 +557,7 @@ void HistogramProducer::Init(TTree *tree)
 
   genPt130 = inputName.find("0to130") != string::npos;
   genHt600 = inputName.find("HT-0to600") != string::npos;
+  isScan = inputName.find("SMS-T5Wg_nTuple") != string::npos;
 
   initTriggerStudies();
   initUncut();
@@ -617,6 +630,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (isData) fillTriggerStudies();
 
+  // selection: nTracksPV >= 2 for e->gamma fake-rate
+  if (*nTracksPV<2) return kTRUE;
+
   // set weight
   selW = *mc_weight * *pu_weight;
 
@@ -681,6 +697,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr", true);
+    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_genE");
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", true);
     if (dPhiMin>0.3 && dPhiMax<3.1415-0.3) fillSelection("tr_dPhi3", true);
     if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB");
@@ -695,6 +712,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   }
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
+    auto saveW = selW;
+    if (isData) selW *= *hlt_ht600_pre;
     fillSelection("tr_jControl", true);
     if (dPhiMin>0.3 && dPhiMax<3.1415-0.3) fillSelection("tr_jControl_dPhi3", true);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep", true);
@@ -710,6 +729,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
         break;
       }
     }
+    if (isData) selW = saveW;
   }
 
 
@@ -757,7 +777,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr_eControl", true);
-    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_eControl_genE");
+    auto saveW = selW;
+    if (isData) {
+      selW *= (1.238+0.0935**nGoodVertices)/100; // fit on z->ee
+    } else {
+      selW *= (1.051+0.0318**nGoodVertices)/100; // fit on z->ee
+    }
+    fillSelection("tr_eControl_weighted", true);
+    selW = saveW;
   }
 
 
@@ -778,7 +805,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     fillSelection("tr_eControl_ee", true);
-    if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) fillSelection("tr_eControl_genE_ee");
   }
 
   resetSelection();

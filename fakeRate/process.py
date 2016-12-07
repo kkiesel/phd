@@ -19,6 +19,8 @@ periods = [
         "SingleElectron_Run2016E-PromptReco-v2_nTuple.root",
         "SingleElectron_Run2016F-PromptReco-v1_nTuple.root",
         "SingleElectron_Run2016G-PromptReco-v1_nTuple.root",
+        "SingleElectron_Run2016H-PromptReco-v2_nTuple.root",
+        "SingleElectron_Run2016H-PromptReco-v3_nTuple.root",
         "DYJetsToLL_M-50_ext_nTuple.root",
         ]
 dir = "/user/kiesel/nTuples/v16/"
@@ -41,7 +43,7 @@ if args.condor:
             f.write("""
 Universe   = vanilla
 Executable = run.sh
-Arguments  = /net/scratch_cms1b1/cms/user/kiesel/{0}
+Arguments  = /net/scratch_cms1b1/cms/user/kiesel/v16/{0}
 Log        = logs/{0}.log
 Output     = logs/{0}.out
 Error      = logs/{0}.error

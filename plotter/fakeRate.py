@@ -122,7 +122,6 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
         draw1dEfficiency(savename+"_1d", effMc, selection)
         return
 
-    print "Prepare histograms"
     hMcNum = effMc.GetCopyPassedHisto()
     hMcDen = effMc.GetCopyTotalHisto()
     hMcNum = aux.rebinX(hMcNum, *binning)
@@ -138,7 +137,6 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
         hDataNum = aux.rebinX(hDataNum, *binning)
         hDataDen = aux.rebinX(hDataDen, *binning)
         hBkg = aux.rebinX(hBkg, *binning)
-    print "Histograms prepared"
 
     if nDim == 2:
         hOut = hMcNum.ProjectionY()
@@ -181,6 +179,11 @@ def binnedFakeRate(variable, selection, isData, binning=[None, None, None], intO
         style.defaultStyle()
         hOut.Draw("e hist")
         l = aux.Label(sim=not isData, info=selectionTex[selection])
+        if variable == "vtx":
+            res = hOut.Fit("pol1", "SQ")
+            text = ROOT.TLatex()
+            text.DrawLatexNDC(.2, .7, "f(x)={:.3f}+{:.4f}x".format(res.Parameter(0), res.Parameter(1)))
+            text.DrawLatexNDC(.2, .6, "#chi^{{2}}/NDF = {:.2f}".format(res.Chi2()/res.Ndf()))
         aux.save(savename, log=False)
     elif nDim == 3:
         style.style2d()
@@ -265,13 +268,28 @@ if __name__ == "__main__":
        "pt_vs_vtx", "pt_vs_nTracksPV", "met_vs_vtx", "met_vs_jets", "met_vs_pt", "met_vs_jetPt", "eta_vs_phi"
 
     #binnedFakeRate("pt", "all", True, binning=[None, binnings["pt"]])
+    #binnedFakeRate("pt", "all", True, binning=[None, binnings["pt"]])
     #binnedFakeRate("pt", "all", False, binning=[None, binnings["pt"]])
+    #binnedFakeRate("nTracksPV", "all", isData=False, intOnly=True)
+    #binnedFakeRate("nTracksPV", "EB_40pt", isData=True, intOnly=False, binning=[None, aux.frange(-.5, 36,1)+[39.5, 49.5]])
+    #binnedFakeRate("nTracksPV", "EB_40pt", isData=False, intOnly=True)
+    #binnedFakeRate("nTracksPV", "EB_01eta_40pt", isData=False, intOnly=True)
+    #binnedFakeRate("nTracksPV", "all", isData=False, intOnly=True)
+    #binnedFakeRate("nTracksPV", "all", isData=True, intOnly=False)
     #binnedFakeRate("eta_vs_phi", "all", isData=False, intOnly=True)
-    binnedFakeRate("eta_vs_phi", "all", isData=True)
+    #binnedFakeRate("eta_vs_phi", "all", isData=True, intOnly=True)
     #binnedFakeRate("nTracksPV", "all", isData=False, intOnly=True)
     #binnedFakeRate("nTracksPV", "all", isData=True, intOnly=True, binning=[None, binnings["nTracksPV"]])
     #binnedFakeRate("pt_vs_nTracksPV", "all", isData=True, intOnly=True, binning=[None, binnings["pt"], binnings["nTracksPV"]])
     #binnedFakeRate("pt_vs_nTracksPV", "all", isData=True, intOnly=True)
+    #binnedFakeRate("vtx_vs_nTracksPV", "EB_40pt", isData=True, intOnly=True)
+    #binnedFakeRate("vtx_vs_nTracksPV", "EB_40pt", isData=False, intOnly=True)
+    #binnedFakeRate("vtx_vs_nTracksPV", "EB_40pt", isData=True, intOnly=False)
+    #binnedFakeRate("vtx", "EB_40pt", isData=False, intOnly=True)
+    #binnedFakeRate("vtx", "EB_40pt", isData=True, intOnly=False)
+    binnedFakeRate("vtx", "EE_40pt", isData=True, intOnly=True)
+    binnedFakeRate("nTracksPV", "EE_40pt", isData=True, intOnly=True)
+
 
 
 

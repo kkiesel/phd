@@ -108,11 +108,12 @@ map<string,TEfficiency> initGenEfficiencies() {
   m["nTracksPV"] = TEfficiency("",";PV track multiplicity;#varepsilon", 50, -.5, 49.5);
   m["pt_vs_vtx"] = TEfficiency("", ";#it{p}_{T} (GeV);vertex multiplicity", 40, 0, 200, 36, 0.5, 36.5);
   m["pt_vs_nTracksPV"] = TEfficiency("", ";#it{p}_{T} (GeV);PV track multiplicity", 40, 0, 200, 50, -0.5, 49.5);
+  m["vtx_vs_nTracksPV"] = TEfficiency("", ";m (GeV);vertex multiplicity ;PV track multiplicity", 200, 40, 140, 36, .5, 36.5, 50, -0.5, 49.5);
   m["met_vs_vtx"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);vertex multiplicity", 40, 0, 200, 36, 0.5, 36.5);
   m["met_vs_jets"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);jet multiplicity", 40, 0, 200, 8, -0.5, 7.5);
   m["met_vs_pt"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 40, 0, 200, 40, 0, 200);
   m["met_vs_jetPt"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{1.jet} (GeV)", 40, 0, 200, 40, 0, 200);
-  m["eta_vs_phi"] = TEfficiency("", ";#eta;#phi", 250, 0, 2.5, 64, -3.2, 3.2);
+  m["eta_vs_phi"] = TEfficiency("", ";#eta;#phi", 250, -2.5, 2.5, 64, -3.2, 3.2);
   return m;
 }
 
@@ -125,7 +126,6 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
 
   bool hasPixelSeed = probe.hasPixelSeed;
   float thisMet = met->p.Pt();
-  auto nVertex = *nGoodVertices;
   unsigned nJet = 0;
   float emht = probe.p.Pt();;
   for (auto& j : *jets ) {
@@ -137,7 +137,7 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
   effs->at("pt").Fill(!hasPixelSeed, probe.p.Pt());
   effs->at("pt").Fill(!hasPixelSeed, probe.p.Pt());
   effs->at("eta").Fill(!hasPixelSeed, fabs(probe.p.Eta()));
-  effs->at("vtx").Fill(!hasPixelSeed, nVertex);
+  effs->at("vtx").Fill(!hasPixelSeed, *nGoodVertices);
   effs->at("emht").Fill(!hasPixelSeed, emht);
   effs->at("jets").Fill(!hasPixelSeed, nJet);
   effs->at("met").Fill(!hasPixelSeed, thisMet);
@@ -151,9 +151,10 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
   effs->at("cIsoWorst").Fill(!hasPixelSeed, probe.cIsoWorst);
   effs->at("nTracksPV").Fill(!hasPixelSeed, *nTracksPV);
 
-  effs->at("pt_vs_vtx").Fill(!hasPixelSeed, probe.p.Pt(), nVertex);
+  effs->at("pt_vs_vtx").Fill(!hasPixelSeed, probe.p.Pt(), *nGoodVertices);
   effs->at("pt_vs_nTracksPV").Fill(!hasPixelSeed, probe.p.Pt(), *nTracksPV);
-  effs->at("met_vs_vtx").Fill(!hasPixelSeed, thisMet, nVertex);
+  effs->at("vtx_vs_nTracksPV").Fill(!hasPixelSeed, *nGoodVertices, *nTracksPV);
+  effs->at("met_vs_vtx").Fill(!hasPixelSeed, thisMet, *nGoodVertices);
   effs->at("met_vs_jets").Fill(!hasPixelSeed, thisMet, nJet);
   effs->at("met_vs_pt").Fill(!hasPixelSeed, thisMet, probe.p.Pt());
   //effs->at("met_vs_jetPt").Fill(!hasPixelSeed, thisMet, leadingJetPt);
@@ -179,11 +180,12 @@ map<string,TEfficiency> initEfficiencies() {
   m["nTracksPV"] = TEfficiency("",";m (GeV);PV track multiplicity;#varepsilon", 200, 40, 140, 50, -.5, 49.5);
   m["pt_vs_vtx"] = TEfficiency("", ";m (GeV);#it{p}_{T} (GeV);vertex multiplicity", 200, 40, 140, 40, 0, 200, 36, 0.5, 36.5);
   m["pt_vs_nTracksPV"] = TEfficiency("", ";m (GeV);#it{p}_{T} (GeV);PV track multiplicity", 200, 40, 140, 40, 0, 200, 50, -0.5, 49.5);
+  m["vtx_vs_nTracksPV"] = TEfficiency("", ";m (GeV);vertex multiplicity ;PV track multiplicity", 200, 40, 140, 36, .5, 36.5, 50, -0.5, 49.5);
   m["met_vs_vtx"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);vertex multiplicity", 200, 40, 140, 40, 0, 200, 36, 0.5, 36.5);
   m["met_vs_jets"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);jet multiplicity", 200, 40, 140, 40, 0, 200, 8, -0.5, 7.5);
   m["met_vs_pt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
   m["met_vs_jetPt"] = TEfficiency("", ";m (GeV);#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{1.jet} (GeV)", 200, 40, 140, 40, 0, 200, 40, 0, 200);
-  m["eta_vs_phi"] = TEfficiency("", ";m (GeV);#eta;#phi", 200, 40, 140, 250, 0, 2.5, 64, -3.2, 3.2);
+  m["eta_vs_phi"] = TEfficiency("", ";m (GeV);#eta;#phi", 200, 40, 140, 250, -2.5, 2.5, 64, -3.2, 3.2);
   return m;
 }
 
@@ -197,7 +199,6 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   auto effs = &effMaps.at(name);
 
   bool hasPixelSeed = probe->hasPixelSeed;
-  auto nVertex = *nGoodVertices;
   float thisMet = met->p.Pt();
   float mll = m(tag->p, probe->p);
   float emht = tag->p.Pt() + probe->p.Pt();
@@ -214,7 +215,7 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   effs->at("pt").Fill(!hasPixelSeed, mll, probe->p.Pt());
   effs->at("pt").Fill(!hasPixelSeed, mll, probe->p.Pt());
   effs->at("eta").Fill(!hasPixelSeed, mll, fabs(probe->p.Eta()));
-  effs->at("vtx").Fill(!hasPixelSeed, mll, nVertex);
+  effs->at("vtx").Fill(!hasPixelSeed, mll, *nGoodVertices);
   effs->at("emht").Fill(!hasPixelSeed, mll, emht);
   effs->at("jets").Fill(!hasPixelSeed, mll, nJet);
   effs->at("met").Fill(!hasPixelSeed, mll, thisMet);
@@ -228,9 +229,10 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
   effs->at("cIsoWorst").Fill(!hasPixelSeed, mll, probe->cIsoWorst);
   effs->at("nTracksPV").Fill(!hasPixelSeed, mll, *nTracksPV);
 
-  effs->at("pt_vs_vtx").Fill(!hasPixelSeed, mll, probe->p.Pt(), nVertex);
+  effs->at("pt_vs_vtx").Fill(!hasPixelSeed, mll, probe->p.Pt(), *nGoodVertices);
   effs->at("pt_vs_nTracksPV").Fill(!hasPixelSeed, mll, probe->p.Pt(), *nTracksPV);
-  effs->at("met_vs_vtx").Fill(!hasPixelSeed, mll, thisMet, nVertex);
+  effs->at("vtx_vs_nTracksPV").Fill(!hasPixelSeed, mll, *nGoodVertices, *nTracksPV);
+  effs->at("met_vs_vtx").Fill(!hasPixelSeed, mll, thisMet, *nGoodVertices);
   effs->at("met_vs_jets").Fill(!hasPixelSeed, mll, thisMet, nJet);
   effs->at("met_vs_pt").Fill(!hasPixelSeed, mll, thisMet, probe->p.Pt());
   effs->at("met_vs_jetPt").Fill(!hasPixelSeed, mll, thisMet, leadingJetPt);
@@ -320,28 +322,45 @@ Bool_t FakeRateSelector::Process(Long64_t entry)
 
   for (auto& tag : selTags) {
     for (auto& probe : selProbes) {
+      auto eta = abs(probe->p.Eta());
       fillSelection(tag, probe, "all");
       if (probe->p.Pt()>40) fillSelection(tag, probe, "40pt");
-      if (abs(probe->p.Eta())<photonsEtaMaxBarrel) fillSelection(tag, probe, "EB");
-      if (abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt");
-      if (abs(probe->p.Eta())>0.1 && abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt");
-      if (abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>100) fillSelection(tag, probe, "EB_100pt");
+      if (eta<photonsEtaMaxBarrel) {
+        fillSelection(tag, probe, "EB");
+        if (probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt");
+        if (probe->p.Pt()>40 && *nTracksPV>2 ) fillSelection(tag, probe, "EB_40pt_3nTracks");
+        if (eta>0.1 && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt");
+      } else if ( eta>photonsEtaMinEndcap && eta<2.3) {
+        if (probe->p.Pt()>40) fillSelection(tag, probe, "EE_40pt");
+        if (probe->p.Pt()>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks");
+      }
       if (fabs(genMatchWZDecay(*tag, *intermediateGenParticles)) == 11 && fabs(genMatchWZDecay(*probe, *intermediateGenParticles)) == 11) {
         fillSelection(tag, probe, "all_Zmatch");
         if (probe->p.Pt()>40) fillSelection(tag, probe, "40pt_Zmatch");
-        if (abs(probe->p.Eta())<photonsEtaMaxBarrel) fillSelection(tag, probe, "EB_Zmatch");
-        if (abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt_Zmatch");
-        if (abs(probe->p.Eta())>0.1 && abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt_Zmatch");
-        if (abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>100) fillSelection(tag, probe, "EB_100pt_Zmatch");
+        if (eta<photonsEtaMaxBarrel) {
+          fillSelection(tag, probe, "EB_Zmatch");
+          if (probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt_Zmatch");
+          if (probe->p.Pt()>40 && *nTracksPV>2 ) fillSelection(tag, probe, "EB_40pt_3nTracks_Zmatch");
+          if (eta>0.1 && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt_Zmatch");
+        } else if (eta<2.3) {
+          if (probe->p.Pt()>40) fillSelection(tag, probe, "EE_40pt_Zmatch");
+          if (probe->p.Pt()>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks_Zmatch");
+        }
       }
     }
     for (auto& probe : selMuons) {
+      auto eta = abs(probe->p.Eta());
       fillSelection(tag, probe, "all_bkg");
       if (probe->p.Pt()>40) fillSelection(tag, probe, "40pt_bkg");
-      if (abs(probe->p.Eta())<photonsEtaMaxBarrel) fillSelection(tag, probe, "EB_bkg");
-      if (abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt_bkg");
-      if (abs(probe->p.Eta())>0.1 && abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt_bkg");
-      if (abs(probe->p.Eta())<photonsEtaMaxBarrel && probe->p.Pt()>100) fillSelection(tag, probe, "EB_100pt_bkg");
+      if (eta<photonsEtaMaxBarrel) {
+        fillSelection(tag, probe, "EB_bkg");
+        if (probe->p.Pt()>40) fillSelection(tag, probe, "EB_40pt_bkg");
+        if (probe->p.Pt()>40 && *nTracksPV>2) fillSelection(tag, probe, "EB_40pt_3nTracks_bkg");
+        if (eta>0.1 && probe->p.Pt()>40) fillSelection(tag, probe, "EB_01eta_40pt_bkg");
+      } else if (eta<2.3) {
+        if (probe->p.Pt()>40) fillSelection(tag, probe, "EE_40pt_bkg");
+        if (probe->p.Pt()>40 && *nTracksPV>2) fillSelection(tag, probe, "EE_40pt_3nTracks_bkg");
+      }
     }
   }
   return kTRUE;

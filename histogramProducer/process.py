@@ -20,6 +20,8 @@ ds={
         "SinglePhoton_Run2016E-PromptReco-v2_nTuple.root",
         "SinglePhoton_Run2016F-PromptReco-v1_nTuple.root",
         "SinglePhoton_Run2016G-PromptReco-v1_nTuple.root",
+        "SinglePhoton_Run2016H-PromptReco-v2_nTuple.root",
+        "SinglePhoton_Run2016H-PromptReco-v3_nTuple.root",
         ],
     "jh": [
         "JetHT_Run2016B-PromptReco-v2_nTuple.root",
@@ -28,6 +30,8 @@ ds={
         "JetHT_Run2016E-PromptReco-v2_nTuple.root",
         "JetHT_Run2016F-PromptReco-v1_nTuple.root",
         "JetHT_Run2016G-PromptReco-v1_nTuple.root",
+        "JetHT_Run2016H-PromptReco-v2_nTuple.root",
+        "JetHT_Run2016H-PromptReco-v3_nTuple.root",
         ],
     "gjet": [
         "GJets_HT-40To100_nTuple.root",
@@ -120,7 +124,7 @@ if args.condor:
             f.write("""
 Universe   = vanilla
 Executable = run.sh
-Arguments  = /net/scratch_cms1b1/cms/user/kiesel/{0} {1}
+Arguments  = /net/scratch_cms1b1/cms/user/kiesel/v16/{0} {1}
 Log        = logs/{0}.log
 Output     = logs/{0}.out
 Error      = logs/{0}.error

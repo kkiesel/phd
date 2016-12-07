@@ -80,6 +80,8 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
             or name.endswith("eff_hlt_ht_ct") \
             or name.endswith("eff_hlt_ht_ct_preScaled"):
         cutValue = 700
+    elif name.endswith("eff_hlt_ele_pt"):
+        cutValue = 30
     else:
         cutValue = 0
 
@@ -151,6 +153,13 @@ def main():
     drawEfficiencyVsRun(dataHt)
     efficiencies(data, "singlePhoton")
     efficiencies(dataHt, "jetHt")
+    dataHtBtoF = Dataset("JetHT_Run2016B-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016C-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016D-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016E-PromptReco-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016F-PromptReco-v1", 0, ROOT.kBlack )
+    dataHtBtoF.label = "Data (JetHt B-F)"
+    efficiencies(dataHtBtoF, "jetHt_BtoF")
 
 if __name__ == "__main__":
     main()
