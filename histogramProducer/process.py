@@ -92,7 +92,7 @@ ds={
         "SMS-T5Wg_1600_100_nTuple.root",
         ],
 }
-dir = "/user/kiesel/nTuples/v16/"
+dir = "/user/kiesel/nTuples/v17/"
 
 
 #############################################
@@ -124,7 +124,7 @@ if args.condor:
             f.write("""
 Universe   = vanilla
 Executable = run.sh
-Arguments  = /net/scratch_cms1b1/cms/user/kiesel/v16/{0} {1}
+Arguments  = /net/scratch_cms1b1/cms/user/kiesel/v17/{0} {1}
 Log        = logs/{0}.log
 Output     = logs/{0}.out
 Error      = logs/{0}.error
