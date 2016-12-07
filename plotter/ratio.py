@@ -108,7 +108,7 @@ class Ratio:
             return 1-y, 1+y
 
 
-    def draw( self, yMin=.9, yMax=1.1 ):
+    def draw( self, yMin=.9, yMax=1.1, stack=None ):
         self.calculateRatio()
 
         #yMin, yMax = self.getYrange()
@@ -119,7 +119,9 @@ class Ratio:
         clearXaxisCurrentPad()
         p = createBottomPad()
 
-        self.ratioStat.Draw("e x0")
+        if stack: x = aux.drawContributions(stack, yMin, yMax)
+
+        self.ratioStat.Draw("e x0" + "same" if stack else "")
         if self.sysHisto:
             self.ratioSys.Draw("same e2")
             self.totalUncert.Draw("same e2")
@@ -130,5 +132,5 @@ class Ratio:
             oneLine.SetLineStyle(2)
             axis = self.ratio.GetXaxis()
             oneLine.DrawLine( axis.GetXmin(), 1.0, axis.GetXmax(), 1.0 )
-
+        return x if stack else None
 
