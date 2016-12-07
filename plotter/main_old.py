@@ -758,8 +758,11 @@ def sampleMergingCheck():
     myttjets = copy.deepcopy(ttjets)
     myttjets.color = ROOT.kBlack
     drawSameHistogram("ttjets", "tr_jControl/genHt", [ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], additional=[] )
-    drawSameHistogram("ttjets_compare", "tr_jControl/genHt", [ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], additional=[myttjets] )
+    drawSameHistogram("ttjets_compare", "tr_jControl/genHt", [ttjets600, ttjets800, ttjets1200, ttjets2500], [myttjets], range(0,3000,100), "1" )
+    drawSameHistogram("ttjets_compare", "tr_jControl/genHt", [ttjets600, ttjets800, ttjets1200, ttjets2500], additional=[myttjets] )
     drawSameHistogram("ttjets_nlo", "tr_jControl/n_jet", [ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], additional=[myttjets_nlo] )
+    drawSameHistogram("ttjets_nlo", "tr_jControl/genHt", [ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], additional=[myttjets_nlo] )
+    drawSameHistogram("ttjets_nlo", "tr_jControl/genHt", [ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], [myttjets_nlo], range(0,3000,100), "1" )
     drawSameHistogram("zgnunu_monophoton", "tr/g_pt", [zg40,zg130], additional=[], binning=range(100,800,10))
     drawSameHistogram("wg_1", "tr/g_pt", [wg_mg_0to130, wg_130], additional=[wg_mc, wg_mg], binning=range(100,800,10))
     drawSameHistogram("wg_1", "tr/met", [wg_mg_0to130, wg_130], additional=[wg_mc, wg_mg], binning=range(0,600,10))
@@ -775,6 +778,7 @@ def sampleMergingCheck():
 
 
 def transitions():
+    drawSameHistogram( "gjets", "tr/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600] )
     drawSameHistogram( "gjets", "tr_jControl/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600] )
     drawSameHistogram( "qcd", "tr_jControl/genHt", [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
     drawSameHistogram( "wjets", "tr_jControl/genHt", [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
@@ -1491,7 +1495,60 @@ def wgammaSamples():
     m.Draw()
     aux.save("test")
 
+def scaleVsEmht():
+    h = ROOT.TH1F("", ";EMH_{T} (GeV);Scale", 16, 700, 2300)
+    scales = [
+        (0.938476994449,0.00491254929487),
+        (0.935951933006,0.0059493022939),
+        (0.923503661717,0.00657246577233),
+        (0.916778838467,0.00881869967867),
+        (0.94756464807,0.0104094625789),
+        (0.925218367243,0.0124228399628),
+        (0.965482732974,0.0136272681414),
+        (0.941711327114,0.0166384849302),
+        (0.916615574645,0.0199996062253),
+        (0.930695145936,0.0228825771853),
+        (0.916531447698,0.0292267241236),
+        (0.909237014239,0.0270530767276),
+        (0.8393335333,0.0339934287204),
+        (0.933493376551,0.0363798448449),
+        (0.992778965105,0.0406008871864),
+        (0.990584609545,0.0273449537516),
+        ]
 
+    for i, (s,e) in enumerate(scales):
+        h.SetBinContent(i+1, s)
+        h.SetBinError(i+1,e)
+    h.Draw("e")
+    h.Fit("pol0")
+    l = aux.Label(sim=True)
+    aux.save("scaleVsEmht",log=False)
+    h = ROOT.TH1F("", ";EMH_{T} (GeV);Scale", 16, 700, 2300)
+    scales = [
+        (0.957135659355, 0.00168337303957),
+        (0.969689914407, 0.00241003557835),
+        (0.978819944382, 0.00333332180712),
+        (0.987048594864, 0.00463719154386),
+        (1.00020686833, 0.0063185716602),
+        (0.989910506493, 0.00810461672924),
+        (0.988679932362, 0.011488475329),
+        (1.00771222376, 0.0137215378253),
+        (0.995953932129, 0.0171606899363),
+        (1.03104406358, 0.0206444237916),
+        (1.01439147795, 0.0201941463358),
+        (1.01215239414, 0.0296560484266),
+        (1.04715586806, 0.0222061219673),
+        (1.01579005693, 0.0207329684076),
+        (0.881282571117, 0.0208906476832),
+        (1.03500404114, 0.0170795207525),
+        ]
+    for i, (s,e) in enumerate(scales):
+        h.SetBinContent(i+1, s)
+        h.SetBinError(i+1,e)
+    h.SetMinimum(0.86)
+    h.Draw("e")
+    l = aux.Label(sim=False)
+    aux.save("scaleVsEmht_data",log=False)
 
 def compareMet():
     for binningName, binning in aux.getBinningsFromName("met").iteritems():
@@ -1517,7 +1574,7 @@ def compareMet():
 def main():
     pass
     #transitions()
-    sampleMergingCheck()
+    #sampleMergingCheck()
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
@@ -1596,6 +1653,8 @@ def main():
     #qcdClosure3d(gjets, "test", dirName="tr", preSet=qcd)
     #compareMet()
     #wgammaSamples()
+    #etaPlot()
+    scaleVsEmht()
 
 if __name__ == "__main__":
     from datasets import *
