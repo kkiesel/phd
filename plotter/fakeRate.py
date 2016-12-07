@@ -267,7 +267,8 @@ def binnedFakeRate(variable, selection, isData, xbins=None, ybins=None, intOnly=
 
         hOut = hMcNum.ProjectionY()
         hOut.Reset("ICESM")
-        for bin in range(0, hOut.GetNbinsX()+2):
+        for bin in range(1, hOut.GetNbinsX()+1):
+            #if bin not in [14]: continue
             ax = hMcNum.GetYaxis()
             yMin, yMax = ax.GetBinLowEdge(bin), ax.GetBinUpEdge(bin)
             if not yMin - int(yMin): yMin = int(yMin)
@@ -434,11 +435,46 @@ binnings = {
 if __name__ == "__main__":
     selections = "all" , "40pt", "EB", "EB_40pt" , "EB_01eta_40pt", "EB_100pt"
     variables = "pt", "met", "emht", "eta", "jets", "vtx", "sie", "sip", "hoe", "r9", "cIso", "nIso", "pIso", "cIsoWorst", "nTracksPV" \
-       "pt_vs_vtx", "pt_vs_nTracksPV", "met_vs_vtx", "met_vs_jets", "met_vs_pt", "met_vs_jetPt", "eta_vs_phi"
+       "pt_vs_vtx", "pt_vs_nTracksPV", "met_vs_vtx", "met_vs_jets", "met_vs_pt", "met_vs_jetPt", "eta_vs_phi", "cIso_vs_vtx"
 
-    #binnedFakeRate("pt", "all", True, binning=[None, binnings["pt"]])
-    #binnedFakeRate("pt", "all", True, binning=[None, binnings["pt"]])
-    #binnedFakeRate("pt", "all", False, binning=[None, binnings["pt"]])
+    #binnedFakeRate(variable, selection, isData, xbins=None, ybins=None, intOnly=False, drawInclusive=False)
+    # Main variables
+    #binnedFakeRate("pt", "EB_40pt", True, drawInclusive=True)
+    #binnedFakeRate("pt", "EB_40pt", True, xbins=binnings["pt"], drawInclusive=True)
+    #binnedFakeRate("eta", "EB_40pt", True, drawInclusive=True)
+    #binnedFakeRate("met", "EB_40pt", True, binnings["met"], drawInclusive=True)
+    #binnedFakeRate("vtx", "EB_40pt", True, drawInclusive=True)
+    #binnedFakeRate("cIso", "EB_40pt", True, xbins=binnings["cIso"], drawInclusive=True)
+    #binnedFakeRate("emht", "EB_40pt", True, drawInclusive=True)
+
+    # Main variables simulation
+    #binnedFakeRate("pt", "EB_40pt", False, drawInclusive=True)
+    #binnedFakeRate("pt", "EB_40pt", False, xbins=binnings["pt"], drawInclusive=True)
+    #binnedFakeRate("eta", "EB_40pt", False, drawInclusive=True)
+    #binnedFakeRate("met", "EB_40pt", False, binnings["met"], drawInclusive=True)
+    #binnedFakeRate("vtx", "EB_40pt", False, drawInclusive=True)
+    #binnedFakeRate("cIso", "EB_40pt", False, xbins=binnings["cIso"], drawInclusive=True)
+    #binnedFakeRate("emht", "EB_40pt", False, drawInclusive=True)
+
+    #binnedFakeRate("cIso_vs_vtx", "EB_40pt", True, binnings["cIso"], binnings["vtx"])
+    #binnedFakeRate("cIso_vs_vtx", "EB_40pt_3nTracks", True, binnings["cIso"], binnings["vtx"])
+
+
+    """
+    for stat in True, False: # isData
+        #for sel in "all", "EB_40pt", "40pt":
+        #    binnedFakeRate("pt", sel, stat, binning=[None, binnings["pt"]])
+        #    binnedFakeRate("eta", sel, stat)
+        #binnedFakeRate("met", "EB_40pt", stat, binning=[None, binnings["met"]])
+        #binnedFakeRate("vtx", "EB_40pt", stat)
+        #binnedFakeRate("cIso", "EB_40pt", stat)
+        #binnedFakeRate("emht", "EB_40pt", stat)
+        #binnedFakeRate("jets", "EB_40pt", stat)
+        pass
+        binnedFakeRate("cIso", "EB_40pt", stat, intOnly=True)
+        binnedFakeRate("nIso", "EB_40pt", stat, intOnly=True)
+        binnedFakeRate("pIso", "EB_40pt", stat, [None, binnings["pIso"]], intOnly=True)
+    """
     #binnedFakeRate("nTracksPV", "all", isData=False, intOnly=True)
     #binnedFakeRate("nTracksPV", "EB_40pt", isData=True, intOnly=False, binning=[None, aux.frange(-.5, 36,1)+[39.5, 49.5]])
     #binnedFakeRate("nTracksPV", "EB_40pt", isData=False, intOnly=True)
@@ -456,9 +492,35 @@ if __name__ == "__main__":
     #binnedFakeRate("vtx_vs_nTracksPV", "EB_40pt", isData=True, intOnly=False)
     #binnedFakeRate("vtx", "EB_40pt", isData=False, intOnly=True)
     #binnedFakeRate("vtx", "EB_40pt", isData=True, intOnly=False)
-    binnedFakeRate("vtx", "EE_40pt", isData=True, intOnly=True)
-    binnedFakeRate("nTracksPV", "EE_40pt", isData=True, intOnly=True)
+    #binnedFakeRate("cIso", "EB_40pt_3nTracks", isData=True, intOnly=False)
+    #binnedFakeRate("nTracksPV", "EB_40pt_3nTracks", isData=True, intOnly=True)
+    #binnedFakeRate("vtx", "EB_40pt_3nTracks", isData=True, intOnly=True)
+    #binnedFakeRate("vtx", "EE_40pt_3nTracks", isData=True, intOnly=True)
+    #binnedFakeRate("nTracksPV", "EE_40pt", isData=True, intOnly=True)
+    #binnedFakeRate("pt", "EB_40pt_3nTracks", isData=True, binning=[None, binnings["pt"]], intOnly=True)
+    #binnedFakeRate("vtx", "EB_40pt_3nTracks", isData=True, intOnly=True)
+    #binnedFakeRate("pt_vs_nTracksPV", "all", isData=True, intOnly=True)
+    #binnedFakeRate("pt_vs_nTracksPV", "all", True, binning=[None,binnings["pt"],binnings["vtx"]],intOnly=True)
+    #binnedFakeRate("cIso_vs_vtx", "all", True, binning=[None,binnings["cIso"],binnings["vtx"]],intOnly=True)
+    #binnedFakeRate("cIso_vs_vtx", "EB_40pt_3nTracks", True, binning=[None,binnings["cIso"],binnings["vtx"]],intOnly=True)
 
+    #binnedFakeRate("met", "EB_40pt_3nTracks", isData=True, xbins=binnings["met"], intOnly=False, drawInclusive=True)
+    #binnedFakeRate("pt", "EB_40pt_3nTracks", isData=True, xbins=binnings["pt"], intOnly=False, drawInclusive=True)
+    #binnedFakeRate("emht", "EB_40pt_3nTracks", isData=True, intOnly=False, drawInclusive=True)
+    #binnedFakeRate("eta", "EB_40pt_3nTracks", isData=True, intOnly=False, drawInclusive=True)
+    #binnedFakeRate("jets", "EB_40pt_3nTracks", isData=True, intOnly=False, drawInclusive=True)
+    #binnedFakeRate("vtx", "EB_40pt_3nTracks", isData=True, intOnly=False, drawInclusive=True)
+    #binnedFakeRate("sie", "EB_40pt_3nTracks", isData=True, intOnly=False, drawInclusive=True)
+    #binnedFakeRate("cIso", "EB_40pt_3nTracks", isData=True, intOnly=False, drawInclusive=True)
+    #binnedFakeRate("nTracksPV", "EB_40pt_3nTracks", isData=True, intOnly=False, drawInclusive=True)
+    #binnedFakeRate("pt", "EB_gen", False, xbins=binnings["pt"])
+    #binnedFakeRate("pt", "EB", False, xbins=binnings["pt"])
+    #binnedFakeRate("pt", "EB_100pt", True, xbins=binnings["pt"], drawInclusive=True)
+    #binnedFakeRate("pt", "EB", True, xbins=binnings["pt"], drawInclusive=True)
+    binnedFakeRate("eta", "40pt", True, saveToFile=True)
+    binnedFakeRate("eta", "40pt", False, saveToFile=True)
+    binnedFakeRate("pt", "EB_40pt", True, xbins=binnings["pt"], saveToFile=True)
+    binnedFakeRate("pt", "EB_40pt", False, xbins=binnings["pt"], saveToFile=True)
 
 
 
