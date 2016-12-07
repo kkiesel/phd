@@ -2,6 +2,12 @@
 # -*- coding: utf-8 -*-
 from include import *
 
+selectionLabels = {
+    "tr_ee": "EE",
+    "tr_jControl_ee": "EE",
+    "tr_eControl_ee": "EE"
+}
+
 def sampleCompositionFromTree(name, samples, dirName, variable, cut, binning):
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
@@ -18,6 +24,9 @@ def sampleCompositionFromTree(name, samples, dirName, variable, cut, binning):
     aux.save( saveName )
 
 def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, binningName="", scale=False):
+    if "jControl" in name and data in additional:
+        additional.remove(data)
+        additional.append(dataHt)
     can = ROOT.TCanvas()
     m = multiplot.Multiplot()
 
@@ -67,38 +76,34 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
         m.add( h, d.label )
 
     m.sortStackByIntegral()
-    if m.Draw():
+    if name.split("/")[0] in selectionLabels:
+        m.leg.SetHeader(selectionLabels[name.split("/")[0]])
+    if not m.Draw(): return
 
-        # ratio
-        hsm = m.hists[0].GetStack().Last()
-        if dataHist:
-            r = ratio.Ratio( "Data/SM", dataHist, hsm )
-            rMean = dataHist.Integral()/hsm.Integral()
-            if rMean > 2 or rMean < 0.25: # for jcontrol with prescaled data
-                r.draw(rMean/2,1.5*rMean)
-            else:
-                r.draw(.5,1.5)
+    # ratio
+    hsm = m.hists[0].GetStack().Last()
+    if dataHist:
+        r = ratio.Ratio( "Data/SM", dataHist, hsm )
+        rMean = dataHist.Integral()/hsm.Integral()
+        if rMean > 2 or rMean < 0.25: # for jcontrol with prescaled data
+            r.draw(rMean/2,1.5*rMean)
         else:
-            ratio.clearXaxisCurrentPad()
-            p = ratio.createBottomPad()
-            x = aux.drawContributions(m.getStack())
+            x = r.draw(0,1.5, m.getStack())
+    else:
+        ratio.clearXaxisCurrentPad()
+        p = ratio.createBottomPad()
+        x = aux.drawContributions(m.getStack())
 
 
-        l = aux.Label(sim=data not in additional)
+    l = aux.Label(sim=data not in additional)
 
-        if binningName: binningName = "_"+binningName
-        name = name.replace("/","__")
-        saveName = "sameHistograms_{}_{}{}".format(sampleNames, name, binningName )
-        aux.save( saveName )
+    if binningName: binningName = "_"+binningName
+    name = name.replace("/","__")
+    saveName = "sameHistograms_{}_{}{}".format(sampleNames, name, binningName )
+    aux.save( saveName )
 
-        if "emht" in name and dataHist:
-            c = ROOT.TCanvas()
-            myRatio = dataHist.Clone()
-            myRatio.Divide(hsm)
-            myRatio.SetMaximum(1.5)
-            myRatio.SetMinimum(0.5)
-            myRatio.Draw()
-            aux.save(saveName+"_ratio", endings=[".root"], log=False)
+    if "emht" in name and dataHist:
+        aux.write2File(r.ratio, saveName, "emhtWeights.root")
 
 
 def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
@@ -110,16 +115,19 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
         if "genMatch" in names: names.remove("genMatch")
         if "genHt" in names: names.remove("genHt")
 
-    names = ["met"]
-    dirs = ["tr_jControl", "tr_eControl", "tr"]
+    names = ["met", "emht"]
+    dirs = "tr", "tr_ee", "tr_jControl", "tr_eControl","tr_eControl_ee"
+    #dirs = ["tr_jControl", "tr_jControl_noLep"]
+    #dirs = ["tr_genWZ11","tr_genWZ11",  "tr_jControl", "tr_eControl", "tr"]
+    #names = ["g_eta"]
+    #dirs = ["tr", "tr_ee"]
 
     for name in names:
         for binningName, binning in aux.getBinningsFromName( name ).iteritems():
-            #drawSameHistogram( sampleNames, "tr/"+name, stack, additional, binning, binningName )
+            #if binningName != "1": continue
             for directory in dirs:
-                if "jControl" in directory:
-                    thisAdditional = [dataHt] + [x for x in additional if x is not data]
-                    drawSameHistogram( sampleNames, directory+"/"+name, stack, thisAdditional, binning, binningName )
+                if "jControl" in directory and data in additional:
+                    drawSameHistogram( sampleNames, directory+"/"+name, stack, [dataHt]+[x for x in additional if x != data], binning, binningName )
                 else:
                     drawSameHistogram( sampleNames, directory+"/"+name, stack, additional, binning, binningName )
 
@@ -127,6 +135,12 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
 if __name__ == "__main__":
     #transitions()
     #drawSameHistograms( "gqcd_data", [gjets, qcd], additional=[data])
-    drawSameHistograms( "mc_data", [gjets, qcd, ttjets, ttg, wjets, wg, zg, znunu], additional=[data])
-    drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets, wg, zg, znunu], additional=[])
+    drawSameHistograms( "mc_data", [gjets, qcd, ttjets_ht, ttg, wjets, wg, zg, znunu], additional=[data])
+    #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets, wg, zg, znunu], additional=[t5wg_1600_100, t5wg_1600_1500])
+    #drawSameHistograms( "gqcd_splitted", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000])
+    #sampleCompositionFromTree("gqcd_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
+    #sampleCompositionFromTree("gqcd_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
+    #sampleCompositionFromTree("gqcd_ee_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_ee", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
+    #sampleCompositionFromTree("gqcd_ee_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl_ee", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
+
 
