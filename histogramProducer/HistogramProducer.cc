@@ -525,7 +525,7 @@ HistogramProducer::HistogramProducer():
   hlt_photon90(fReader, "HLT_Photon90_v"),
   hlt_ht600(fReader, "HLT_PFHT600_v"),
   hlt_ht800(fReader, "HLT_PFHT800_v"),
-  hlt_el27(fReader, "HLT_Ele27_eta2p1_WPLoose_Gsf_v"),
+  hlt_el27(fReader, "HLT_Ele27_eta2p1_WPTight_Gsf_v"),
   hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
   //signal_nBinos(fReader, "signal_nBinos"),
   //signal_m1(fReader, "signal_m1"),
