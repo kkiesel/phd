@@ -61,6 +61,7 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
         ratio = h_pas.Clone(aux.randomName())
         ratio.Divide(h_tot)
         gr = ROOT.TGraphAsymmErrors(ratio)
+        gr.SetTitle(";{};prescaled #varepsilon".format(eff.CreateGraph().GetHistogram().GetXaxis().GetTitle()))
         gr.SetLineColor(1)
         gr.Draw("ap")
     else:
@@ -73,8 +74,11 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
         gr = eff.GetPaintedGraph()
 
     gr.GetYaxis().SetRangeUser(0., 1.1)
+    if name.endswith("eff_hlt_ht_ct") or name.endswith("eff_hlt_met_ct"):
+        gr.GetYaxis().SetRangeUser(0., 0.1)
 
-    if name.endswith("eff_hlt_pt"):
+
+    if name.endswith("eff_hlt_pt") or name.endswith("eff_hlt_pt_endcap"):
         cutValue = 100
     elif name.endswith("eff_hlt_ht") \
             or name.endswith("eff_hlt_ht_ct") \
@@ -109,21 +113,24 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
         l = ROOT.TLine()
         l.SetLineWidth(2)
         l.SetLineColor(ROOT.kRed)
+        xmin = gr.GetHistogram().GetXaxis().GetXmin()
         xmax = gr.GetHistogram().GetXaxis().GetXmax()
-        l.DrawLine(cutValue, e, xmax, e)
-        l.DrawLine(cutValue, e_up, xmax, e_up)
-        l.DrawLine(cutValue, e_dn, xmax, e_dn)
+        l.DrawLine(max(cutValue,xmin), e, xmax, e)
+        l.DrawLine(max(cutValue,xmin), e_up, xmax, e_up)
+        l.DrawLine(max(cutValue,xmin), e_dn, xmax, e_dn)
 
-        if cutValue > eff.CreateGraph().GetHistogram().GetXaxis().GetXmin():
+        if cutValue > xmin:
             # cut line
             l.SetLineStyle(2)
             ymin = gr.GetYaxis().GetXmin()
             ymax = gr.GetYaxis().GetXmax()
             l.DrawLine(cutValue, ymin, cutValue, ymax)
 
-
-    l = aux.Label(sim="Data" not in dataset.label)
-    l.lum.DrawLatexNDC(.1, l.lum.GetY(), dataset.label)
+    saveLumi = aux.intLumi
+    if "B-F" in dataset.label:
+        aux.intLumi = 20.101e3 # brilcalc lumi -b "STABLE BEAMS" --normtag=/afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt --end 278808 # Up to run F
+    l = aux.Label(sim="Data" not in dataset.label, info=dataset.label)
+    aux.intLumi = saveLumi
     name = "_"+name.split("/")[-1]
     if binningName: binningName = "_"+binningName
     aux.save("efficiency_"+savename+name+binningName, log=False)
@@ -138,7 +145,7 @@ def efficiencies(dataset, savename=""):
     names = ["triggerStudies/"+x for x in aux.getObjectNames(dataset.files[0], "triggerStudies", [ROOT.TEfficiency]) ]
     for name in names:
         efficiency(dataset, name, savename)
-        if name.endswith("eff_hlt_pt"):
+        if name.endswith("eff_hlt_pt") or name.endswith("eff_hlt_pt_endcap"):
             efficiency(dataset, name, savename, range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000], "1")
         if name.endswith("eff_hlt_ht"):
             efficiency(dataset, name, savename, range(0,1001,40) + range(1000,1500,2000), "1")
@@ -148,18 +155,24 @@ def efficiencies(dataset, savename=""):
             efficiency(dataset, name, savename, range(500,1001,50), "1")
         if "_met_" in name:
             efficiency(dataset, name, savename, range(0, 100, 5)+range(100,151,10), "1")
+        if name.endswith("eff_hlt_nIso"):
+            efficiency(dataset, name, savename, [0, .2, .4, .8, 1, 1.2, 1.4, 1.6, 2, 2.2, 2.4, 2.6, 2.8, 3, 4, 5, 6, 7, 8, 9, 10, 15], "1")
+        if name.endswith("eff_hlt_r9"):
+            efficiency(dataset, name, savename, [.4,.5,.6,.7,.8]+aux.frange(0.8, 1.1, 0.01), "1")
+        if name.endswith("eff_hlt_sie"):
+            efficiency(dataset, name, savename, [.0045,.007,.0075]+aux.frange(0.0075,0.011,5e-5), "1")
 
 def main():
-    drawEfficiencyVsRun(dataHt)
+    #drawEfficiencyVsRun(dataHt)
     efficiencies(data, "singlePhoton")
     efficiencies(dataHt, "jetHt")
-    dataHtBtoF = Dataset("JetHT_Run2016B-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016C-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016D-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016E-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016F-PromptReco-v1", 0, ROOT.kBlack )
-    dataHtBtoF.label = "Data (JetHt B-F)"
-    efficiencies(dataHtBtoF, "jetHt_BtoF")
+    #dataHtBtoF = Dataset("JetHT_Run2016B-PromptReco-v2", 0, ROOT.kBlack ) \
+    #+ Dataset("JetHT_Run2016C-PromptReco-v2", 0, ROOT.kBlack ) \
+    #+ Dataset("JetHT_Run2016D-PromptReco-v2", 0, ROOT.kBlack ) \
+    #+ Dataset("JetHT_Run2016E-PromptReco-v2", 0, ROOT.kBlack ) \
+    #+ Dataset("JetHT_Run2016F-PromptReco-v1", 0, ROOT.kBlack )
+    #dataHtBtoF.label = "Data (JetHt B-F)"
+    #efficiencies(dataHtBtoF, "jetHt_BtoF")
 
 if __name__ == "__main__":
     main()
