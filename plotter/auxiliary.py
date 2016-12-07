@@ -92,7 +92,7 @@ def getProjections( h2, axis="x", scale=True ):
 
     return hs
 
-def drawContributions(stack):
+def drawContributions(stack, mini=0, maxi=1.1):
     total = stack.GetStack().Last()
     b = total.GetNbinsX()-1
     newStack = ROOT.THStack()
@@ -104,6 +104,8 @@ def drawContributions(stack):
         h.SetFillColor(h.GetFillColor())
         newStack.Add(h)
     newStack.SetTitle(";{};Fractions".format(h.GetXaxis().GetTitle()))
+    newStack.SetMinimum(mini)
+    newStack.SetMaximum(maxi)
     newStack.Draw("hist")
     return newStack
 
@@ -809,6 +811,18 @@ def createHistoFromDatasetTree(dset, variable, weight, nBins, treename="tr/simpl
     h.SetLineColor(dset.color)
     return h
 
+def createHistoFromDatasetTreeWeighted(dset, variable, weight, nBins, treename="tr/simpleTree", weightStr="1.44225-0.000563764*emht+1.17322e-07*emht*emht"):
+    tree = ROOT.TChain(treename)
+    for f in dset.files: tree.Add(f)
+    hUnw = createHistoFromTree(tree, variable, weight, nBins)
+    hW = createHistoFromTree(tree, variable, weight+"*"+weightStr, nBins)
+    hW.SetLineColor(dset.color)
+    hW.Scale(hUnw.Integral(0,-1)/hW.Integral(0,-1))
+    hSys = hW.Clone(randomName())
+    drawOpt(hSys, "sys")
+    for bin in range(hW.GetNbinsX()+2):
+        hSys.SetBinError(bin,abs(hW.GetBinContent(bin)-hUnw.GetBinContent(bin)))
+    return hW, hSys
 
 
 intLumi = 36.53e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2721.html
