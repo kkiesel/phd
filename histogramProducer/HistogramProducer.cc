@@ -742,7 +742,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) {
       fillSelection("tr_ee_genE", true, addWeight);
     } else {
-      fillSelection("tr_ee_noGenE", true, addWeight);
+      fillSelection("tr_noGenE_ee", true, addWeight);
     }
   }
 
