@@ -2,6 +2,7 @@ import ROOT
 import copy
 import auxiliary as aux
 import os.path
+import style
 
 
 path = "../histogramProducer/"
@@ -72,6 +73,7 @@ class Dataset:
                 h.SetMarkerColor( self.color )
             if h0: h0.Add( h )
             else: h0 = h
+        if style.divideByBinWidth: h.Scale(1., "width")
         return h0
 
     def getLatexTableHeader( self ):
@@ -86,22 +88,22 @@ class Dataset:
 
 
 # data
-data = Dataset("SinglePhoton_Run2016B-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("SinglePhoton_Run2016C-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("SinglePhoton_Run2016D-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("SinglePhoton_Run2016E-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("SinglePhoton_Run2016F-PromptReco-v1", 0, ROOT.kBlack ) \
-    + Dataset("SinglePhoton_Run2016G-PromptReco-v1", 0, ROOT.kBlack ) \
+data = Dataset("SinglePhoton_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016C-23Sep2016-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016D-23Sep2016-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016E-23Sep2016-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016F-23Sep2016-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016G-23Sep2016-v1", 0, ROOT.kBlack ) \
     + Dataset("SinglePhoton_Run2016H-PromptReco-v2", 0, ROOT.kBlack ) \
     + Dataset("SinglePhoton_Run2016H-PromptReco-v3", 0, ROOT.kBlack )
 data.label = "Data"
 
-dataHt = Dataset("JetHT_Run2016B-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016C-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016D-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016E-PromptReco-v2", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016F-PromptReco-v1", 0, ROOT.kBlack ) \
-    + Dataset("JetHT_Run2016G-PromptReco-v1", 0, ROOT.kBlack ) \
+dataHt = Dataset("JetHT_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016C-23Sep2016-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016D-23Sep2016-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016E-23Sep2016-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016F-23Sep2016-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016G-23Sep2016-v1", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016H-PromptReco-v2", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016H-PromptReco-v3", 0, ROOT.kBlack )
 dataHt.label = "Data (JetHt)"
