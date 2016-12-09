@@ -7,6 +7,7 @@ import numpy
 import pickle
 import re
 import ROOT
+import style
 
 binCfg = ConfigParser.SafeConfigParser()
 binCfg.readfp(open('rebin.cfg'))
@@ -327,6 +328,7 @@ def createHistoFromTree( tree, variable, weight, nBins=20, xmin=0, xmax=0 ):
     else:
         result = ROOT.TH1F( name, variable, nBins, xmin, xmax )
     tree.Draw("%s>>%s"%(variable, name), weight, "goff")
+    if style.divideByBinWidth: result.Scale(1, "width")
     return result
 
 def sumSq( *items ):
@@ -391,7 +393,6 @@ def getValAndErrorStr( val, err, sig=2 ):
 
 def getYAxisTitle( histo ):
     # returns e.g.: "Events / 10 GeV"
-    import style
     if not style.divideByBinWidth:
         return "Events / Bin"
     yTitle = "Events"
@@ -487,7 +488,6 @@ def getMinimum(hists):
 
 
 def setMinMaxForLog():
-    import style
     primitivesOnCanvas = [i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives()]
     histograms = []
     stackedHistograms = []
@@ -797,6 +797,7 @@ def createHistoFromTree(tree, variable, weight="", nBins=20, firstBin=None, last
         result = TH1F(name, variable, nBins, firstBin, lastBin)
         result.Sumw2()
         tree.Draw("%s>>%s"%(variable, name), weight, "goff")
+    if style.divideByBinWidth: result.Scale(1., "width")
     appendFlowBin(result)
     result.SetTitle("")
     if variable.startswith("met"):
