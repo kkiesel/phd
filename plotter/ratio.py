@@ -123,7 +123,7 @@ class Ratio:
         clearXaxisCurrentPad()
         p = createBottomPad()
 
-        if stack: x = aux.drawContributions(stack, yMin, yMax)
+        if stack: x = aux.drawContributions(stack, yMin, yMax, self.title)
 
         self.ratioStat.Draw("e x0" + "same" if stack else "")
         if self.sysHisto:
