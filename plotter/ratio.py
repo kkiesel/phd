@@ -67,8 +67,10 @@ class Ratio:
         self.ratio.Divide( self.denominator )
         self.ratioGraph = ROOT.TGraphAsymmErrors(self.ratio)
         for bin in range(self.ratio.GetNbinsX()+1):
-            self.ratioGraph.SetPointEYhigh(bin-1, self.numerator.GetBinErrorUp(bin)/self.denominator.GetBinContent(bin))
-            self.ratioGraph.SetPointEYlow(bin-1, self.numerator.GetBinErrorLow(bin)/self.denominator.GetBinContent(bin))
+            den = self.denominator.GetBinContent(bin)
+            if den:
+                self.ratioGraph.SetPointEYhigh(bin-1, self.numerator.GetBinErrorUp(bin)/den)
+                self.ratioGraph.SetPointEYlow(bin-1, self.numerator.GetBinErrorLow(bin)/den)
         self.ratioStat.Divide( self.denominator )
         if self.sysHisto:
             self.ratioSys.Divide( self.denominator )
