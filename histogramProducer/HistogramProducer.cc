@@ -657,17 +657,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   // signal sample
   /////////////////////////////////////////////////////////////////////////////
 
-  vector<float> dPhis;
-  int nJets = 0;
-  for (auto& j : *jets ) {
-    if (nJets < 3) {
-      dPhis.push_back(fabs(met->p.DeltaPhi(j.p)));
-      nJets ++;
-    }
-  }
-  float dPhiMin = *std::min_element(dPhis.begin(),dPhis.end());
-  float dPhiMax = *std::max_element(dPhis.begin(),dPhis.end());
-
   for (auto& photon : *photons) {
     if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel) {
       selPhotons.push_back(&photon);
