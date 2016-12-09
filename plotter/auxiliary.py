@@ -826,7 +826,7 @@ def createHistoFromDatasetTreeWeighted(dset, variable, weight, nBins, treename="
     return hW, hSys
 
 
-intLumi = 36.53e3 # https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/2721.html
+intLumi = 36.459e3
 
 class Label:
     # Create labels
