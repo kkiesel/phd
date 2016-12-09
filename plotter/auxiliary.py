@@ -93,7 +93,7 @@ def getProjections( h2, axis="x", scale=True ):
 
     return hs
 
-def drawContributions(stack, mini=0, maxi=1.1):
+def drawContributions(stack, mini=0, maxi=1.1, title="Fractions"):
     total = stack.GetStack().Last()
     b = total.GetNbinsX()-1
     newStack = ROOT.THStack()
@@ -104,7 +104,7 @@ def drawContributions(stack, mini=0, maxi=1.1):
         h.Divide(total)
         h.SetFillColor(h.GetFillColor())
         newStack.Add(h)
-    newStack.SetTitle(";{};Fractions".format(h.GetXaxis().GetTitle()))
+    newStack.SetTitle(";{};{}".format(h.GetXaxis().GetTitle(),title))
     newStack.SetMinimum(mini)
     newStack.SetMaximum(maxi)
     newStack.Draw("hist")
