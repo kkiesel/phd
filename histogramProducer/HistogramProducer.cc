@@ -306,17 +306,19 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   //auto signalPointName = getSignalPointName(*signal_nBinos, *signal_m1, *signal_m2);
   if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
 
-  float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight, tree_dPhi;
-  UInt_t tree_njet;
+  float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight, tree_dPhi, tree_tremht;
+  UInt_t tree_njet, tree_run;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
     h2Maps[s] = initHistograms2();
     treeMap[s] = new TTree("simpleTree", "");
     treeMap[s]->Branch("met", &tree_m);
     treeMap[s]->Branch("emht", &tree_emht);
+    treeMap[s]->Branch("tremht", &tree_tremht);
     treeMap[s]->Branch("weight", &tree_w);
-    treeMap[s]->Branch("topWeight", &tree_topWeight);
-    treeMap[s]->Branch("dPhi", &tree_dPhi);
+    treeMap[s]->Branch("run", &tree_run);
+//    treeMap[s]->Branch("topWeight", &tree_topWeight);
+//    treeMap[s]->Branch("dPhi", &tree_dPhi);
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
@@ -324,7 +326,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   vector<float> dPhis;
   int nJets = 0;
   for (auto& j : *jets ) {
-    if (nJets < 3 && j.p.Pt()>100) {
+    if (nJets < 3 && j.p.Pt()>100 && fabs(j.p.Eta()<3)) {
       dPhis.push_back(fabs(met->p.DeltaPhi(j.p)));
       nJets ++;
     }
@@ -335,6 +337,12 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   tree_w = weight * sampleW;
   tree_pt = 0;
   tree_topWeight = topPtReweighting(*genParticles);
+  tree_run = *runNo;
+  tree_tremht = 0;
+  for (auto& j : *jets) {
+    auto pt = j.p.Pt();
+    if (fabs(j.p.Eta())<3 and pt>30) tree_tremht += pt;
+  }
 
   if (selPhotons.size()) {
     tree_pt = selPhotons.at(0)->p.Pt();
@@ -374,7 +382,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   float tremht = 0;
   for (auto& jet : *jets) {
     auto pt = jet.p.Pt();
-    if ( pt > 40 && fabs(jet.p.Eta()) < 3) {
+    if ( pt > 30 && fabs(jet.p.Eta()) < 3) {
       tremht += pt;
     }
   }
