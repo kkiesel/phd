@@ -120,7 +120,7 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
         if "genHt" in names: names.remove("genHt")
 
     names = ["met", "emht"]
-    dirs = "tr", "tr_ee", "tr_jControl", "tr_eControl","tr_eControl_ee"
+    dirs = "tr", "tr_ee", "tr_jControl", "tr_eControl","tr_eControl_ee", "tr_0met100"
     #dirs = ["tr_jControl", "tr_jControl_noLep"]
     #dirs = ["tr_genWZ11","tr_genWZ11",  "tr_jControl", "tr_eControl", "tr"]
     #names = ["g_eta"]
@@ -139,12 +139,14 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
 if __name__ == "__main__":
     #transitions()
     #drawSameHistograms( "gqcd_data", [gjets, qcd], additional=[data])
-    drawSameHistograms( "mc_data", [gjets, qcd, ttjets_ht, ttg, wjets, wg, zg, znunu], additional=[data])
+    #drawSameHistograms( "mc_data", [gjets, qcd, ttjets_ht, ttg, wjets, wg, zg, znunu], additional=[data])
     #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets, wg, zg, znunu], additional=[t5wg_1600_100, t5wg_1600_1500])
     #drawSameHistograms( "gqcd_splitted", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000])
     #sampleCompositionFromTree("gqcd_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
+    #sampleCompositionFromTree("gqcd_ee_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_ee", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
     #sampleCompositionFromTree("gqcd_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
     #sampleCompositionFromTree("gqcd_ee_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_ee", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
-    #sampleCompositionFromTree("gqcd_ee_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl_ee", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
+    #sampleCompositionFromTree("gqcd", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr", "met", "1", range(0,200,10)+[200, 300, 400, 500, 600])
+    #sampleCompositionFromTree("gqcd_jControl", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl", "met", "1", range(0,200,10)+[200, 300, 400, 500, 600])
 
 
