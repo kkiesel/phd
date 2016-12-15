@@ -262,4 +262,4 @@ if __name__ == "__main__":
     print gjets.getLatexTableHeader()
     for i in gjets40, gjets100, gjets200, gjets400, gjets600, qcd100, qcd200, qcd300, qcd500, qcd700, qcd1000, qcd1500, qcd2000, ttjets, wjets100, wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500, ttg, wg_mg, wg_130, znunu100, znunu200, znunu400, znunu600, zg:
         print i.getLatexTableLine(),
-    print
+    print "\\end{tabular}"
