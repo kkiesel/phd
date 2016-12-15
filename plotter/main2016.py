@@ -130,7 +130,6 @@ def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSe
             dirHist.SetBinContent(bin, 0)
             dirHist.SetBinError(bin, 0)
     preHist, gjetSyst, fitScale, err, norm = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
-    #preHist, gjetSyst = getGJetPrediction(dirTree, preTree, variable, weight, nBins)
     totUnc = aux.addHistUncert(preHist, gjetSyst)
 
     gjetHistUnw = aux.createHistoFromTree(preTree, variable, weight, nBins)
