@@ -195,8 +195,8 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     for bin in range(gjetHist.GetNbinsX()+2):
         cOld = gjetHist.GetBinContent(bin)
         subT = mcPreHist.GetBinContent(bin)
-        #gjetHist.SetBinContent(bin, cOld - subT)
-        #gjetSyst.SetBinContent(bin, cOld - subT)
+        gjetHist.SetBinContent(bin, cOld - subT)
+        gjetSyst.SetBinContent(bin, cOld - subT)
 
     gjetHistUnw = aux.createHistoFromTree(preTree, variable, weight, nBins)
     gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100)-1)/gjetHistUnw.Integral(0,dirHist.FindBin(100)-1))
