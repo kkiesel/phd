@@ -166,13 +166,5 @@ def main():
     #drawEfficiencyVsRun(dataHt)
     efficiencies(data, "singlePhoton")
     efficiencies(dataHt, "jetHt")
-    #dataHtBtoF = Dataset("JetHT_Run2016B-PromptReco-v2", 0, ROOT.kBlack ) \
-    #+ Dataset("JetHT_Run2016C-PromptReco-v2", 0, ROOT.kBlack ) \
-    #+ Dataset("JetHT_Run2016D-PromptReco-v2", 0, ROOT.kBlack ) \
-    #+ Dataset("JetHT_Run2016E-PromptReco-v2", 0, ROOT.kBlack ) \
-    #+ Dataset("JetHT_Run2016F-PromptReco-v1", 0, ROOT.kBlack )
-    #dataHtBtoF.label = "Data (JetHt B-F)"
-    #efficiencies(dataHtBtoF, "jetHt_BtoF")
-
 if __name__ == "__main__":
     main()
