@@ -130,7 +130,7 @@ class Ratio:
             self.ratioSys.Draw("same e2")
             self.totalUncert.Draw("same e2")
         #self.ratio.Draw("same "+self.ratio.drawOption_)
-        self.ratioGraph.Draw("same pz")
+        self.ratioGraph.Draw("same pz0")
 
         if yMin < 1 and yMax > 1:
             oneLine = ROOT.TLine()
