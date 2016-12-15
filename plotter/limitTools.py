@@ -1,9 +1,11 @@
 #!/usr/bin/env python2
 
 import re
-import argparse
 import subprocess
 import ROOT
+import optparse
+from Datacard import Datacard
+
 
 def infoFromOut(out):
     infos = { "obs":0, "exp":0, "exp1up":0, "exp1dn":0, "exp2up":0, "exp2dn":0 }
@@ -41,5 +43,134 @@ def getContour( gr2d ):
     contoursN = sorted( contoursN, key=lambda x: x[1] )
     if contoursN: return contoursN[-1][0]
     print "Could not find contour"
+
+class MyDatacard(Datacard):
+    def __init__(self, dc):
+        if isinstance(dc, Datacard):
+            self.bins = dc.bins
+            self.obs  = dc.obs
+            self.processes = dc.processes
+            self.signals = dc.signals
+            self.isSignal = dc.isSignal
+            self.keyline = dc.keyline
+            self.exp     = dc.exp
+            self.systs   = dc.systs
+            self.shapeMap = dc.shapeMap
+            self.hasShape = dc.hasShape
+            self.flatParamNuisances = dc.flatParamNuisances
+            self.rateParams = dc.rateParams
+            self.rateParamsOrder = dc.rateParamsOrder
+        elif dc == "photonHt":
+            self.bins = []
+            self.obs = {}
+            self.processes = ['signal', 'gqcd', 'ele', 'zg', 'wg', 'ttg']
+            self.signals = ['signal']
+            self.isSignal = {'wg': False, 'signal': True, 'zg': False, 'gqcd': False, 'ele': False, 'ttg': False}
+            self.keyline = []
+            self.exp = {}
+            self.systs = [(x, False, 'lnN', [], {}) for x in "lumi", "jec", "pdf", "gqcdSyst", "eleSyst", "wgSyst", "zgSyst", "ttgSyst"]
+            self.shapeMap = {}
+            self.hasShape = False
+            self.flatParamNuisances = {}
+            self.rateParams = {}
+            self.rateParamsOrder = []
+
+    def __str__(self):
+        print "Class MyDatacard"
+        print "bins               ", self.bins
+        print "obs                ", self.obs
+        print "processes          ", self.processes
+        print "signals            ", self.signals
+        print "isSignal           ", self.isSignal
+        print "keyline            ", self.keyline
+        print "exp                ", self.exp
+        print "systs              ", self.systs
+        #print "shapeMap           ", self.shapeMap
+        #print "hasShape           ", self.hasShape
+        #print "flatParamNuicances ", self.flatParamNuisances
+        #print "rateParams         ", self.rateParams
+        #print "rateParamsOrder    ", self.rateParamsOrder
+        return ""
+
+    def write(self, filename=""):
+        out = ""
+        out += "\nimax "+str(len(self.bins))
+        out += "\njmax *"
+        out += "\nkmax *"
+        out += "\nbin "+ " ".join(self.bins)
+        out += "\nobservation " + " ".join([str(int(self.obs[x])) for x in self.bins])
+        keylineInv0, keylineInv1, keylineInv2 = zip(*self.keyline)
+        out += "\nbin " + " ".join(keylineInv0)
+        out += "\nprocess " + " ".join(keylineInv1)
+        counter = 1
+        processNumbers = {}
+        for a, b in self.isSignal.iteritems():
+            if b: processNumbers[a] = 0
+            else:
+                processNumbers[a] = counter
+                counter += 1
+        out += "\nprocess " + " ".join([str(processNumbers[x]) for x in keylineInv1]) # name of processes has to be the same
+        out += "\nrate " + " ".join([str(self.exp[keylineInv0[i]][keylineInv1[i]]) for i in range(len(keylineInv0))])
+        for line in self.systs:
+            out += "\n{} {} ".format(line[0],line[2]) + " ".join([str(line[4][keylineInv0[i]][keylineInv1[i]]) for i in range(len(keylineInv0))])
+        if filename:
+            with open(filename, "wb") as f:
+                f.write(out)
+                print "Writing to file:", filename
+        else:
+            print out
+
+    def addBin(self, name, obs, gqcd, gqcdStat, gqcdSyst, ele, eleStat, eleSyst, zg, zgStat, zgSyst, wg, wgStat, wgSyst, ttg, ttgStat, ttgSyst, signal, signalStat, signalSyst):
+        self.bins = list(set(self.bins+[name]))
+        self.obs[name] = obs
+        self.keyline.extend([(name, 'signal', True), (name, 'gqcd', False), (name, 'ele', False), (name, 'zg', False), (name, 'wg', False), (name, "ttg", False)])
+        self.exp[name] = {"signal": signal, "gqcd": gqcd, "ele": ele,
+                            "wg": wg, "zg": zg, "ttg": ttg}
+        for line in self.systs:
+            if   line[0] == "lumi": line[4][name] = {'signal': 1.027, 'gqcd': 1, 'ele': 1, 'wg': 1.027, 'zg': 1.027, 'ttg': 1.027}
+            elif line[0] == "jec": line[4][name] = {'signal': 1.11, 'gqcd': 1, 'ele': 1, 'wg': 1.11, 'zg': 1.11, 'ttg': 1.11}
+            elif line[0] == "pdf": line[4][name] = {'signal': 1.11, 'gqcd': 1, 'ele': 1, 'wg': 1.11, 'zg': 1.11, 'ttg': 1.11}
+            elif line[0] == "gqcdSyst": line[4][name] = {'signal': 1, 'gqcd': gqcdSyst, 'ele': 1, 'wg': 1, 'zg': 1, 'ttg': 1}
+            elif line[0] == "eleSyst": line[4][name] = {'signal': 1, 'gqcd': 1, 'ele': eleSyst, 'wg': 1, 'zg': 1, 'ttg': 1}
+            elif line[0] == "wgSyst": line[4][name] = {'signal': 1, 'gqcd': 1, 'ele': 1, 'wg': wgSyst, 'zg': 1, 'ttg': 1}
+            elif line[0] == "zgSyst": line[4][name] = {'signal': 1, 'gqcd': 1, 'ele': 1, 'wg': 1, 'zg': zgSyst, 'ttg': 1}
+            elif line[0] == "ttgSyst": line[4][name] = {'signal': 1, 'gqcd': 1, 'ele': 1, 'wg': 1, 'zg': 1, 'ttg': ttgSyst}
+            else: line[4][name] = {'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}
+
+        self.systs.append(('qcdStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': gqcdStat, 'ele': 1, 'ttg': 1}]))))
+        self.systs.append(('eleStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': eleStat, 'ttg': 1}]))))
+        self.systs.append(('wgStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': wgStat, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]))))
+        self.systs.append(('zgStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': 1, 'zg': zgStat, 'gqcd': 1, 'ele': 1, 'ttg': 1}]))))
+        self.systs.append(('ttgStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': ttgStat}]))))
+        self.systs.append(('signalStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': signalStat, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]))))
+
+    def newSignal(self, infos):
+        if sorted(infos.keys()) != sorted(self.bins): print "Error, not all bins replaced:", infos.keys(), self.bins
+        for b, v in infos.iteritems():
+            self.exp[b]["signal"] = v[0]
+            lines = [i for i, j in enumerate(self.systs) if j[0] == "signalStat_"+b]
+            if not len(lines) != 1: "Error: Statistical uncertainty not found"
+            self.systs[lines[0]][4][b]["signal"] = v[1]
+
+    def limit(self):
+        self.write("/tmp/tmpDataCard.txt")
+        return infosFromDatacard("/tmp/tmpDataCard.txt")
+
+
+if False:
+    inFileName = "/tmp/tmpDataCard.txt"
+    import DatacardParser
+    options, b = DatacardParser.addDatacardParserOptions(optparse.OptionParser())
+    dc = MyDatacard(DatacardParser.parseCard(file(inFileName), options))
+
+    dc.newSignal({
+        "bin25": (12,1.1),
+        "bin26": (1, 1.1),
+        "bin27": (3, 1.2)
+    })
+
+    print dc
+    dc.write()
+    #print dc.limit()
 
 
