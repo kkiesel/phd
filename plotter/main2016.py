@@ -145,7 +145,10 @@ def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSe
     m.add(dirHist, "(Pseudo)Data")
     m.add(preHist, "")
     m.add(totUnc, "Tot. uncert.")
-    if cut is not "1": m.leg.SetHeader(cut)
+    legHeader = ""
+    if cut is not "1": legHeader += cut
+    if "_ee" in treename: legHeader += " EE"
+    if legHeader: m.leg.SetHeader(legHeader)
     m.Draw()
 
     r = ratio.Ratio("Data/Pred", dirHist, preHist, gjetSyst)
