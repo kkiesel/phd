@@ -109,7 +109,7 @@ def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weigh
         syst.SetBinError(bin, aux.sqrt(syst.GetBinError(bin)**2 + (relScaleUncert*syst.GetBinContent(bin))**2))
     return preHist, syst, fitScale, fitErr, dirInt/preInt
 
-def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSets=[], cut="1", noScale=False):
+def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSets=[], cut="1", noScale=False, binning=None):
     if not preSet: preSet = dirSet
     dirTree = ROOT.TChain(treename)
     preTree = ROOT.TChain(treename.replace("tr", "tr_jControl"))
@@ -122,6 +122,7 @@ def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSe
     nBins = range(0,100,10)+[130, 170, 230, 300, 400, 500, 600]
     #range(100,200,10)+[200, 250, 300, 600]
     nBins = range(0,200,10)+[200, 300, 400, 500, 600]
+    if binning: nBins = binning
 
     dirHist = aux.createHistoFromTree(dirTree, variable, weight, nBins)
     if dirSet == data:
