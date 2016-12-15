@@ -278,7 +278,20 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
 
     l = aux.Label(sim= not dirSet==data, info=dirSet.label if dirSet != data else "")
     aux.save("finalDistribution_{}".format(name), normal=False)
+    return
+    dc = limitTools.MyDatacard("photonHt")
+    for bin in range(dirHist.GetNbinsX()-2, dirHist.GetNbinsX()+1):
+        dc.addBin(
+            "bin"+str(bin), dirHist.GetBinContent(bin),
+            gjetHist.GetBinContent(bin), 1.+gjetHist.GetBinError(bin)/gjetHist.GetBinContent(bin), 1.+gjetSyst.GetBinError(bin)/gjetHist.GetBinContent(bin),
+            eHist.GetBinContent(bin), 1.+eHist.GetBinError(bin)/eHist.GetBinContent(bin), 1.+eSyst.GetBinError(bin)/eHist.GetBinContent(bin),
+            zgHist.GetBinContent(bin)+zHist.GetBinContent(bin), 1.+aux.sqrt(zHist.GetBinError(bin)**2+zgHist.GetBinError(bin)**2)/(zgHist.GetBinContent(bin)+zHist.GetBinContent(bin)), 1.+aux.sqrt(zSyst.GetBinError(bin)**2+zgSyst.GetBinError(bin)**2)/(zgHist.GetBinContent(bin)+zHist.GetBinContent(bin)),
+            wgHist.GetBinContent(bin)+wHist.GetBinContent(bin), 1.+aux.sqrt(wHist.GetBinError(bin)**2+wgHist.GetBinError(bin)**2)/(wgHist.GetBinContent(bin)+wHist.GetBinContent(bin)), 1.+aux.sqrt(wSyst.GetBinError(bin)**2+wgSyst.GetBinError(bin)**2)/(wgHist.GetBinContent(bin)+wHist.GetBinContent(bin)),
+            ttgHist.GetBinContent(bin)+ttHist.GetBinContent(bin), 1.+aux.sqrt(ttHist.GetBinError(bin)**2+ttgHist.GetBinError(bin)**2)/(ttgHist.GetBinContent(bin)+ttHist.GetBinContent(bin)), 1.+aux.sqrt(ttSyst.GetBinError(bin)**2+ttgSyst.GetBinError(bin)**2)/(ttgHist.GetBinContent(bin)+ttHist.GetBinContent(bin)),
+            signal.GetBinContent(bin), signal.GetBinError(bin), 1.3)
+    #print dc.limit()
 
+    return
     for bin in range(dirHist.GetNbinsX()-5, dirHist.GetNbinsX()+1):
         print
         print "Bin: {} to {}".format(dirHist.GetBinLowEdge(bin),dirHist.GetBinLowEdge(bin+1))
