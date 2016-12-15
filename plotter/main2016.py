@@ -178,7 +178,7 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
     nBins = range(0,200,10)+[200,250]+range(300,500,20)+[600,700,800,900,910]
-    nBins = range(0,200,10)+[200, 250, 300, 350, 400, 450, 500, 550, 600, 610]
+    nBins = range(0,200,10)+[200, 250, 300, 350, 400, 500, 600, 700]
     #nBins = range(0,500,10)+[500, 550, 600, 650, 660]
 
     dirHist = aux.createHistoFromTree(dirTree, variable, weight, nBins)
