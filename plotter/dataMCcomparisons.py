@@ -60,6 +60,10 @@ def drawSameHistogram(sampleNames, name, bkg=[], additional=[], binning=None, bi
         if not h.Integral(): continue
         if binning: h = aux.rebin( h, binning )
         aux.appendFlowBin( h )
+        if data in additional and name == "tr/met":
+            for bin in range(h.GetNbinsX()+2):
+                if h.GetBinCenter(bin)>100:
+                    h.SetBinContent(bin,0);h.SetBinError(bin,0)
 
         if h.GetLineColor() == ROOT.kBlack: # data
             h.drawOption_ = "ep"
