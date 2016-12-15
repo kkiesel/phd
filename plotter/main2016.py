@@ -184,7 +184,7 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     dirHist = aux.createHistoFromTree(dirTree, variable, weight, nBins)
     if dirSet == data:
         for bin in range(dirHist.GetNbinsX()+2):
-            if dirHist.GetBinCenter(bin) > 160 and False:
+            if dirHist.GetBinCenter(bin) > 130 and "_ee" not in name and False:
                 dirHist.SetBinContent(bin,0)
                 dirHist.SetBinError(bin,0)
     gjetHist, gjetSyst, fitScale, err, norm = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
