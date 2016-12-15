@@ -4,7 +4,7 @@ from include import *
 
 def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins):
     weightName = weight.replace("(","").replace(")","").replace("*","").replace(">","").replace("<","").replace("&&","").replace(" ", "")
-    saveName = "__".join([name, str(len(dirSet.names)), treename.replace("/","_"), str(len(preSet.names)), weightName, variable, str(len(nBins))])
+    saveName = "__".join([name, str(len(dirSet.names)), treename.replace("/","_"), str(len(preSet.names)), weightName, variable, str(len([x for x in nBins if x<=100]))])
     saveNameRoot = "savedFitPredictions/{}.root".format(saveName)
     if os.path.isfile(saveNameRoot):
         print "Using saved events from", saveName
