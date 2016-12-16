@@ -9,12 +9,12 @@ const float photonsEtaMaxBarrel = 1.4442;
 const float photonsEtaMinEndcap = 1.6;
 const float photonsEtaMaxEndcap = 2.5;
 
-// https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80X
+// https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco
 enum bTaggingEnum { CSVv2L, CSVv2M, CSVv2T };
 map<bTaggingEnum,float> bTaggingWorkingPoints = {
-  {CSVv2L, 0.460},
-  {CSVv2M, 0.800},
-  {CSVv2T, 0.935}
+  {CSVv2L, 0.5426},
+  {CSVv2M, 0.8484},
+  {CSVv2T, 0.9535}
 };
 
 pair<TVector3,TVector3> megajets( const vector<TVector3>& jets ) {
