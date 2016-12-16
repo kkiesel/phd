@@ -755,6 +755,115 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   resetSelection();
   /////////////////////////////////////////////////////////////////////////////
+  // eta1 signal sample
+  /////////////////////////////////////////////////////////////////////////////
+
+  for (auto& photon : *photons) {
+    auto eta = fabs(photon.p.Eta());
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && eta < 0.5) {
+      selPhotons.push_back(&photon);
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  for (auto& p : selPhotons) myHt += p->p.Pt();
+  for (auto& p : selJets) myHt += p->p.Pt();
+
+  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
+    fillSelection("tr_eta1", true, addWeight);
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // eta2 signal sample
+  /////////////////////////////////////////////////////////////////////////////
+
+  for (auto& photon : *photons) {
+    auto eta = fabs(photon.p.Eta());
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && 0.5 < eta && eta < 1.0) {
+      selPhotons.push_back(&photon);
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  for (auto& p : selPhotons) myHt += p->p.Pt();
+  for (auto& p : selJets) myHt += p->p.Pt();
+
+  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
+    fillSelection("tr_eta2", true, addWeight);
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // eta3 signal sample
+  /////////////////////////////////////////////////////////////////////////////
+
+  for (auto& photon : *photons) {
+    auto eta = fabs(photon.p.Eta());
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && 1.0 < eta && eta < photonsEtaMaxBarrel) {
+      selPhotons.push_back(&photon);
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  for (auto& p : selPhotons) myHt += p->p.Pt();
+  for (auto& p : selJets) myHt += p->p.Pt();
+
+  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
+    fillSelection("tr_eta3", true, addWeight);
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // eta4 signal sample
+  /////////////////////////////////////////////////////////////////////////////
+
+  for (auto& photon : *photons) {
+    auto eta = fabs(photon.p.Eta());
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && photonsEtaMinEndcap < eta && eta < 2.0) {
+      selPhotons.push_back(&photon);
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  for (auto& p : selPhotons) myHt += p->p.Pt();
+  for (auto& p : selJets) myHt += p->p.Pt();
+
+  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
+    fillSelection("tr_eta4", true, addWeight);
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
+  // eta3 signal sample
+  /////////////////////////////////////////////////////////////////////////////
+  for (auto& photon : *photons) {
+    auto eta = fabs(photon.p.Eta());
+    if (photon.isLoose && !photon.hasPixelSeed && photon.p.Pt() > 100 && 2.0 < eta && eta < photonsEtaMaxEndcap) {
+      selPhotons.push_back(&photon);
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  for (auto& p : selPhotons) myHt += p->p.Pt();
+  for (auto& p : selJets) myHt += p->p.Pt();
+
+  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
+    fillSelection("tr_ee", true, addWeight);
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
   // electron sample
   /////////////////////////////////////////////////////////////////////////////
 
