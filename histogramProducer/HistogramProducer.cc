@@ -18,9 +18,9 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_nIso"] = TEfficiency("", ";I_{n} (GeV)", 100, 0, 20);
   effMap["eff_hlt_pIso"] = TEfficiency("", ";I_{#gamma} (GeV)", 100, 0, 20);
   effMap["eff_hlt_nJet"] = TEfficiency("", ";uncleaned jet multiplicity", 15, -0.5, 14.5);
-  effMap["eff_hlt_met"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
-  effMap["eff_hlt_met_ct"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
-  effMap["eff_hlt_met_ct2"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 150, 0, 150);
+  effMap["eff_hlt_met"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 250, 0, 250);
+  effMap["eff_hlt_met_ct"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 250, 0, 250);
+  effMap["eff_hlt_met_ct2"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 250, 0, 250);
   effMap["eff_hlt_ele_pt"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 100, 0, 100);
   effMap["eff_hlt_pt_endcap"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
   effMap["eff_hlt_pt_endcap_ps"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
