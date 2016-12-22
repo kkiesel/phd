@@ -711,12 +711,21 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
     fillSelection("tr", true, addWeight);
+    if (10< *nGoodVertices && *nGoodVertices < 25 ) fillSelection("tr_mediumPU", true, addWeight);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", true, addWeight);
     if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB", false, addWeight);
     else if (selPhotons.at(0)->isTrue == MATCHED_FROM_PI0) fillSelection("tr_true_pi0", false, addWeight);
     else if (selPhotons.at(0)->isTrue == MATCHED_FROM_OTHER_SOURCES) fillSelection("tr_true_other", false, addWeight);
     else fillSelection("tr_unmatched", false, addWeight);
-    if (selPhotons.at(0)->isTight) fillSelection("tr_tight", false, addWeight);
+    if (selPhotons.at(0)->isTight) fillSelection("tr_tight", true, addWeight);
+    if (selPhotons.at(0)->sigmaIetaIeta>.006
+      && selPhotons.at(0)->sigmaIphiIphi>0.005
+      && selPhotons.at(0)->hOverE<0.005
+      && selPhotons.at(0)->r9>.8
+      && selPhotons.at(0)->cIso<0.005
+      && selPhotons.at(0)->nIso<1
+      && selPhotons.at(0)->pIso<0.5
+      && selPhotons.at(0)->cIsoWorst<50) fillSelection("tr_veryTight", true, addWeight);
     if (met->p.Pt() < 100) fillSelection("tr_0met100", false, addWeight);
     else                    fillSelection("tr_100met", false, addWeight);
     fillSelection(string("tr_genWZ")+to_string(genMatchWZDecay(*selPhotons.at(0), *intermediateGenParticles)), false, addWeight);
@@ -731,6 +740,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
     fillSelection("tr_jControl", true, *hlt_ht600_pre);
+    if (10< *nGoodVertices && *nGoodVertices < 25 ) fillSelection("tr_jControl_mediumPU", true, *hlt_ht600_pre);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep", true, *hlt_ht600_pre);
     for (auto& j : selJets) {
       if (j->nef>.9 && j->p.Pt()>100 && fabs(j->p.Eta())<1.4442) {
@@ -767,6 +777,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
     fillSelection("tr_ee", true, addWeight);
+    if (selPhotons.at(0)->isTight) fillSelection("tr_ee_tight", true, addWeight);
     if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) {
       fillSelection("tr_ee_genE", true, addWeight);
     } else {
@@ -885,7 +896,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
-    fillSelection("tr_ee", true, addWeight);
+    fillSelection("tr_eta5", true, addWeight);
   }
 
   resetSelection();
