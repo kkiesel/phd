@@ -265,6 +265,14 @@ map<string,TH1F> initHistograms() {
   hMap["g_e"] = TH1F("", ";#it{E} (GeV)", 150, 0, 1500);
   hMap["g_ptStar"] = TH1F("", ";#it{p}_{T}* (GeV)", 150, 0, 1500);
   hMap["g_eta"] = TH1F("", ";|#eta|", 2600, 0, 2.6);
+  hMap["g_sie"] = TH1F("", ";#sigma_{i#etai#eta}", 400, 0, 0.04);
+  hMap["g_sip"] = TH1F("", ";#sigma_{i#phii#phi}", 500, 0, 0.1);
+  hMap["g_hoe"] = TH1F("", ";H/E", 500, 0, 0.5);
+  hMap["g_r9"] = TH1F("", ";r9", 100, 0, 1);
+  hMap["g_cIso"] = TH1F("", ";I_{#pm} (GeV)", 350, 0, 3.5);
+  hMap["g_nIso"] = TH1F("", ";I_{n} (GeV)", 400, 0, 40);
+  hMap["g_pIso"] = TH1F("", ";I_{p} (GeV)", 400, 0, 4);
+  hMap["g_cIsoWorst"] = TH1F("", ";worst I_{#pm} (GeV)", 600, 0, 600);
 
   // he-jet
   hMap["j1_pt"] = TH1F("", ";#it{p}_{T}^{1.jet} (GeV)", 150, 0, 1500);
@@ -447,6 +455,15 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
     m1->at("g_pt").Fill(g->p.Pt(), weight);
     m1->at("g_e").Fill(g->p.Mag(), weight);
     m1->at("g_eta").Fill(fabs(g->p.Eta()), weight);
+    m1->at("g_sie").Fill(g->sigmaIetaIeta, weight);
+    m1->at("g_sip").Fill(g->sigmaIphiIphi, weight);
+    m1->at("g_hoe").Fill(g->hOverE, weight);
+    m1->at("g_r9").Fill(g->r9, weight);
+    m1->at("g_cIso").Fill(g->cIso, weight);
+    m1->at("g_nIso").Fill(g->nIso, weight);
+    m1->at("g_pIso").Fill(g->pIso, weight);
+    m1->at("g_cIsoWorst").Fill(g->cIsoWorst, weight);
+
     float dphi_met_g = fabs(met->p.DeltaPhi(g->p));
     m1->at("dphi_met_g").Fill(dphi_met_g, weight);
     m1->at("metPar").Fill(met->p.Pt()*cos(dphi_met_g), weight);
