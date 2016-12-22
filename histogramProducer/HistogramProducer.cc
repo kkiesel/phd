@@ -315,6 +315,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
 
   float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight, tree_dPhi, tree_tremht, tree_ht;
+  float tree_eta, tree_phi, tree_dphi;
   UInt_t tree_njet, tree_run;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
@@ -323,11 +324,14 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
     treeMap[s]->Branch("met", &tree_m);
     treeMap[s]->Branch("emht", &tree_emht);
     treeMap[s]->Branch("tremht", &tree_tremht);
+    treeMap[s]->Branch("njet", &tree_njet);
     treeMap[s]->Branch("weight", &tree_w);
- //   treeMap[s]->Branch("run", &tree_run);
     treeMap[s]->Branch("pt", &tree_pt);
     treeMap[s]->Branch("ht", &tree_ht);
 //    treeMap[s]->Branch("dPhi", &tree_dPhi);
+    treeMap[s]->Branch("eta", &tree_eta);
+    treeMap[s]->Branch("phi", &tree_phi);
+    treeMap[s]->Branch("dphi", &tree_dphi);
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
@@ -358,8 +362,13 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
     if (fabs(j->p.Eta())<3 and pt>30) tree_ht += pt;
   }
 
+  tree_eta = 0;
+  tree_phi = 0;
   if (selPhotons.size()) {
     tree_pt = selPhotons.at(0)->p.Pt();
+    tree_eta = selPhotons.at(0)->p.Eta();
+    tree_phi = selPhotons.at(0)->p.Phi();
+    tree_dphi = selPhotons.at(0)->p.DeltaPhi(met->p);
   } else if (selJets.size()) {
     tree_pt = selJets.at(0)->p.Pt();
   }
@@ -389,7 +398,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   }
   tree_emht = emht;
   tree_emrecoilt = emrecoil.Pt();
-  tree_njet = selPhotons.size() ? selJets.size() : selJets.size() - 1;
+  tree_njet = selJets.size();
   if (fillTree) treeMap[s]->Fill();
   float st = emht + met->p.Pt();
 
