@@ -825,6 +825,10 @@ def createHistoFromDatasetTreeWeighted(dset, variable, weight, nBins, treename="
         hSys.SetBinError(bin,abs(hW.GetBinContent(bin)-hUnw.GetBinContent(bin)))
     return hW, hSys
 
+def beautifyCutString(cut):
+    cut = cut.replace("emht","#it{EMH}_{T}").replace("&&",",").replace("pt", "#it{p}_{T}")
+    return cut
+
 
 intLumi = 36.459e3
 
