@@ -315,7 +315,7 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
   if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
 
   float tree_m, tree_mRaw, tree_w, tree_emht, tree_pt, tree_emrecoilt, tree_topWeight, tree_dPhi, tree_tremht, tree_ht;
-  float tree_eta, tree_phi, tree_dphi;
+  float tree_eta, tree_phi, tree_dphi, tree_sie, tree_sip;
   UInt_t tree_njet, tree_run;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
@@ -323,15 +323,17 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
     treeMap[s] = new TTree("simpleTree", "");
     treeMap[s]->Branch("met", &tree_m);
     treeMap[s]->Branch("emht", &tree_emht);
-    treeMap[s]->Branch("tremht", &tree_tremht);
+//    treeMap[s]->Branch("tremht", &tree_tremht);
     treeMap[s]->Branch("njet", &tree_njet);
     treeMap[s]->Branch("weight", &tree_w);
     treeMap[s]->Branch("pt", &tree_pt);
-    treeMap[s]->Branch("ht", &tree_ht);
+//    treeMap[s]->Branch("ht", &tree_ht);
 //    treeMap[s]->Branch("dPhi", &tree_dPhi);
     treeMap[s]->Branch("eta", &tree_eta);
     treeMap[s]->Branch("phi", &tree_phi);
     treeMap[s]->Branch("dphi", &tree_dphi);
+    treeMap[s]->Branch("sie", &tree_sie);
+    treeMap[s]->Branch("sip", &tree_sip);
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
@@ -369,6 +371,8 @@ void HistogramProducer::fillSelection(string const& s, bool fillTree=false, floa
     tree_eta = selPhotons.at(0)->p.Eta();
     tree_phi = selPhotons.at(0)->p.Phi();
     tree_dphi = selPhotons.at(0)->p.DeltaPhi(met->p);
+    tree_sie = selPhotons.at(0)->sigmaIetaIeta;
+    tree_sip = selPhotons.at(0)->sigmaIphiIphi;
   } else if (selJets.size()) {
     tree_pt = selJets.at(0)->p.Pt();
   }
