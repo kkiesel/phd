@@ -110,6 +110,8 @@ args = parser.parse_args()
 
 if args.datasets == ["all"]:
     toProcess = [x for sublist in ds.values() for x in sublist]
+elif args.datasets == ["2"]:
+    toProcess = [x for sublist in ds.values() for x in sublist if not x.startswith("GJet") and not x.startswith("QCD")]
 else:
     toProcess = ds[args.datasets[0]]
     for n in args.datasets[1:]:
