@@ -9,9 +9,13 @@ if sys.version_info[:2] == (2,6):
 import suppressor
 with suppressor.suppress_stdout_stderr():
     import ROOT
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 
-import math
+import argparse
 import collections
+import math
+import optparse
+import re
 
 # private libs
 import ratio
