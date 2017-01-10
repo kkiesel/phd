@@ -146,7 +146,7 @@ def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSe
     m.add(preHist, "")
     m.add(totUnc, "Tot. uncert.")
     legHeader = ""
-    if cut is not "1": legHeader += cut
+    if cut is not "1": legHeader += aux.beautifyCutString(cut)
     if "_ee" in treename: legHeader += " EE"
     if legHeader: m.leg.SetHeader(legHeader)
     m.Draw()
@@ -178,32 +178,57 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     weight = "weight*({})".format(cut)
     nBins = range(0,100,10)+range(100,200,10)+[200, 250, 300, 600]
     nBins = range(0,200,10)+[200,250]+range(300,500,20)+[600,700,800,900,910]
-    nBins = range(0,200,10)+[200, 250, 300, 350, 400, 500, 600, 700]
+    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
     #nBins = range(0,500,10)+[500, 550, 600, 650, 660]
 
     dirHist = aux.createHistoFromTree(dirTree, variable, weight, nBins)
-    if dirSet == data:
+    if dirSet == data or "data" in name:
         for bin in range(dirHist.GetNbinsX()+2):
-            if dirHist.GetBinCenter(bin) > 130 and "_ee" not in name and False:
+            if dirHist.GetBinCenter(bin) > 100 and "_ee" not in name and False:
                 dirHist.SetBinContent(bin,0)
                 dirHist.SetBinError(bin,0)
+
     gjetHist, gjetSyst, fitScale, err, norm = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
     gjetHist.SetLineColor(ROOT.kCyan)
     # correct for other backgrounds
     mcPreHist = aux.createHistoFromDatasetTree(zg+wg+ttg+wjets+ttjets_ht+znunu, "{}*{}".format(variable,fitScale), weight, nBins, treename.replace("tr", "tr_jControl"))
-    mcPreHist.Scale(norm) # scale also with trigger prescale?
+    mcPreHist.Scale(norm)
     for bin in range(gjetHist.GetNbinsX()+2):
         cOld = gjetHist.GetBinContent(bin)
         subT = mcPreHist.GetBinContent(bin)
         gjetHist.SetBinContent(bin, cOld - subT)
         gjetSyst.SetBinContent(bin, cOld - subT)
-
+    """
+    emhtRange = [700,750,800,900,1000,1500,2000,25000]
+    gjetHist = None
+    gjetSyst = None
+    for emhtBin in range(len(emhtRange)-1):
+        emhtSliceCut = "&&{}<emht&&emht<{}".format(emhtRange[emhtBin],emhtRange[emhtBin+1])
+        gjetHist_i, gjetSyst_i, fitScale, err, norm = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight.replace(")", emhtSliceCut+")"), variable, nBins)
+        gjetHist_i.SetLineColor(ROOT.kCyan)
+        # correct for other backgrounds
+        mcPreHist = aux.createHistoFromDatasetTree(zg+wg+ttg+wjets+ttjets_ht+znunu, "{}*{}".format(variable,fitScale), weight.replace(")", emhtSliceCut+")"), nBins, treename.replace("tr", "tr_jControl"))
+        mcPreHist.Scale(norm)
+        mcPreHist.Scale(5.93369235121/36.459205898)
+        for bin in range(gjetHist_i.GetNbinsX()+2):
+            cOld = gjetHist_i.GetBinContent(bin)
+            subT = mcPreHist.GetBinContent(bin)
+            gjetHist_i.SetBinContent(bin, cOld - subT)
+            gjetSyst_i.SetBinContent(bin, cOld - subT)
+        if gjetHist: gjetHist.Add(gjetHist_i)
+        else: gjetHist = gjetHist_i
+        if gjetSyst:
+#            gjetSyst.Add(gjetSyst_i)
+            for bin in range(gjetSyst.GetNbinsX()+2):
+                gjetSyst.SetBinContent(bin, gjetSyst.GetBinContent(bin)+gjetSyst_i.GetBinContent(bin))
+                gjetSyst.SetBinError(bin, gjetSyst.GetBinError(bin)+gjetSyst_i.GetBinError(bin))
+        else: gjetSyst = gjetSyst_i
+    """
     gjetHistUnw = aux.createHistoFromTree(preTree, variable, weight, nBins)
     gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100)-1)/gjetHistUnw.Integral(0,dirHist.FindBin(100)-1))
 
     eHist = aux.createHistoFromTree(eTree, variable, weight, nBins)
     eHist.Scale( 0.0267 if dirSet==data else 0.0154 )
-    #eHist.Scale( 0.0 ) # disable data driven bkg
     eHist.SetLineColor(ROOT.kGreen)
     eSyst = aux.getSysHisto(eHist, 0.3)
 
@@ -229,6 +254,7 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     totUnc = aux.addHistUncert(totStat, totSyst)
 
     signal = aux.createHistoFromDatasetTree(t5wg_1600_100, variable, weight, nBins, treename)
+
     aux.drawOpt(signal, "signal")
     #signal.Add(totStat)
     signal.SetLineColor(ROOT.kAzure)
@@ -248,10 +274,10 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     m.addStack(ttgHist, "t#bar{t}#gamma")
     m.addStack(zgHist, "Z#gamma")
     m.addStack(wgHist, "W#gamma")
-    m.addStack(gjetHist, "#gamma + Jet")
+    m.addStack(gjetHist, "#gamma + Jet (datadriven)")
     m.add(totUnc, "Tot. uncert.")
     legHeader = ""
-    if cut is not "1": legHeader += cut
+    if cut is not "1": legHeader += aux.beautifyCutString(cut)
     if "_ee" in treename: legHeader += " EE"
     if "dPhi" in treename: legHeader += " dPhi"
     if legHeader: m.leg.SetHeader(legHeader)
@@ -307,11 +333,12 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
         print "tt:  ", ttHist.GetBinContent(bin)
 
 def plotOverlayedPredictions(filename):
+    c = ROOT.TCanvas()
     f = ROOT.TFile(filename)
     hdir = f.Get("dir")
     hdir.GetXaxis().SetRangeUser(0,100)
+    aux.drawOpt(hdir, "data")
     m = multiplot.Multiplot()
-    m.drawOption_ = "ep"
     m.add(hdir, "Pseudo(Data)")
     for key in sorted([k for k in f.GetListOfKeys()]):
         name = key.GetName()
@@ -324,8 +351,13 @@ def plotOverlayedPredictions(filename):
         if name == "1.0":
             h.SetLineColor(ROOT.kBlue)
             h.SetMarkerColor(ROOT.kBlue)
-        m.add(h, "Jet E_{T}^{miss} scaled by "+name)
+            m.add(h, "Jet selection")
+        elif name == "1.1":
+            m.add(h, "Jet selection, shifted #it{E}_{T}^{miss}")
+        else:
+            m.add(h, "")
     m.Draw()
+    l = aux.Label(sim="data" not in filename)
     aux.save(filename.replace(".root","_overlay").replace("/","_"))
 
 
@@ -338,17 +370,20 @@ if __name__ == "__main__":
     #finalDistribution("mc_2000emht", allMC, allMC, cut="emht>2000")
     #finalDistribution("mc_ee", allMC, allMC, treename="tr_ee/simpleTree")
     #finalDistribution("mc_ee_2000emht", allMC, allMC, treename="tr_ee/simpleTree", cut="emht>2000")
-    dataB= Dataset("SinglePhoton_Run2016B-23Sep2016-v3", 0, ROOT.kBlack )
-    dataB.label = "Data RunB: 5.9/fb"
-    dataHtB = Dataset("JetHT_Run2016B-23Sep2016-v3", 0, ROOT.kBlack )
+    #dataB= Dataset("SinglePhoton_Run2016B-23Sep2016-v3", 0, ROOT.kBlack )
+    #dataB.label = "Data RunB: 5.9/fb"
+    #dataHtB = Dataset("JetHT_Run2016B-23Sep2016-v3", 0, ROOT.kBlack )
 
-    finalDistribution("dataB", dataB, dataHtB)
+    #finalDistribution("dataB", dataB, dataHtB)
+    #finalDistribution("dataB_emhtbins_syst", dataB, dataHtB)
+    #finalDistribution("dataB_ee", dataB, dataHtB, "tr_ee/simpleTree")
     #finalDistribution("dataB_2000emht", dataB, dataHtB, cut="2000<emht")
     #finalDistribution("dataB_emht800", dataB, dataHtB, cut="emht<800")
     #finalDistribution("dataB_800emht900", dataB, dataHtB, cut="800<emht&&emht<900")
     #finalDistribution("dataB_900emht1000", dataB, dataHtB, cut="900<emht&&emht<1000")
     #finalDistribution("data", data, dataHt)
     #finalDistribution("data_ee", data, dataHt, "tr_ee/simpleTree")
+    #finalDistribution("data_emht2000", data, dataHt, cut="emht<2000")
     #finalDistribution("data_2000emht", data, dataHt, cut="2000<emht")
     #finalDistribution("data_ee_2000emht", data, dataHt, "tr_ee/simpleTree", "2000<emht")
     #finalDistribution("data_emht1000", data, dataHt, cut="emht<1000")
@@ -369,7 +404,6 @@ if __name__ == "__main__":
     #finalDistribution("data_1dPhi", data, dataHt, cut=".1<dPhi")
     #finalDistribution("data_ee_1dPhi", data, dataHt, "tr_ee/simpleTree", ".1<dPhi")
 
-    """
     finalDistribution("data_700emht800", data, dataHt, cut="700<emht && emht<800")
     finalDistribution("data_800emht900", data, dataHt, cut="800<emht && emht<900")
     finalDistribution("data_900emht1000", data, dataHt, cut="900<emht && emht<1000")
@@ -384,7 +418,6 @@ if __name__ == "__main__":
     finalDistribution("data_1800emht1900", data, dataHt, cut="1800<emht && emht<1900")
     finalDistribution("data_1900emht2000", data, dataHt, cut="1900<emht && emht<2000")
     finalDistribution("data_2000emht2100", data, dataHt, cut="2000<emht && emht<2100")
-    """
 
     #finalDistribution("data_ee", data, dataHt, "tr_ee/simpleTree")
     #finalDistribution("data_ee_dPhi3", data, dataHt, "tr_ee/simpleTree", cut="dPhi<.3")
@@ -415,7 +448,8 @@ if __name__ == "__main__":
     #qcdClosure("gqcd_2200emht", gjets+qcd, cut="emht>2200")
     #qcdClosure("gqcd_2300emht", gjets+qcd, cut="emht>2300")
     #qcdClosure("gqcd_2500emht", gjets+qcd, cut="emht>2500")
-    #plotOverlayedPredictions("savedFitPredictions/gqcd__8__tr_simpleTree__8__weight1__met__24.root")
+    #plotOverlayedPredictions("savedFitPredictions/data__8__tr_simpleTree__8__weight1__met__11.root")
+    #plotOverlayedPredictions("savedFitPredictions/gqcd__8__tr_simpleTree__8__weight1__met__11.root")
     #qcdClosure("gqcd_ee_2000emht", gjets+qcd, treename="tr_ee/simpleTree", cut="emht>2000")
     #qcdClosure("test", gjets600)
 
