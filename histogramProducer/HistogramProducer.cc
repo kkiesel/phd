@@ -723,13 +723,16 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     else fillSelection("tr_unmatched", false, addWeight);
     if (selPhotons.at(0)->isTight) fillSelection("tr_tight", true, addWeight);
     if (selPhotons.at(0)->sigmaIetaIeta>.006
+      && selPhotons.at(0)->sigmaIetaIeta<.0095
       && selPhotons.at(0)->sigmaIphiIphi>0.005
+      && selPhotons.at(0)->sigmaIphiIphi<0.012
       && selPhotons.at(0)->hOverE<0.005
       && selPhotons.at(0)->r9>.8
       && selPhotons.at(0)->cIso<0.005
-      && selPhotons.at(0)->nIso<1
+      && selPhotons.at(0)->nIso<0.97
       && selPhotons.at(0)->pIso<0.5
       && selPhotons.at(0)->cIsoWorst<50) fillSelection("tr_veryTight", true, addWeight);
+    if (selPhotons.at(0)->mvaValue>0.295) fillSelection("tr_mva", true, addWeight);
     if (met->p.Pt() < 100) fillSelection("tr_0met100", false, addWeight);
     else                    fillSelection("tr_100met", false, addWeight);
     fillSelection(string("tr_genWZ")+to_string(genMatchWZDecay(*selPhotons.at(0), *intermediateGenParticles)), false, addWeight);
