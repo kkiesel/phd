@@ -1240,6 +1240,39 @@ def correlation2d(v1="pt", v2="emht", treeDir="tr", cut="1"):
     aux.save(name)
     style.defaultStyle()
 
+def checkMetCorrelation(var, dname, dataset, dirname="tr", cut="1"):
+    import array
+    metBins = range(0,200,10)+[200, 250, 300, 350]
+    if var == "sie":
+        varBins = [0, 0.008, 0.0087, 0.009, 0.0095, 0.01, 0.0103]
+        vName = "#sigma_{i#etai#eta}"
+        if "ee" in dirname:
+            varBins = [0, 0.02, 0.022, 0.023, 0.024, 0.025, 0.026, 0.0275]
+    elif var == "sip":
+        varBins = [0, 0.009, 0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.02]
+        vName = "#sigma_{i#phii#phi}"
+
+    name = aux.randomName()
+    h2 = ROOT.TH2F(name, ";#it{{E}}_{{T}}^{{miss}} (GeV);{};a.u.".format(vName), len(metBins)-1, array.array("d", metBins), len(varBins)-1, array.array("d", varBins))
+    h2.Sumw2()
+    tree = ROOT.TChain(dirname+"/simpleTree")
+    for f in dataset.files: tree.Add(f)
+    tree.Draw("{}:met>>{}".format(var,name), "weight*{}".format(cut), "goff")
+    aux.appendFlowBin2d(h2)
+
+    m = multiplot.Multiplot()
+    ROOT.gStyle.SetPalette(55)
+    for h in aux.getProjections(h2, scale=True):
+        h.Scale(1.,"width")
+        m.add(h, h.GetName())
+    c = ROOT.TCanvas()
+    m.minimum = 1e-5
+    m.Draw()
+    l = aux.Label(info=dname)
+    sName = "metCorrolation_{}_{}_{}".format(dname,dirname, var)
+    aux.save(sName, log=False)
+    c.SetLogy()
+    ROOT.gPad.SaveAs("plots/{}_log.pdf".format(sName))
 
 def runAreas():
     dataB= Dataset("SinglePhoton_Run2016B-23Sep2016-v3", 0, ROOT.kBlack )
@@ -1334,6 +1367,10 @@ if __name__ == "__main__":
     #finalDistributionTwoCuts("onlyPhotonCut_0p2ptOverEmht", data, dataHt, cut="0.2<pt/emht")
     #finalDistributionTwoCuts("onlyPhotonCut_ee_ptOverEmht0p2", data, dataHt, "tr_ee/simpleTree", cut="pt/emht<0.2")
     #finalDistributionTwoCuts("onlyPhotonCut_ee_0p2ptOverEmht", data, dataHt, "tr_ee/simpleTree", cut="0.2<pt/emht")
+    finalDistributionTwoCuts("onlyPhotonCut_ptOverEmht0p2_eta1", data, dataHt, cut="pt/emht<0.2&&abs(eta)<.5")
+    finalDistributionTwoCuts("onlyPhotonCut_ptOverEmht0p2_eta3", data, dataHt, cut="pt/emht<0.2&&1<abs(eta)")
+    finalDistributionTwoCuts("onlyPhotonCut_0p2ptOverEmht_eta1", data, dataHt, cut="0.2<pt/emht&&abs(eta)<.5")
+    finalDistributionTwoCuts("onlyPhotonCut_0p2ptOverEmht_eta3", data, dataHt, cut="0.2<pt/emht&&1<abs(eta)")
     #finalDistribution("data_700emht800", data, dataHt, cut="700<emht && emht<800")
     #finalDistribution("data_800emht900", data, dataHt, cut="800<emht && emht<900")
     #finalDistribution("data_900emht1000", data, dataHt, cut="900<emht && emht<1000")
@@ -1351,7 +1388,7 @@ if __name__ == "__main__":
 
     #finalDistribution("data_", data, dataHt)
     #comparisons()
-    runAreas()
+    #runAreas()
 
     #photonPtAnalysis()
     #photonPtAnalysis(False)
@@ -1416,6 +1453,41 @@ if __name__ == "__main__":
     #finalDistributionTwoCuts("onlyPhotonCut_dphiR", data, dataHt, cut="0.758<dphi&&dphi<2.356")
     #finalDistributionTwoCuts("onlyPhotonCut_dphiL", data, dataHt, cut="-2.356<dphi&&dphi<-0.758")
     #finalDistributionTwoCuts("onlyPhotonCut_dphiAnti", data, dataHt, cut="2.356<abs(dphi)")
+
+    #finalDistributionTwoCuts("onlyPhotonCut_sie1", data, dataHt, cut="sie<0.008")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie2", data, dataHt, cut="0.008<sie&&sie<0.009")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie3", data, dataHt, cut="0.009<sie&&sie<0.0095")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie4", data, dataHt, cut="0.0095<sie&&sie<0.01")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie5", data, dataHt, cut="0.01<sie")
+
+    #finalDistributionTwoCuts("onlyPhotonCut_sie1_eta1", data, dataHt, cut="sie<0.008&&abs(eta)<0.5")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie2_eta1", data, dataHt, cut="0.008<sie&&sie<0.009&&abs(eta)<0.5")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie3_eta1", data, dataHt, cut="0.009<sie&&sie<0.0095&&abs(eta)<0.5")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie4_eta1", data, dataHt, cut="0.0095<sie&&sie<0.01&&abs(eta)<0.5")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie5_eta1", data, dataHt, cut="0.01<sie&&abs(eta)<0.5")
+
+    #finalDistributionTwoCuts("onlyPhotonCut_sie1_eta2", data, dataHt, cut="sie<0.008&&0.5<abs(eta)&&abs(eta)<1.0")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie2_eta2", data, dataHt, cut="0.008<sie&&sie<0.009&&0.5<abs(eta)&&abs(eta)<1.0")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie3_eta2", data, dataHt, cut="0.009<sie&&sie<0.0095&&0.5<abs(eta)&&abs(eta)<1.0")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie4_eta2", data, dataHt, cut="0.0095<sie&&sie<0.01&&0.5<abs(eta)&&abs(eta)<1.0")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie5_eta2", data, dataHt, cut="0.01<sie&&0.5<abs(eta)&&abs(eta)<1.0")
+
+    #finalDistributionTwoCuts("onlyPhotonCut_sie1_eta3", data, dataHt, cut="sie<0.008&&1<abs(eta)&&abs(eta)<1.5")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie2_eta3", data, dataHt, cut="0.008<sie&&sie<0.009&&1<abs(eta)&&abs(eta)<1.5")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie3_eta3", data, dataHt, cut="0.009<sie&&sie<0.0095&&1<abs(eta)&&abs(eta)<1.5")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie4_eta3", data, dataHt, cut="0.0095<sie&&sie<0.01&&1<abs(eta)&&abs(eta)<1.5")
+    #finalDistributionTwoCuts("onlyPhotonCut_sie5_eta3", data, dataHt, cut="0.01<sie&&1<abs(eta)&&abs(eta)<1.5")
+
+    #checkMetCorrelation("sie", "data", data)
+    #checkMetCorrelation("sie", "data_180pt", data, cut="180<pt")
+    #checkMetCorrelation("sie", "data_180pt_700emht", data, cut="180<pt && 700<emht")
+    #checkMetCorrelation("sie", "data_180pt_1000emht", data, cut="180<pt && 1000<emht")
+    #checkMetCorrelation("sie", "data", data, "tr_ee")
+    #checkMetCorrelation("sip", "data", data)
+    #for i in range(10):
+    #    xMin, xMax = 100+50*i, 100+50*(i+1)
+    #    checkMetCorrelation("sie", "data_{}pt{}".format(xMin,xMax), data, cut="{}<pt&&pt<{}".format(xMin, xMax))
+
 
 
 
