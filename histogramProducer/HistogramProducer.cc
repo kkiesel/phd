@@ -44,7 +44,7 @@ void HistogramProducer::fillTriggerStudies() {
   tree::Jet *minPtJet = 0;
   tree::Jet *maxEtaJet = 0;
   for (auto& jet : *jets) {
-    if (jet.p.Pt() > 40 && fabs(jet.p.Eta()) < 3) {
+    if (jet.p.Pt() > 30 && fabs(jet.p.Eta()) < 3) {
       if (!minPtJet || minPtJet->p.Pt() > jet.p.Pt()) minPtJet = &jet;
       if (!maxEtaJet || fabs(minPtJet->p.Eta()) < fabs(jet.p.Eta())) maxEtaJet = &jet;
       if (!thisPhoton || jet.p.DeltaR(thisPhoton->p) > 0.3) {
@@ -632,7 +632,7 @@ void HistogramProducer::defaultSelection()
     if (!jet.isLoose
 //      || jet.hasPhotonMatch || jet.hasElectronMatch || jet.hasMuonMatch
       || indexOfMatchedParticle<tree::Photon*>(jet, selPhotons, .3) >= 0
-      || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3) continue;
+      || jet.p.Pt() < 30 || fabs(jet.p.Eta()) > 3) continue;
     selJets.push_back(&jet);
     if (jet.p.Pt() > 100 && fabs(jet.p.Eta()) < 1.4442) selHEJets.push_back(&jet);
     if (jet.bDiscriminator > bTaggingWorkingPoints.at(CSVv2M) && fabs(jet.p.Eta()) < 2.5)
