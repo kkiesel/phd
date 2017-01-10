@@ -212,6 +212,38 @@ def allCompare():
 def allWeighed():
     projectAll2d("gqcd", "met_vs_emht", "tr_tight", "tr_ee", gjets+qcd)
 
+def etaPhiPlane():
+    #hLowMet = data.getHist("tr_0met100/g_eta_vs_g_phi")
+    #hHighMet = data.getHist("tr_100met/g_eta_vs_g_phi")
+    hLowMet = aux.getFromFile("../histogramProducer/SinglePhoton_Run2016_hists.root", "tr_0met100/g_eta_vs_g_phi")
+    hHighMet = aux.getFromFile("../histogramProducer/SinglePhoton_Run2016_hists.root", "tr_100met/g_eta_vs_g_phi")
+    for h in hLowMet, hHighMet: h.SetBinErrorOption(ROOT.TH1.kPoisson)
+
+
+    style.style2d()
+    c = ROOT.TCanvas()
+    hLowMet.Draw("colz")
+    aux.save("test", log=False)
+    hHighMet.Draw("colz")
+    aux.save("test2", log=False)
+
+    ratio = hHighMet.GetEntries()/hLowMet.GetEntries()
+
+    for xbin, ybin in aux.loopH(hHighMet):
+        c = hHighMet.GetBinContent(xbin,ybin)
+        n = hLowMet.GetBinContent(xbin,ybin)
+        if not n:
+            if c: print "Bin {},{}: {} events for high met, {} for low met".format(xbin,ybin,c,n)
+            continue
+        r = c/n
+        re = aux.sqrt((aux.getPoissonUnc(c)[1])**2 + (aux.getPoissonUnc(n)[0])**2)
+        hHighMet.SetBinContent(xbin,ybin, (ratio-r)/re)
+        if abs(ratio-r)/re > .2:
+            print "Deviation in {},{}: 0 events for high met, {} for low met".format(xbin,ybin,c,n)
+    hHighMet.Draw("colz")
+    aux.save("test3", log=False)
+
 if __name__ == "__main__":
     allSame()
     allCompare()
+    etaPhiPlane()

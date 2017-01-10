@@ -677,6 +677,30 @@ def getPaletteColor(f):
     # f should be a fraction from 0 to 1, such that the whole palette is used
     return ROOT.TColor.GetColorPalette(int(f*ROOT.TColor.GetNumberOfColors()))
 
+def getPoissonUnc(n):
+    """http://prd.aps.org/abstract/PRD/v86/i1/e010001 (p.399)
+    For the case of Poisson distributed n, the upper and lower limits on
+    the mean value ν can be found from the Neyman procedure where the upper
+    and lower limits are at confidence levels of 1 − α low and 1 − α up ,
+    respectively, and F χ −1 2 is the quantile of the χ distribution
+    (inverse of the cumulative distribution). The quantiles F χ −1 2 can be
+    obtained from standard tables or from the ROOT routine TMath::ChisquareQuantile.
+    For central confidence intervals at confidence level 1 − α, set α lo = α up = α/2.
+    """
+
+    # calculate x = 1-alpha ( approx 68% )
+    x = ROOT.TMath.Erf(1./sqrt(2))
+    alpha = 1-x
+
+    # for central confidence intervals, alpha_lo =alpha_up = alpha/2
+    alpha_lo = alpha/2
+    alpha_up = alpha/2
+
+    # confidence interval is [ xlo, xup ]
+    xlo = 0.5 * ROOT.TMath.ChisquareQuantile( alpha_lo, 2*n )
+    xup = 0.5 * ROOT.TMath.ChisquareQuantile( 1-alpha_up, 2*(n+1) )
+    return n-xlo, xup-n
+
 def getSysHisto(h, relUncert):
     hsys = h.Clone(randomName())
     for bin in range(hsys.GetNbinsX()+2):
@@ -688,7 +712,7 @@ def getSysHisto(h, relUncert):
             # check if option "width" should be used
             # TODO: check if the weight agrees with the lumi+pu weight
             meanWeight = hsys.Integral(0,-1)/hsys.GetEntries()
-            poissonZeroError = 1.14787446444
+            poissonZeroError = 1.8410216450098775
             e = meanWeight*poissonZeroError
             hsys.SetBinError(bin, e)
     return hsys

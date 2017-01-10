@@ -156,6 +156,25 @@ class MyDatacard(Datacard):
         self.write("/tmp/tmpDataCard.txt")
         return infosFromDatacard("/tmp/tmpDataCard.txt")
 
+    def limitFast(self):
+        infos = { "obs":0, "exp":0, "exp1up":0, "exp1dn":0, "exp2up":0, "exp2dn":0 }
+
+        for bin in self.bins:
+            obs = self.obs[bin]
+            bkg = sum([b for a,b in self.exp[bin].iteritems() if a is not "signal"])
+            signal = self.exp[bin]["signal"]
+            if not signal: continue
+            err = ROOT.TMath.Sqrt(bkg)
+            r = signal/abs(err - abs(obs - bkg))
+            infos["obs"] = max(infos["obs"], r)
+            r_exp = signal/err
+            if r_exp > infos["exp"]:
+                infos["exp"] = r_exp
+                infos["exp1up"] = (signal+err)/err
+                infos["exp2up"] = (signal+2*err)/err
+                infos["exp1dn"] = (signal-err)/err
+                infos["exp2dn"] = (signal-2*err)/err
+        return infos
 
 if False:
     inFileName = "/tmp/tmpDataCard.txt"
