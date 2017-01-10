@@ -70,7 +70,8 @@ def getXsecLimitHist( gr2d, h ):
 def writeDict( d, filename ):
     f = ROOT.TFile( filename, "recreate")
     for name, ob in d.iteritems():
-        ob.Write(name)
+        if ob:
+            ob.Write(name)
     f.Close()
 
 def getHistForModel( model ):
@@ -78,6 +79,17 @@ def getHistForModel( model ):
     if model == "T5Wg": return ROOT.TH2F("","", 16, 775, 1575, 31, -25, 1525 )
     print "Not specified model", model
 
+def writeSMSLimitConfig(infile, configName):
+    text = """
+HISTOGRAM {0} obs_hist
+EXPECTED {0} exp exp exp kRed kOrange
+OBSERVED {0} obs obs obs kBlack kGray
+PRELIMINARY PrivateWork
+LUMI {1}
+ENERGY 13
+""".format(infile,aux.intLumi)
+    with open(configName, "w+") as f:
+        f.write(text)
 
 def calculateLimit(name, combi, inputData, inputSignal):
     outputDir = "limitCalculations/"+name
@@ -92,10 +104,10 @@ def calculateLimit(name, combi, inputData, inputSignal):
     if False:
         toDraw["obs_hist"] = interpolateH2( toDraw["obs_hist"] )
         toDraw["obs_hist"] = interpolateH2( toDraw["obs_hist"] )
-    print toDraw
     writeDict(toDraw, outputDir+"/Graphs1d.root")
 
     scanName = "T5Wg"
+    writeSMSLimitConfig(outputDir+"/Graphs1d.root", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName)
     subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName, "plots/%s_limits_"%scanName])
 
 
