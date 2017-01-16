@@ -841,9 +841,12 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selPhotons) myHt += p->p.Pt();
   for (auto& p : selJets) myHt += p->p.Pt();
 
-  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
+  if (selPhotons.size() && myHt > 900 && (*hlt_ht800 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
-    fillSelection("tr_eta5", true, addWeight);
+    fillSelection("tr_ht900", true, addWeight);
+  }
+  if (!selPhotons.size() && myHt > 900 && (*hlt_ht800 || !isData)) {
+    fillSelection("tr_jControl_ht900", true, 1);
   }
 
   resetSelection();
