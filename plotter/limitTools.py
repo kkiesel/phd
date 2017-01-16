@@ -10,12 +10,15 @@ from Datacard import Datacard
 def infoFromOut(out):
     infos = { "obs":0, "exp":0, "exp1up":0, "exp1dn":0, "exp2up":0, "exp2dn":0 }
     for line in out.split("\n"):
+        if line.startswith("NLL at global minimum of asimov:"): infos["rMinNLL"] = float(re.match(".*\(r = (.*)\).*",line).group(1))
         if line.startswith("Observed Limit: r < "): infos["obs"]   = float(line.split("<")[1])
         if line.startswith("Expected  2.5%: r < "): infos["exp2dn"] = float(line.split("<")[1])
         if line.startswith("Expected 16.0%: r < "): infos["exp1dn"] = float(line.split("<")[1])
         if line.startswith("Expected 50.0%: r < "): infos["exp"]    = float(line.split("<")[1])
         if line.startswith("Expected 84.0%: r < "): infos["exp1up"] = float(line.split("<")[1])
         if line.startswith("Expected 97.5%: r < "): infos["exp2up"] = float(line.split("<")[1])
+    if infos["rMinNLL"] == 2:
+        infos = { "obs":0, "exp":0, "exp1up":0, "exp1dn":0, "exp2up":0, "exp2dn":0 }
     return infos
 
 def guessSignalPoint(name):
