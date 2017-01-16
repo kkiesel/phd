@@ -141,7 +141,7 @@ class MyDatacard(Datacard):
         self.exp[name] = {"signal": signal, "gqcd": gqcd, "ele": ele,
                             "wg": wg, "zg": zg, "ttg": ttg}
         for line in self.systs:
-            if   line[0] == "lumi": line[4][name] = {'signal': 1.027, 'gqcd': 1, 'ele': 1, 'wg': 1.027, 'zg': 1.027, 'ttg': 1.027}
+            if   line[0] == "lumi": line[4][name] = {'signal': 1.062, 'gqcd': 1, 'ele': 1, 'wg': 1.062, 'zg': 1.062, 'ttg': 1.062}
             elif line[0] == "jec": line[4][name] = {'signal': 1.11, 'gqcd': 1, 'ele': 1, 'wg': 1.11, 'zg': 1.11, 'ttg': 1.11}
             elif line[0] == "pdf": line[4][name] = {'signal': 1.11, 'gqcd': 1, 'ele': 1, 'wg': 1.11, 'zg': 1.11, 'ttg': 1.11}
             elif line[0] == "gqcdSyst": line[4][name] = {'signal': 1, 'gqcd': gqcdSyst, 'ele': 1, 'wg': 1, 'zg': 1, 'ttg': 1}
