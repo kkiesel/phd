@@ -11,9 +11,11 @@ with suppressor.suppress_stdout_stderr():
     import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
+import array
 import argparse
 import collections
 import math
+import os.path
 import optparse
 import re
 import subprocess
