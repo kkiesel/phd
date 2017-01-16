@@ -4,6 +4,7 @@ import re
 import subprocess
 import ROOT
 import optparse
+import os
 from Datacard import Datacard
 
 
@@ -36,8 +37,17 @@ def guessScanName( name ):
     return short
 
 def infosFromDatacard(name):
-    return infoFromOut(subprocess.check_output( ["combine", "-M", "Asymptotic", name], stderr=subprocess.STDOUT ))
+    return infoFromOut(callCombine(name))
 
+def callCombine(name):
+    nameLimit = name + ".limit"
+    if not os.path.isfile(nameLimit) or os.path.getmtime(name)>os.path.getmtime(nameLimit):
+        with open(nameLimit, "w+") as f:
+            out = subprocess.check_output(["combine", "-M", "Asymptotic", name], stderr=subprocess.STDOUT)
+            f.write(out)
+    with open(nameLimit) as f:
+        out = f.read()
+    return out
 
 def getContour( gr2d ):
     gr2d.Draw()
