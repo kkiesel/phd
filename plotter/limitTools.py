@@ -106,15 +106,16 @@ class MyDatacard(Datacard):
         return ""
 
     def write(self, filename=""):
+        maxInfoLen = max( [len(line[0])+7 for line in self.systs])
         out = ""
         out += "\nimax "+str(len(self.bins))
         out += "\njmax *"
         out += "\nkmax *"
-        out += "\nbin "+ " ".join(self.bins)
-        out += "\nobservation " + " ".join([str(int(self.obs[x])) for x in self.bins])
+        out += "\n\nbin         " + ("{:<7}"*len(self.bins)).format(*self.bins)
+        out += "\nobservation " + ("{:<7}"*len(self.bins)).format(*[str(int(self.obs[x])) for x in self.bins])
         keylineInv0, keylineInv1, keylineInv2 = zip(*self.keyline)
-        out += "\nbin " + " ".join(keylineInv0)
-        out += "\nprocess " + " ".join(keylineInv1)
+        out += "\n\nbin".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv0)).format(*keylineInv0)
+        out += "\nprocess".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv1)).format(*keylineInv1)
         counter = 1
         processNumbers = {}
         for a, b in self.isSignal.iteritems():
@@ -122,10 +123,10 @@ class MyDatacard(Datacard):
             else:
                 processNumbers[a] = counter
                 counter += 1
-        out += "\nprocess " + " ".join([str(processNumbers[x]) for x in keylineInv1]) # name of processes has to be the same
-        out += "\nrate " + " ".join([str(self.exp[keylineInv0[i]][keylineInv1[i]]) for i in range(len(keylineInv0))])
+        out += "\nprocess".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv1)).format(*[str(processNumbers[x]) for x in keylineInv1]) # name of processes has to be the same
+        out += "\nrate".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv0)).format(*[str(self.exp[keylineInv0[i]][keylineInv1[i]]) for i in range(len(keylineInv0))])
         for line in self.systs:
-            out += "\n{} {} ".format(line[0],line[2]) + " ".join([str(line[4][keylineInv0[i]][keylineInv1[i]]) for i in range(len(keylineInv0))])
+            out += "\n{} {} ".format(line[0],line[2]).ljust(maxInfoLen) + ("{:<15}"*len(keylineInv0)).format(*[str(line[4][keylineInv0[i]][keylineInv1[i]]) for i in range(len(keylineInv0))])
         if filename:
             with open(filename, "wb") as f:
                 f.write(out)
