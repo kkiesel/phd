@@ -2,6 +2,7 @@
 
 void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_pt"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
+  effMap["eff_hlt_pt_ct_ht800"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 250, 0, 1000);
   effMap["eff_hlt_eta"] = TEfficiency("", ";|#eta|;#varepsilon", 15, 0, 1.5);
   effMap["eff_hlt_ht"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
   effMap["eff_hlt_ht_ptMin"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
@@ -10,6 +11,9 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_hlt_ht_ct_preScaled"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon (prescaled)", 200, 0, 2000);
   effMap["eff_hlt_ht_ct2"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
   effMap["eff_hlt_ht_ct2_preScaled"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon (prescaled)", 200, 0, 2000);
+  effMap["eff_hlt_ht_ht800_ct_photon90"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
+  effMap["eff_hlt_ht_ht800_ct_ht600"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
+  effMap["eff_hlt_ht_ht800_ct_photon90_ht600"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
   effMap["eff_hlt_nVertex"] = TEfficiency("", ";vertex multiplicity", 41, -0.5, 40.5);
   effMap["eff_hlt_sie"] = TEfficiency("", ";#sigma_{i#etai#eta}", 400, 0, 0.02);
   effMap["eff_hlt_hoe"] = TEfficiency("", ";H/E", 100, 0, 0.15);
@@ -65,12 +69,14 @@ void HistogramProducer::fillTriggerStudies() {
     // main trigger plots
     if (thisPhoton->p.Pt() > 100 && *hlt_photon90) {
       effMap.at("eff_hlt_ht").Fill(*hlt_photon90_ht600, ht);
+      effMap.at("eff_hlt_ht_ht800_ct_photon90").Fill(*hlt_ht800, ht);
       effMap.at("eff_hlt_ht_ptMin").Fill(*hlt_photon90_ht600, minPtJet->p.Pt());
       if (ht>600) effMap.at("eff_hlt_ht_etaMax").Fill(*hlt_photon90_ht600, fabs(maxEtaJet->p.Eta()));
     }
     if (thisPhoton->p.Pt() > 100 && *hlt_photon90_ht600) {
       effMap.at("eff_hlt_ht_ct").Fill(*hlt_ht600, ht);
       effMap.at("eff_hlt_ht_ct_preScaled").FillWeighted(*hlt_ht600, *hlt_ht600_pre, ht);
+      effMap.at("eff_hlt_ht_ht800_ct_photon90_ht600").Fill(*hlt_ht800, ht);
       if (ht > 700) effMap.at("eff_hlt_met_ct").Fill(*hlt_ht600, met->p.Pt());
     }
     if (thisPhoton->p.Pt() > 100 && *hlt_photon90) {
@@ -85,9 +91,13 @@ void HistogramProducer::fillTriggerStudies() {
         effMap.at("eff_hlt_eta").Fill(*hlt_photon90_ht600, fabs(thisPhoton->p.Eta()));
       }
     }
+    if (ht > 900 && *hlt_ht800) {
+      effMap.at("eff_hlt_pt_ct_ht800").Fill(*hlt_photon90_ht600, thisPhoton->p.Pt());
+    }
   }
 
   if (ht > 700 && *hlt_ht600) {
+    effMap.at("eff_hlt_ht_ht800_ct_photon90").Fill(*hlt_ht800, ht);
     for (auto& el : *electrons) {
       if (fabs(el.p.Eta())>2.1 || !el.isTight) continue;
       effMap.at("eff_hlt_ele_pt").Fill(*hlt_el27, el.p.Pt());
