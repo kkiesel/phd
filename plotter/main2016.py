@@ -314,7 +314,7 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
             zgHist.GetBinContent(bin)+zHist.GetBinContent(bin), 1.+aux.sqrt(zHist.GetBinError(bin)**2+zgHist.GetBinError(bin)**2)/(zgHist.GetBinContent(bin)+zHist.GetBinContent(bin)), 1.+aux.sqrt(zSyst.GetBinError(bin)**2+zgSyst.GetBinError(bin)**2)/(zgHist.GetBinContent(bin)+zHist.GetBinContent(bin)),
             wgHist.GetBinContent(bin)+wHist.GetBinContent(bin), 1.+aux.sqrt(wHist.GetBinError(bin)**2+wgHist.GetBinError(bin)**2)/(wgHist.GetBinContent(bin)+wHist.GetBinContent(bin)), 1.+aux.sqrt(wSyst.GetBinError(bin)**2+wgSyst.GetBinError(bin)**2)/(wgHist.GetBinContent(bin)+wHist.GetBinContent(bin)),
             ttgHist.GetBinContent(bin)+ttHist.GetBinContent(bin), 1.+aux.sqrt(ttHist.GetBinError(bin)**2+ttgHist.GetBinError(bin)**2)/(ttgHist.GetBinContent(bin)+ttHist.GetBinContent(bin)), 1.+aux.sqrt(ttSyst.GetBinError(bin)**2+ttgSyst.GetBinError(bin)**2)/(ttgHist.GetBinContent(bin)+ttHist.GetBinContent(bin)),
-            signal.GetBinContent(bin), signal.GetBinError(bin), 1.3)
+            signal.GetBinContent(bin), 1.+signal.GetBinError(bin)/signal.GetBinContent(bin), 1.3)
     #print dc.limit()
 
     return
