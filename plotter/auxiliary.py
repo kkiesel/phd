@@ -826,6 +826,8 @@ def createHistoFromTree(tree, variable, weight="", nBins=20, firstBin=None, last
     result.SetTitle("")
     if variable.startswith("met"):
         result.SetXTitle("#it{E}_{T}^{miss} (GeV)")
+    if variable.startswith("metRaw"):
+        result.SetXTitle("uncorrected #it{E}_{T}^{miss} (GeV)")
     setYAxisTitle(result)
     return result
 
