@@ -191,7 +191,7 @@ class MyDatacard(Datacard):
         return infos
 
 if False:
-    inFileName = "/tmp/tmpDataCard.txt"
+    inFileName = "limitCalculations/observation_v1.txt"
     import DatacardParser
     options, b = DatacardParser.addDatacardParserOptions(optparse.OptionParser())
     dc = MyDatacard(DatacardParser.parseCard(file(inFileName), options))
