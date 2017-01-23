@@ -743,7 +743,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
     fillSelection("tr", true, addWeight);
-    if (10< *nGoodVertices && *nGoodVertices < 25 ) fillSelection("tr_mediumPU", true, addWeight);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", true, addWeight);
     if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB", false, addWeight);
     else if (selPhotons.at(0)->isTrue == MATCHED_FROM_PI0) fillSelection("tr_true_pi0", false, addWeight);
@@ -775,7 +774,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (!selPhotons.size() && myHt > 700 && (*hlt_ht600 || !isData)) {
     fillSelection("tr_jControl", true, *hlt_ht600_pre);
-    if (10< *nGoodVertices && *nGoodVertices < 25 ) fillSelection("tr_jControl_mediumPU", true, *hlt_ht600_pre);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_jControl_noLep", true, *hlt_ht600_pre);
     for (auto& j : selJets) {
       if (j->nef>.9 && j->p.Pt()>100 && fabs(j->p.Eta())<1.4442) {
