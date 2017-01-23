@@ -512,6 +512,9 @@ def setMinMaxForLog():
 
 
 def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
+    replacements = {"(": "", ")": "", "&":"AND", ".":"p", "/":"DIV", "<":"", ">":"", "*":"TIMES"}
+    for a, b in replacements.iteritems():
+        name = name.replace(a, b)
     if normal:
         for ending in endings:
             ROOT.gPad.GetCanvas().SaveAs( folder+name+ending )
