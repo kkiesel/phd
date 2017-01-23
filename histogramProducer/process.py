@@ -122,7 +122,7 @@ print toProcess
 if args.condor:
     extStr = "--ext" if args.ext else ""
     for x in toProcess:
-        with open("submit","w") as f:
+        with open("submitCondor.txt","w") as f:
             f.write("""
 Universe   = vanilla
 Executable = run.sh
@@ -132,7 +132,7 @@ Output     = logs/{0}.out
 Error      = logs/{0}.error
 Queue
 """.format(x, extStr))
-        subprocess.call(["condor_submit", "submit"])
+        subprocess.call(["condor_submit", "submitCondor.txt"])
 
 else: # local processing
     files = [dir+x for x in toProcess]
