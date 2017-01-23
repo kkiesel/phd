@@ -86,6 +86,8 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
         cutValue = 700
     elif name.endswith("eff_hlt_ele_pt"):
         cutValue = 30
+    elif "hlt_ht_ht800" in name:
+        cutValue = 900
     else:
         cutValue = 0
 
@@ -166,5 +168,21 @@ def main():
     #drawEfficiencyVsRun(dataHt)
     efficiencies(data, "singlePhoton")
     efficiencies(dataHt, "jetHt")
+    dataBG = Dataset("SinglePhoton_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
+        + Dataset("SinglePhoton_Run2016C-23Sep2016-v1", 0, ROOT.kBlack ) \
+        + Dataset("SinglePhoton_Run2016D-23Sep2016-v1", 0, ROOT.kBlack ) \
+        + Dataset("SinglePhoton_Run2016E-23Sep2016-v1", 0, ROOT.kBlack ) \
+        + Dataset("SinglePhoton_Run2016F-23Sep2016-v1", 0, ROOT.kBlack ) \
+        + Dataset("SinglePhoton_Run2016G-23Sep2016-v1", 0, ROOT.kBlack )
+    dataBG.label = "RunB-G"
+    dataHtBG = Dataset("JetHT_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
+        + Dataset("JetHT_Run2016C-23Sep2016-v1", 0, ROOT.kBlack ) \
+        + Dataset("JetHT_Run2016D-23Sep2016-v1", 0, ROOT.kBlack ) \
+        + Dataset("JetHT_Run2016E-23Sep2016-v1", 0, ROOT.kBlack ) \
+        + Dataset("JetHT_Run2016F-23Sep2016-v1", 0, ROOT.kBlack ) \
+        + Dataset("JetHT_Run2016G-23Sep2016-v1", 0, ROOT.kBlack )
+    efficiencies(dataBG, "singlePhoton_BG")
+    efficiencies(dataHtBG, "jetHt_BG")
+
 if __name__ == "__main__":
     main()
