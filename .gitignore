@@ -15,7 +15,9 @@ histogramProducer/AutoDict_*
 histogramProducer/TreeParticles.hpp
 histogramProducer/logs
 histogramProducer/suppressor.py
+histogramProducer/Spring16_25nsV6_*_PtResolution_AK4PFchs.txt
 
+fakeRate/suppressor.py
 fakeRate/TreeParticles.hpp
 fakeRate/UserFunctions.h
 fakeRate/logs
