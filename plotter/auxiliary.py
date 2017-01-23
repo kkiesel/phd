@@ -519,8 +519,12 @@ def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
         for ending in endings:
             ROOT.gPad.GetCanvas().SaveAs( folder+name+ending )
     if log:
-        setMinMaxForLog()
-        ROOT.gPad.GetCanvas().SetLogy()
+        allH2s = [i for i in ROOT.gPad.GetCanvas().GetListOfPrimitives() if isinstance(i,ROOT.TH2)]
+        if allH2s:
+            ROOT.gPad.GetCanvas().SetLogz()
+        else:
+            setMinMaxForLog()
+            ROOT.gPad.GetCanvas().SetLogy()
         for ending in endings:
             ROOT.gPad.GetCanvas().SaveAs( folder + name + "_log" + ending )
 
