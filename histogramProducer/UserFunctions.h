@@ -357,3 +357,22 @@ float ZGammaKFactor(std::vector<tree::GenParticle>& particles) {
   else if (pt>190) kfactor = 1.35;
   return kfactor;
 }
+
+float transverseMass(const TVector3& v1, const TVector3& v2) {
+    return TMath::Sqrt(2*(v1.Pt()*v2.Pt() - v1.X()*v2.X()-v1.Y()*v2.Y()));
+}
+
+float crystalResponse(float energy) {
+  auto adc = energy / 0.04;
+  // Taken from page 16 of https://indico.cern.ch/event/578798/contributions/2398504/
+  float response = 1.;
+  if (adc > 16000) {
+    response = 0.88;
+  } else if (adc > 8500) {
+    response = 0.591574 + 0.000127616*adc -1.18194e-08*pow(adc,2) + 3.15593e-13*pow(adc,3);
+  } else if (adc > 4000) {
+    response = 0.486492 + 0.000304324*adc -5.4362e-08*pow(adc,2) +2.86294e-12*pow(adc,3);
+  }
+  if (response > 1) response = 1.;
+  return response;
+}
