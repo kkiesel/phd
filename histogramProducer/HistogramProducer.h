@@ -34,7 +34,7 @@ class HistogramProducer : public TSelector {
 
   void resetSelection();
   void defaultSelection();
-  void fillSelection(string const& s, bool, float w);
+  void fillSelection(string const& s, float w, bool, bool);
   void fillSelectedPhotons(const tree::Particle& p);
   tree::Jet* matchedJet(const tree::Particle& p);
   float getPhotonWeight(const tree::Photon& p);
@@ -55,13 +55,18 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<std::vector<tree::IntermediateGenParticle>> intermediateGenParticles;
   TTreeReaderValue<tree::MET> met;
   TTreeReaderValue<tree::MET> metRaw;
+  TTreeReaderValue<tree::MET> met_JESu;
+  TTreeReaderValue<tree::MET> met_JESd;
+  TTreeReaderValue<tree::MET> met_JERu;
+  TTreeReaderValue<tree::MET> met_JERd;
   TTreeReaderValue<Float_t> pu_weight;
   TTreeReaderValue<Char_t> mc_weight;
+  TTreeReaderValue<std::vector<Float_t>> pdf_weights;
   TTreeReaderValue<Int_t> nGoodVertices;
   TTreeReaderValue<Int_t> nTracksPV;
   TTreeReaderValue<Float_t> genHt;
   TTreeReaderValue<Float_t> rho;
-  TTreeReaderValue<ULong64_t> eventNo;
+  TTreeReaderValue<ULong64_t> evtNo;
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
   TTreeReaderValue<Bool_t> hlt_photon90_ht600;
@@ -96,8 +101,8 @@ class HistogramProducer : public TSelector {
   map<int,pair<int,int>> rawEff_vs_run;
 
   bool isData;
-  bool genPt130;
   bool genHt600;
+  bool noPromptPhotons;
   TH1F cutFlow;
   string inputName;
 
