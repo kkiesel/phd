@@ -65,12 +65,12 @@ FakeRateSelector::FakeRateSelector():
   jets(fReader, "jets"),
   electrons(fReader, "electrons"),
   muons(fReader, "muons"),
-  triggerObjects(fReader, "triggerObjects"),
+  triggerObjects(fReader, "triggerElectronsTight"),
   intermediateGenParticles(fReader, "intermediateGenParticles"),
   met(fReader, "met"),
   nGoodVertices(fReader, "nGoodVertices"),
   nTracksPV(fReader, "nTracksPV"),
-  hlt(fReader, "HLT_Ele27_eta2p1_WPLoose_Gsf_v"),
+  hlt(fReader, "HLT_Ele27_eta2p1_WPTight_Gsf_v"),
   startTime(time(NULL))
 {
 }
@@ -128,9 +128,11 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
   bool hasPixelSeed = probe.hasPixelSeed;
   float thisMet = met->p.Pt();
   unsigned nJet = 0;
-  float emht = probe.p.Pt();;
+  float emht = probe.p.Pt();
+  float leadingJetPt = 0;
   for (auto& j : *jets ) {
     if (j.p.Pt()>30 && j.p.Eta()<3 && probe.p.DeltaR(j.p)>0.4) {
+      if (leadingJetPt<1) leadingJetPt = j.p.Pt();
       nJet++;
       emht += j.p.Pt();
     }
@@ -157,7 +159,7 @@ void FakeRateSelector::fillGenSelection(const tree::Photon& probe, const string&
   effs->at("met_vs_vtx").Fill(!hasPixelSeed, thisMet, *nGoodVertices);
   effs->at("met_vs_jets").Fill(!hasPixelSeed, thisMet, nJet);
   effs->at("met_vs_pt").Fill(!hasPixelSeed, thisMet, probe.p.Pt());
-  //effs->at("met_vs_jetPt").Fill(!hasPixelSeed, thisMet, leadingJetPt);
+  effs->at("met_vs_jetPt").Fill(!hasPixelSeed, thisMet, leadingJetPt);
   effs->at("eta_vs_phi").Fill(!hasPixelSeed, probe.p.Eta(), probe.p.Phi());
   effs->at("cIso_vs_vtx").Fill(!hasPixelSeed, probe.cIso, *nGoodVertices);
 }
@@ -214,7 +216,6 @@ void FakeRateSelector::fillSelection(tree::Electron* tag, tree::Photon* probe, c
     }
   }
 
-  effs->at("pt").Fill(!hasPixelSeed, mll, probe->p.Pt());
   effs->at("pt").Fill(!hasPixelSeed, mll, probe->p.Pt());
   effs->at("eta").Fill(!hasPixelSeed, mll, fabs(probe->p.Eta()));
   effs->at("vtx").Fill(!hasPixelSeed, mll, *nGoodVertices);
