@@ -137,7 +137,6 @@ def drawSameHistograms( sampleNames="test", stack=[], additional=[] ):
 
 
 if __name__ == "__main__":
-    #transitions()
     #drawSameHistograms( "gqcd_data", [gjets, qcd], additional=[data])
     #drawSameHistograms( "mc_data", [gjets, qcd, ttjets_ht, ttg, wjets, wg, zg, znunu], additional=[data])
     #drawSameHistograms( "mc", [gjets, qcd, ttjets, ttg, wjets, wg, zg, znunu], additional=[t5wg_1600_100, t5wg_1600_1500])
