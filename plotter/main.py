@@ -753,10 +753,32 @@ def ewkIsrSamplesSplitting( dataset, isrDataset, saveName="test" ):
 
 
 def sampleMergingCheck():
+    # gjets
+    drawSameHistogram("merge_gjets", "tr/met", [gjets], [gjets_dr], range(0,800,50))
+    drawSameHistogram("merge_gjets", "tr/g_pt", [gjets], [gjets_dr], range(10,700,10))
+
+    # w
+    drawSameHistogram("merge_wg", "tr/met", [wg], [wg_nlo, wg130_nlo], range(0,800,50))
+    drawSameHistogram("merge_wg", "tr/g_pt", [wg], [wg_nlo, wg130_nlo], range(100,700,10))
+
+    # z
+    drawSameHistogram("merge_zg", "tr/met", [zg], [zg_nlo, zg130_nlo], range(0,800,50))
+    drawSameHistogram("merge_zg", "tr/g_pt", [zg], [zg_nlo, zg130_nlo], range(100,700,10))
+
+    # tg
+    drawSameHistogram("merge_tg", "tr/met", [tg,ttg], [], range(0,800,50))
+    drawSameHistogram("merge_tg", "tr/g_pt", [tg,ttg], [], range(100,700,10))
+
+
+    return
+
+
+
     myttjets_nlo = copy.deepcopy(ttjets_nlo)
     myttjets_nlo.color = ROOT.kBlack
     myttjets = copy.deepcopy(ttjets)
     myttjets.color = ROOT.kBlack
+
     drawSameHistogram("ttjets", "tr_jControl/genHt", [ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], additional=[] )
     drawSameHistogram("ttjets_compare", "tr_jControl/genHt", [ttjets600, ttjets800, ttjets1200, ttjets2500], [myttjets], range(0,3000,100), "1" )
     drawSameHistogram("ttjets_compare", "tr_jControl/genHt", [ttjets600, ttjets800, ttjets1200, ttjets2500], additional=[myttjets] )
@@ -771,9 +793,6 @@ def sampleMergingCheck():
     drawSameHistogram("w_compare", "tr/met", [wjets], additional=[wg], binning=range(0,600,10))
     drawSameHistogram("ttg_compare", "tr/g_pt", [ttjets_ht], additional=[ttg], binning=range(100,800,10))
     drawSameHistogram("ttg_compare", "tr/met", [ttjets_ht], additional=[ttg], binning=range(0,600,10))
-
-
-#wg_mg_0to130 = Dataset( "WGToLNuG-madgraphMLM_PtG-0to130", 405.271, ROOT.kRed-3, "WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 
 
 
@@ -1567,7 +1586,6 @@ def compareMet():
 def pdfUncertainty(name, dataset):
     nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
     scales = [(1,1), (1,2), (1,.5), (2,1), (2,2), (2,.5), (.5,1), (.5,2), (.5,.5)]
-
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
     hNominal = aux.stdHist(dataset, "tr/met_vs_emht", nBins, False)
@@ -1591,13 +1609,12 @@ def pdfUncertainty(name, dataset):
         h.Divide(hNominal)
         h.Draw("same hist")
     l = aux.Label(sim=True, info=dataset.label)
-    aux.save("pdfUncertainty_{}".format(name))
+    aux.save("pdfUncertainty_{}".format(name), normal=False)
     hUp, hDn = aux.getEnvelopeHists(hists)
     return aux.getSystFromEnvelopes(hNominal, hUp, hDn)
 
 def scaleUncertainty(name, dataset):
     nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
-
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
     hNominal = aux.stdHist(dataset, "tr/met_vs_emht", nBins, False)
@@ -1617,19 +1634,36 @@ def scaleUncertainty(name, dataset):
         h.Divide(hNominal)
         h.Draw("same hist")
     l = aux.Label(sim=True, info=dataset.label)
-    aux.save("scaleUncertainty_{}".format(name))
+    aux.save("scaleUncertainty_{}".format(name), normal=False)
     hUp, hDn = aux.getEnvelopeHists(hists)
     return aux.getSystFromEnvelopes(hNominal, hUp, hDn)
+
+def isrRejection(dataset):
+    gr = dataset.getHist("triggerStudies/noPromptEvaluation").CreateGraph()
+    eff = gr.GetY()[0]
+    effUp, effDn = gr.GetEYhigh()[0], gr.GetEYlow()[0]
+    print "{:<20} {:%} +{} -{}".format(dataset.label, eff, effUp, effDn)
+
 
 
 
 
 def main():
     pass
+    #pdfUncertainty("gjets", gjets)
     #pdfUncertainty("zg", zg)
-    scaleUncertainty("zg", zg)
+    #scaleUncertainty("zg", zg)
+    #pdfUncertainty("t5wg_1600_100", t5wg_1600_100)
+    #pdfUncertainty("t5wg_1600_1500", t5wg_1600_1500)
+    #scaleUncertainty("t5wg_1600_100", t5wg_1600_100)
+    #scaleUncertainty("t5wg_1600_1500", t5wg_1600_1500)
+
     #transitions()
-    #sampleMergingCheck()
+    sampleMergingCheck()
+    #isrRejection(wjets)
+    #isrRejection(znunu)
+    #isrRejection(ttjets_nlo)
+    #isrRejection(qcd)
 
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
