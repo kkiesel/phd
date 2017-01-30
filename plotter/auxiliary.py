@@ -633,6 +633,17 @@ def stdHist(dataset, name, binning=None, xCut=True, cut1=0, cut2=1e8):
     h.SetYTitle(getYAxisTitle(h))
     return h
 
+def getEnvelopeHists(hlist):
+    hUp = hlist[0].Clone(randomName())
+    hDn = hlist[0].Clone(randomName())
+
+    for h in hlist:
+        for b in loopH(h):
+            c = h.GetBinContent(b)
+            if c>hUp.GetBinContent(b): hUp.SetBinContent(b,c)
+            if c<hDn.GetBinContent(b): hDn.SetBinContent(b,c)
+    return hUp, hDn
+
 def integerContent(h):
     for bin in loopH(h):
         c = h.GetBinContent(bin)
@@ -764,10 +775,18 @@ def getSystFromDifference(h1, h2, changeStyle=True):
     for bin in range(out.GetNbinsX()+2):
         c1 = h1.GetBinContent(bin)
         c2 = h2.GetBinContent(bin)
-        e1 = h1.GetBinError(bin)
-        e2 = h2.GetBinError(bin)
         out.SetBinContent(bin, 0.5*(c1+c2))
         out.SetBinError(bin, 0.5*abs(c1-c2))
+    return out
+
+def getSystFromEnvelopes(h0, hUp, hDn, changeStyle=True):
+    out = h0.Clone(randomName())
+    if changeStyle: drawOpt(out, "sys")
+    for bin in range(out.GetNbinsX()+2):
+        c = h0.GetBinContent(bin)
+        up = hUp.GetBinContent(bin)
+        dn = hDn.GetBinContent(bin)
+        out.SetBinError(bin, max(abs(up-c), abs(dn-c)))
     return out
 
 def dataCardToLatexTable(filename):
