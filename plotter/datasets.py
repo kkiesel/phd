@@ -123,11 +123,11 @@ gjets600 = Dataset( "GJets_HT-600ToInf", 93.46, ROOT.kCyan, "GJets_HT-600ToInf_T
 gjets = gjets40 + gjets100 + gjets200 + gjets400 + gjets600
 gjets.label = "#gamma+Jet"
 
-gjets40dr = Dataset( "GJets_DR-0p4_HT-40To100", 17420.0, ROOT.kCyan-1, "GJets_DR-0p4_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-gjets100dr = Dataset( "GJets_DR-0p4_HT-100To200", 5383.0, ROOT.kCyan+4, "GJets_DR-0p4_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
-gjets200dr = Dataset( "GJets_DR-0p4_HT-200To400", 1176.0, ROOT.kCyan+3, "GJets_DR-0p4_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-gjets400dr = Dataset( "GJets_DR-0p4_HT-400To600", 132.1, ROOT.kCyan+2, "GJets_DR-0p4_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
-gjets600dr = Dataset( "GJets_DR-0p4_HT-600ToInf", 44.32, ROOT.kCyan, "GJets_DR-0p4_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+gjets40dr = Dataset( "GJets_DR-0p4_HT-40To100", 17420.0, ROOT.kCyan+4, "GJets_DR-0p4_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+gjets100dr = Dataset( "GJets_DR-0p4_HT-100To200", 5383.0, ROOT.kCyan-1, "GJets_DR-0p4_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+gjets200dr = Dataset( "GJets_DR-0p4_HT-200To400", 1176.0, ROOT.kCyan+2, "GJets_DR-0p4_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+gjets400dr = Dataset( "GJets_DR-0p4_HT-400To600", 132.1, ROOT.kCyan+3, "GJets_DR-0p4_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
+gjets600dr = Dataset( "GJets_DR-0p4_HT-600ToInf", 44.32, ROOT.kCyan+2, "GJets_DR-0p4_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 gjets_dr = gjets40dr + gjets100dr + gjets200dr + gjets400dr + gjets600dr
 gjets_dr.label = "#gamma+Jet (#DeltaR>.4)"
 
@@ -188,7 +188,7 @@ ttjets0 = Dataset("TTJets_HT-0to600", 5.098e+02, ROOT.kRed+2, "TTJets_TuneCUETP8
 ttjets600 = Dataset("TTJets_HT-600to800_ext", 1.61, ROOT.kRed+2, "TTJets_HT-600to800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
 ttjets800 = Dataset("TTJets_HT-800to1200_ext", 0.663, ROOT.kRed+2, "TTJets_HT-800to1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
 ttjets1200 = Dataset("TTJets_HT-1200to2500_ext", 0.12, ROOT.kRed+2, "TTJets_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
-ttjets2500 = Dataset("TTJets_HT-2500toInf", 0.00143, ROOT.kRed+2, "TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
+ttjets2500 = Dataset("TTJets_HT-2500toInf_ext", 0.00143, ROOT.kRed+2, "TTJets_HT-2500toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8")
 ttjets_ht_samples = ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500
 for ds in ttjets_ht_samples: ds.xsecs = [ ds.xsecs[0] * 831.76/5.098e+02 ] # k-factor
 ttjets_ht = sum(ttjets_ht_samples)
@@ -205,7 +205,7 @@ wg = wg40 + wg130
 wg.label = "#gammaW"
 wg_nlo = Dataset( "WGToLNuG-amcatnloFXFX_ext", 512.1, ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 wg_nlo.label = "#gammaW (NLO)"
-wg130_nlo = Dataset( "WGToLNuG-PtG-130-amcatnloFXFX", 1.125, ROOT.kRed-1, "WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+wg130_nlo = Dataset( "WGToLNuG_PtG-130-amcatnloFXFX", 1.125, ROOT.kRed-3, "WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 wg130_nlo.label = "#gammaW (NLO), p^{#gamma}_{T}>130"
 
 ###############################################################################
@@ -216,9 +216,9 @@ zg130 = Dataset( "ZNuNuGJets_MonoPhoton_PtG-130", 0.1832*1.39, ROOT.kMagenta+2, 
 zg = zg40 + zg130
 zg.label = "#gammaZ(#nu#nu)"
 
-zg_nlo = Dataset( "ZGTo2LNuG", 27.99, ROOT.kMagenta+3, "ZGTo2NuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+zg_nlo = Dataset( "ZGTo2NuG", 27.99, ROOT.kMagenta-3, "ZGTo2NuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 zg_nlo.label = "#gammaZ (NLO)"
-zg130_nlo = Dataset( "ZGTo2LNuG_PtG-130", 0.2762, ROOT.kMagenta+3, "ZGTo2NuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
+zg130_nlo = Dataset( "ZGTo2NuG_PtG-130", 0.2762, ROOT.kMagenta-1, "ZGTo2NuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
 zg130_nlo.label = "#gammaZ (NLO), p^{#gamma}_{T}>130"
 
 ###############################################################################
