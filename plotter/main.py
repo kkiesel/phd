@@ -1564,11 +1564,73 @@ def compareMet():
         #compareMetSmearedPhoton(gjets+qcd, None, ["metPhotonResDn", "metPhotonResUp"], "gqcd", binning, binningName)
         #compareMetSmearedPhoton(data, dataHt, ["metPhotonResDn", "metPhotonResUp"], "data", binning, binningName)
 
+def pdfUncertainty(name, dataset):
+    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
+    scales = [(1,1), (1,2), (1,.5), (2,1), (2,2), (2,.5), (.5,1), (.5,2), (.5,.5)]
+
+    c = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+    hNominal = aux.stdHist(dataset, "tr/met_vs_emht", nBins, False)
+    hNominal.SetLineColor(ROOT.kBlack)
+    m.add(hNominal, "Nominal")
+    hists = []
+    for iWeight, (mur, muf) in enumerate(scales):
+        h = aux.stdHist(dataset, "tr/met_vs_emht_weight_{}".format(iWeight), nBins, False)
+        h.drawOption_ = "hist"
+        if iWeight/3 == 0: h.SetLineColor(ROOT.kBlack)
+        if iWeight/3 == 1: h.SetLineColor(ROOT.kRed)
+        if iWeight/3 == 2: h.SetLineColor(ROOT.kBlue)
+        if iWeight%3 == 1: h.SetLineStyle(2)
+        if iWeight%3 == 2: h.SetLineStyle(3)
+        m.add(h, "#mu_{{r}}={} #mu_{{f}}={}".format(mur,muf))
+        hists.append(h.Clone(aux.randomName()))
+    m.Draw()
+    r = ratio.Ratio("Var./Nominal", hNominal, hNominal)
+    r.draw(.5,1.5)
+    for h in hists:
+        h.Divide(hNominal)
+        h.Draw("same hist")
+    l = aux.Label(sim=True, info=dataset.label)
+    aux.save("pdfUncertainty_{}".format(name))
+    hUp, hDn = aux.getEnvelopeHists(hists)
+    return aux.getSystFromEnvelopes(hNominal, hUp, hDn)
+
+def scaleUncertainty(name, dataset):
+    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
+
+    c = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+    hNominal = aux.stdHist(dataset, "tr/met_vs_emht", nBins, False)
+    hNominal.SetLineColor(ROOT.kBlack)
+    m.add(hNominal)
+    hists = []
+    for iWeight in range(9,110):
+        h = aux.stdHist(dataset, "tr/met_vs_emht_weight_{}".format(iWeight), nBins, False)
+        h.SetLineColor(ROOT.kRed)
+        h.drawOption_ = "hist"
+        m.add(h)
+        hists.append(h.Clone(aux.randomName()))
+    m.Draw()
+    r = ratio.Ratio("Var./Nominal", hNominal, hNominal)
+    r.draw(.5,1.5)
+    for h in hists:
+        h.Divide(hNominal)
+        h.Draw("same hist")
+    l = aux.Label(sim=True, info=dataset.label)
+    aux.save("scaleUncertainty_{}".format(name))
+    hUp, hDn = aux.getEnvelopeHists(hists)
+    return aux.getSystFromEnvelopes(hNominal, hUp, hDn)
+
+
+
 
 def main():
     pass
-    transitions()
+    #pdfUncertainty("zg", zg)
+    scaleUncertainty("zg", zg)
+    #transitions()
     #sampleMergingCheck()
+
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
     #compareAll( "_allMC", gjets, znn, qcd, wjets )
