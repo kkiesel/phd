@@ -6,8 +6,8 @@ ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
 ROOT.RooMsgService.instance().setSilentMode(True)
 
 # settings
-fnameData = "../fakeRate/SingleElectron_Run2016-PromptReco_fake.root"
-fnameMC = "../fakeRate/DYJetsToLL_M-50_ext_fake.root"
+fnameData = "../fakeRate/SingleElectron_Run2016_fake.root"
+fnameMC = "../fakeRate/DYJetsToLL_M-50_merged_fake.root"
 
 selectionTex = {
     "all":"p_{T}>25",

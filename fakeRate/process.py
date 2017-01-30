@@ -13,12 +13,12 @@ ROOT.gErrorIgnoreLevel = ROOT.kWarning
 import run
 
 periods = [
-        "SingleElectron_Run2016B-PromptReco-v2_nTuple.root",
-        "SingleElectron_Run2016C-PromptReco-v2_nTuple.root",
-        "SingleElectron_Run2016D-PromptReco-v2_nTuple.root",
-        "SingleElectron_Run2016E-PromptReco-v2_nTuple.root",
-        "SingleElectron_Run2016F-PromptReco-v1_nTuple.root",
-        "SingleElectron_Run2016G-PromptReco-v1_nTuple.root",
+        "SingleElectron_Run2016B-23Sep2016-v3_nTuple.root",
+        "SingleElectron_Run2016C-23Sep2016-v1_nTuple.root",
+        "SingleElectron_Run2016D-23Sep2016-v1_nTuple.root",
+        "SingleElectron_Run2016E-23Sep2016-v1_nTuple.root",
+        "SingleElectron_Run2016F-23Sep2016-v1_nTuple.root",
+        "SingleElectron_Run2016G-23Sep2016-v1_nTuple.root",
         "SingleElectron_Run2016H-PromptReco-v2_nTuple.root",
         "SingleElectron_Run2016H-PromptReco-v3_nTuple.root",
         "DYJetsToLL_M-50_nTuple.root",
