@@ -211,6 +211,14 @@ class MyDatacard(Datacard):
                 infos["exp2dn"] = (signal-2*err)/err
         return infos
 
+    def setExpection(self):
+        for binName, expDict in self.exp.iteritems():
+            totRate = 0
+            for process, rate in expDict.iteritems():
+                totRate += 0 if process == "signal" else rate
+            self.obs[binName] = totRate
+
+
 if False:
     inFileName = "limitCalculations/observation_v1.txt"
     import DatacardParser
