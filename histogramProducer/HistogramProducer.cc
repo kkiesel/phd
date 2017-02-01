@@ -567,8 +567,6 @@ void HistogramProducer::Init(TTree *tree)
   inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   isData = inputName.find("Run201") != string::npos;
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
-  weighters["fakeRate_eta"] = Weighter("../plotter/weights.root", isData?"fakeRate__data_40pt_eta":"fakeRate__sim_40pt_eta");
-  weighters["fakeRate_pt"] = Weighter("../plotter/weights.root", isData?"fakeRate__data_x17_EB_40pt_pt":"fakeRate__sim_x17_EB_40pt_pt");
   weighters["sf_photon_id_loose"] = Weighter("../plotter/data/egammaEffi.txt_SF2DLoose.root", "EGamma_SF2D");
   weighters["sf_photon_pixel"] = Weighter("../plotter/data/EleVeto_SFs_80X.root", "Scaling Factors_HasPix_InclusiveR9");
   weighters.at("sf_photon_id_loose").fillOverflow2d();
