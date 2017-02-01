@@ -372,9 +372,9 @@ float crystalResponse(float energy) {
   if (adc > 16000) {
     response = 0.88;
   } else if (adc > 8500) {
-    response = 0.591574 + 0.000127616*adc -1.18194e-08*pow(adc,2) + 3.15593e-13*pow(adc,3);
+    response = 0.591574 + 0.000127616*adc -1.18194e-08*pow(adc,2) + 3.15593e-13*pow(adc,3)-0.0161;
   } else if (adc > 4000) {
-    response = 0.486492 + 0.000304324*adc -5.4362e-08*pow(adc,2) +2.86294e-12*pow(adc,3);
+    response = 0.486492 + 0.000304324*adc -5.4362e-08*pow(adc,2) +2.86294e-12*pow(adc,3)-0.01723;
   }
   if (response > 1) response = 1.;
   return response;
