@@ -315,6 +315,7 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
   if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
 
   float tree_met, tree_metRaw, tree_emht, tree_w;
+  float tree_dPhi, tree_pt, tree_eta, tree_eCrystal;
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
     h2Maps[s] = initHistograms2(fillPdfWeights ? pdf_weights->size() : 0);
@@ -323,6 +324,10 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
     treeMap[s]->Branch("metRaw", &tree_metRaw);
     treeMap[s]->Branch("emht", &tree_emht);
     treeMap[s]->Branch("weight", &tree_w);
+    treeMap[s]->Branch("dPhi", &tree_dPhi);
+    treeMap[s]->Branch("pt", &tree_pt);
+    treeMap[s]->Branch("eta", &tree_eta);
+    treeMap[s]->Branch("eCrystal", &tree_eCrystal);
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
@@ -330,6 +335,14 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
   tree_met = met->p.Pt();
   tree_metRaw = metRaw->p.Pt();
   tree_w = weight * sampleW;
+  if (selPhotons.size()) {
+    auto g = selPhotons.at(0);
+    tree_dPhi = fabs(met->p.DeltaPhi(g->p));
+    tree_eta = g->p.Eta();
+    tree_eCrystal = g->seedCrystalE;
+    tree_pt = g->p.Pt();
+  }
+
 
   // calculate variables
   float ht = 0;
