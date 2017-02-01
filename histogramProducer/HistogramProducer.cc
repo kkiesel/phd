@@ -210,6 +210,7 @@ map<string,TH1F> initHistograms() {
   hMap["met"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metCrystalSeedCorrected"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metCrystalSeedCorrected2"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metCrystalSeedCorrected3"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metPhotonPtUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metPhotonPtDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
   hMap["metSmearedPhotonByJERUp"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
@@ -392,8 +393,6 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
     m1->at("metJet1ResPhi").Fill((met->p+thisJet-selJets.at(0)->p).Pt(), weight);
   }
 
-
-
   if (selPhotons.size() > 0) {
     auto g = selPhotons.at(0);
     m1->at("genMatch").Fill(genMatchNegativePrompt(*g, *genParticles), weight);
@@ -413,8 +412,12 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
 
     // correcting the barrel crystal seed energy
     float corr = isData && fabs(g->p.Eta()) < 1.4442 ? crystalResponse(g->seedCrystalE) : 1;
+    auto corrMet1 = (met->p+g->p*(1-corr)).Pt();
+    auto corrMet2 = (met->p-g->p*(1-corr)).Pt();
+    auto corrMet3 = min(corrMet1, corrMet2);
     m1->at("metCrystalSeedCorrected").Fill((met->p+g->p*(1-corr)).Pt(), weight);
     m1->at("metCrystalSeedCorrected2").Fill((met->p-g->p*(1-corr)).Pt(), weight);
+    m1->at("metCrystalSeedCorrected3").Fill(corrMet3, weight);
 
     m1->at("mt_g_met").Fill(transverseMass(g->p, met->p), weight);
     m1->at("metTimesPt").Fill(g->p * met->p, weight);
