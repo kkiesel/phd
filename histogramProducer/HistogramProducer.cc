@@ -686,10 +686,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
-    fillSelection("tr", addWeight, false, true);
+    fillSelection("tr", addWeight, true, true);
     if (fabs(selPhotons.at(0)->p.Eta())<0.5) fillSelection("tr_central", addWeight);
     if (fabs(selPhotons.at(0)->p.Eta())>1) fillSelection("tr_EB_forward", addWeight);
+    if (fabs(selPhotons.at(0)->p.Eta())<0.5 && selPhotons.at(0)->seedCrystalE<400) fillSelection("tr_central_e400", addWeight);
+    if (fabs(selPhotons.at(0)->p.Eta())>1 && selPhotons.at(0)->seedCrystalE<400) fillSelection("tr_EB_forward_e400", addWeight);
+    if (fabs(selPhotons.at(0)->p.Eta())>1) fillSelection("tr_EB_forward", addWeight);
     if (transverseMass(selPhotons.at(0)->p, met->p)>100) fillSelection("tr_100mt", addWeight);
+    if (selPhotons.at(0)->p*met->p<0) fillSelection("tr_metp0", addWeight);
 
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", addWeight);
     if (selPhotons.at(0)->isTrue == MATCHED_FROM_GUDSCB) fillSelection("tr_true_GUDSCB", addWeight);
@@ -716,6 +720,26 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   resetSelection();
   /////////////////////////////////////////////////////////////////////////////
+  // signal 15 id
+  /////////////////////////////////////////////////////////////////////////////
+  for (auto& photon : *photons) {
+    if (photon.isLoose15 && !photon.hasPixelSeed && photon.p.Pt() > 100 && fabs(photon.p.Eta()) < photonsEtaMaxBarrel) {
+      selPhotons.push_back(&photon);
+    }
+  }
+  defaultSelection();
+
+  myHt=0;
+  for (auto& p : selPhotons) myHt += p->p.Pt();
+  for (auto& p : selJets) myHt += p->p.Pt();
+
+  if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
+    auto addWeight = getPhotonWeight(*selPhotons.at(0));
+    fillSelection("tr_id15", addWeight, false, true);
+  }
+
+  resetSelection();
+  /////////////////////////////////////////////////////////////////////////////
   // ee signal sample
   /////////////////////////////////////////////////////////////////////////////
 
@@ -733,7 +757,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
-    fillSelection("tr_ee", addWeight);
+    fillSelection("tr_ee", addWeight, true, true);
     if (selPhotons.at(0)->isTight) fillSelection("tr_ee_tight", addWeight);
     if (fabs(genMatchNegativePrompt(*selPhotons.at(0), *genParticles)) == 11) {
       fillSelection("tr_ee_genE", addWeight);
