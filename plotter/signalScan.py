@@ -22,6 +22,14 @@ def readDict( filename ):
         d[element.GetName()] = obj
     return d
 
+def scaleObsWithXsec(gr2d):
+    out = gr2d.Clone(aux.randomName())
+    points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
+    for ip, (x,y,z) in enumerate(points):
+        xsec = aux.getXsecSMSglu(x)
+        out.SetPoint(ip, x, y, z*xsec)
+    return out
+
 def getXsecLimitHist( gr2d, h ):
     h.SetDirectory(0) # or the next line will overwrite the hist?
     points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
@@ -29,6 +37,28 @@ def getXsecLimitHist( gr2d, h ):
         xsec = aux.getXsecSMSglu(x)
         h.SetBinContent(h.FindBin(x,y), z*xsec )
     return h
+
+def getXsecLimitHistDelaunay(gr):
+    grScaled = scaleObsWithXsec(gr)
+    grScaled.SetNpx(500)
+    grScaled.SetNpy(500)
+    h = grScaled.GetHistogram()
+    h = h.Clone(aux.randomName())
+    return h
+
+def getObsUncertainty(gr2d):
+    gr2dup = gr2d.Clone(aux.randomName())
+    gr2ddn = gr2d.Clone(aux.randomName())
+    points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
+    for ip, (x,y,z) in enumerate(points):
+        xsec, unc = aux.getXsecInfoSMS(x, "data/xSec_SMS_Gluino_13TeV.pkl")
+        gr2dup.SetPoint(ip, x, y, z*(1-unc/100))
+        gr2ddn.SetPoint(ip, x, y, z*(1+unc/100))
+    obsUp = limitTools.getContour(gr2dup)
+    obsUp.SetName("obs1up")
+    obsDn = limitTools.getContour(gr2ddn)
+    obsDn.SetName("obs1dn")
+    return {"obs1up": obsUp, "obs1dn": obsDn}
 
 def writeDict( d, filename ):
     f = ROOT.TFile( filename, "recreate")
