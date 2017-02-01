@@ -77,13 +77,13 @@ class MyDatacard(Datacard):
     def __init__(self, dc):
         if isinstance(dc, Datacard):
             self.bins = dc.bins
-            self.obs  = dc.obs
+            self.obs = dc.obs
             self.processes = dc.processes
             self.signals = dc.signals
             self.isSignal = dc.isSignal
             self.keyline = dc.keyline
-            self.exp     = dc.exp
-            self.systs   = dc.systs
+            self.exp = dc.exp
+            self.systs = dc.systs
             self.shapeMap = dc.shapeMap
             self.hasShape = dc.hasShape
             self.flatParamNuisances = dc.flatParamNuisances
@@ -127,8 +127,8 @@ class MyDatacard(Datacard):
         out += "\nimax "+str(len(self.bins))
         out += "\njmax *"
         out += "\nkmax *"
-        out += "\n\nbin         " + ("{:<7}"*len(self.bins)).format(*self.bins)
-        out += "\nobservation " + ("{:<7}"*len(self.bins)).format(*[str(int(self.obs[x])) for x in self.bins])
+        out += "\n\nbin         " + ("{:<15}"*len(self.bins)).format(*self.bins)
+        out += "\nobservation " + ("{:<15}"*len(self.bins)).format(*[str(int(self.obs[x])) for x in self.bins])
         keylineInv0, keylineInv1, keylineInv2 = zip(*self.keyline)
         out += "\n\nbin".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv0)).format(*keylineInv0)
         out += "\nprocess".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv1)).format(*keylineInv1)
