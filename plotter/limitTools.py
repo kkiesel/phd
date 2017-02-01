@@ -22,6 +22,12 @@ def infoFromOut(out):
         infos = { "obs":0, "exp":0, "exp1up":0, "exp1dn":0, "exp2up":0, "exp2dn":0 }
     return infos
 
+def significanceFromOut(out):
+    sig = -10
+    for line in out.split("\n"):
+        if line.startswith("Significance:"): sig = float(line.split(":")[1])
+    return sig
+
 def guessSignalPoint(name):
     m = re.match(".*_(\d+)_(\d+).*",name)
     if m:
@@ -44,6 +50,16 @@ def callCombine(name):
     if not os.path.isfile(nameLimit) or os.path.getmtime(name)>os.path.getmtime(nameLimit):
         with open(nameLimit, "w+") as f:
             out = subprocess.check_output(["combine", "-M", "Asymptotic", name], stderr=subprocess.STDOUT)
+            f.write(out)
+    with open(nameLimit) as f:
+        out = f.read()
+    return out
+
+def callCombineSignificance(name):
+    nameLimit = name + ".signif.limit"
+    if not os.path.isfile(nameLimit) or os.path.getmtime(name)>os.path.getmtime(nameLimit):
+        with open(nameLimit, "w+") as f:
+            out = subprocess.check_output(["combine", "-M", "ProfileLikelihood", "--uncapped", "1", "--rMin", "-2", name], stderr=subprocess.STDOUT)
             f.write(out)
     with open(nameLimit) as f:
         out = f.read()
