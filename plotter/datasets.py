@@ -133,6 +133,7 @@ gjets_dr.label = "#gamma+Jet (#DeltaR>.4)"
 
 ###############################################################################
 # Multijet
+qcd50 = Dataset( "QCD_HT50to100", 246400000, ROOT.kBlue+1, "QCD_HT50to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 qcd100 = Dataset( "QCD_HT100to200", 27990000, ROOT.kBlue+1, "QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
 qcd200 = Dataset( "QCD_HT200to300", 1712000, ROOT.kBlue+2, "QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
 qcd300 = Dataset( "QCD_HT300to500", 347700, ROOT.kBlue+3, "QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8"  )
