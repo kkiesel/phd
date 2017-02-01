@@ -184,7 +184,7 @@ class MyDatacard(Datacard):
         for b, v in infos.iteritems():
             self.exp[b]["signal"] = v[0]
             lines = [i for i, j in enumerate(self.systs) if j[0] == "signalStat_"+b]
-            if not len(lines) != 1: "Error: Statistical uncertainty not found"
+            if len(lines) != 1: print "Error: Statistical uncertainty not found"
             self.systs[lines[0]][4][b]["signal"] = v[1]
 
     def limit(self):
