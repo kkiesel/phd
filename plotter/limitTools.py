@@ -156,7 +156,7 @@ class MyDatacard(Datacard):
             print out
 
     def addBin(self, name, obs, gqcd, gqcdStat, gqcdSyst, ele, eleStat, eleSyst, zg, zgStat, zgSyst, wg, wgStat, wgSyst, ttg, ttgStat, ttgSyst, signal, signalStat, signalSyst):
-        self.bins = list(set(self.bins+[name]))
+        self.bins.append(name)
         self.obs[name] = obs
         self.keyline.extend([(name, 'signal', True), (name, 'gqcd', False), (name, 'ele', False), (name, 'zg', False), (name, 'wg', False), (name, "ttg", False)])
         self.exp[name] = {"signal": signal, "gqcd": gqcd, "ele": ele,
