@@ -220,19 +220,19 @@ class MyDatacard(Datacard):
 
 
 if False:
-    inFileName = "limitCalculations/observation_v1.txt"
-    import DatacardParser
-    options, b = DatacardParser.addDatacardParserOptions(optparse.OptionParser())
-    dc = MyDatacard(DatacardParser.parseCard(file(inFileName), options))
+    inFileName = "limitCalculations/observation_v2.txt"
+    dc = MyDatacard(inFileName)
+    dc.setExpection()
+    dc.write("test.txt")
 
-    dc.newSignal({
-        "bin25": (12,1.1),
-        "bin26": (1, 1.1),
-        "bin27": (3, 1.2)
-    })
+    #dc.newSignal({
+    #    "bin25": (12,1.1),
+    #    "bin26": (1, 1.1),
+    #    "bin27": (3, 1.2)
+    #})
 
-    print dc
-    dc.write()
+    #print dc
+    #dc.write()
     #print dc.limit()
 
 
