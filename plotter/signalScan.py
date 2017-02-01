@@ -151,11 +151,9 @@ def signalScan(name, combi, inputData, inputSignal):
     build2dGraphs(outputDir, combi)
     graphs = readDict(outputDir+"/Graphs2d.root")
     toDraw = dict( [(name,limitTools.getContour(gr)) for name,gr in graphs.iteritems() ] )
+    toDraw.update(getObsUncertainty(graphs["obs"]))
+    toDraw["obs_hist"] = getXsecLimitHistDelaunay(graphs["obs"])
     toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel("T5Wg") )
-    toDraw["obs_hist"] = graphs["obs"].GetHistogram()
-    if False:
-        toDraw["obs_hist"] = interpolateH2( toDraw["obs_hist"] )
-        toDraw["obs_hist"] = interpolateH2( toDraw["obs_hist"] )
     writeDict(toDraw, outputDir+"/Graphs1d.root")
 
     scanName = "T5Wg"
