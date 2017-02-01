@@ -511,10 +511,14 @@ def setMinMaxForLog():
     ROOT.gPad.Update()
 
 
-def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
+def modifySaveName(name):
     replacements = {"(": "", ")": "", "&":"AND", ".":"p", "/":"DIV", "<":"", ">":"", "*":"TIMES"}
     for a, b in replacements.iteritems():
         name = name.replace(a, b)
+    return name
+
+def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
+    name = modifySaveName(name)
     if normal:
         for ending in endings:
             ROOT.gPad.GetCanvas().SaveAs( folder+name+ending )
