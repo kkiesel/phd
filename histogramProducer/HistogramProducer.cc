@@ -659,9 +659,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     return kTRUE;
   }
 
-  bool cutPrompt = noPromptPhotons && count_if(genParticles->begin(), genParticles->end(), [] (const tree::GenParticle& p) { return p.promptStatus == DIRECTPROMPT;});
+  bool cutPrompt = noPromptPhotons && count_if(genParticles->begin(), genParticles->end(), [] (const tree::GenParticle& p) { return p.pdgId==22 && p.promptStatus == DIRECTPROMPT;});
   effMap.at("noPromptEvaluation").Fill(cutPrompt, 0);
-  if (cutPrompt) return kTRUE;
+  if (cutPrompt) return kTRUE; // TODO: enable cut if switching to v19
 
   fillUncut();
   fillTriggerStudies();
