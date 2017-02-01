@@ -89,6 +89,11 @@ class MyDatacard(Datacard):
             self.flatParamNuisances = dc.flatParamNuisances
             self.rateParams = dc.rateParams
             self.rateParamsOrder = dc.rateParamsOrder
+        elif dc.endswith(".txt"):
+            import DatacardParser
+            options, b = DatacardParser.addDatacardParserOptions(optparse.OptionParser())
+            mydc = MyDatacard(DatacardParser.parseCard(file(dc), options))
+            self.__init__(mydc)
         elif dc == "photonHt":
             self.bins = []
             self.obs = {}
