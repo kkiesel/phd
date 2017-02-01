@@ -69,7 +69,13 @@ colors = {
     "mayGreen75": (208,217,92),
     "mayGreen50": (224,230,154),
     "mayGreen25": (240,243,208),
-    "mayGreen10": (249,250,237)
+    "mayGreen10": (249,250,237),
+    # From http://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=5
+    "myRed": (215,25,28),
+    "myOrange": (253,174,97),
+    "myYellow": (255,255,191),
+    "myLightBlue": (171,217,233),
+    "myBlue": (44,123,182),
 }
 
 # This class will contain all colors as members
