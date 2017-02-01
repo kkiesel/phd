@@ -78,11 +78,13 @@ def writeSMSLimitConfig(infile, configName):
     text = """
 HISTOGRAM {0} obs_hist
 EXPECTED {0} exp exp1up exp1dn kRed kOrange
-OBSERVED ../../master/singlePhoton/PlotsSMS/config/SUS14004/2015-01-09-limits/SMS_T5wg/ROOT/SMS_T5wg_gluino_chi1_Exclusion_witXsecLimit.root Expected_limit Expected_limit_up Expected_limit_dn kBlack kGray
+OBSERVED {0} obs obs1up obs1dn kBlack kGray
 PRELIMINARY PrivateWork
 LUMI {1:.2f}
 ENERGY 13
 """.format(infile,aux.intLumi/1e3)
+    t2 = "OBSERVED ../../master/singlePhoton/PlotsSMS/config/SUS14004/2015-01-09-limits/SMS_T5wg/ROOT/SMS_T5wg_gluino_chi1_Exclusion_witXsecLimit.root Expected_limit Expected_limit_up Expected_limit_dn kBlack kGray"
+    text = "\n".join([l for l in text.split("\n") if "OBSERVED" not in l]+[t2, ""])
     with open(configName, "w+") as f:
         f.write(text)
 
