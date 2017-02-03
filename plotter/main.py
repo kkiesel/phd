@@ -55,6 +55,36 @@ def compareAll( saveName="test", *datasets ):
         if name.startswith("h_"):
             compare( datasets, name, saveName )
 
+def compareSelections(sampleName, dataset, tr1, label1, tr2, label2):
+    names = aux.getObjectNames(dataset.files[0], tr1, [ROOT.TH1F])
+    for name in names:
+        binningSettings = aux.getBinningsFromName( name )
+        for binningName, binning in binningSettings.iteritems():
+            c = ROOT.TCanvas()
+            m = multiplot.Multiplot()
+            h1 = aux.stdHist(dataset, tr1+"/"+name, binning)
+            h2 = aux.stdHist(dataset, tr2+"/"+name, binning)
+            if name == "met" and dataset == data:
+                for b in range(h1.GetNbinsX()+2):
+                    if h1.GetBinCenter(b)>350:
+                        h1.SetBinContent(b,0)
+                        h2.SetBinContent(b,0)
+                        h1.SetBinError(b,0)
+                        h2.SetBinError(b,0)
+            aux.drawOpt(h1, "data")
+            aux.drawOpt(h2, "pre")
+            h2.SetLineColor(2)
+            m.add(h1, label1)
+            m.add(h2, label2)
+            m.Draw()
+            r = ratio.Ratio(label1+"/"+label2, h1, h2)
+            r.draw()
+            if binningName: binningName = "_"+binningName
+            saveName = "compareSelections_{}_{}_vs_{}_{}{}".format(sampleName, tr1, tr2, name, binningName)
+            aux.save(saveName)
+
+
+
 
 def divideDatasetIntegrals( numerator, denominator, name ):
     numMerged = sum(numerator)
@@ -1650,6 +1680,12 @@ def isrRejection(dataset):
 
 def main():
     pass
+    """
+    wjets800_ext = Dataset( "WJetsToLNu_HT-800To1200_ext", 5.501, ROOT.kRed-2, "WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8" )
+    pdfUncertainty("wjets800_ext", wjets800_ext)
+    scaleUncertainty("wjets800_ext", wjets800_ext)
+    pdfUncertainty("wjets800", wjets800)
+    scaleUncertainty("wjets800", wjets800)
     #pdfUncertainty("gjets", gjets)
     #pdfUncertainty("zg", zg)
     #scaleUncertainty("zg", zg)
@@ -1660,14 +1696,15 @@ def main():
 
     #transitions()
     #sampleMergingCheck()
-    isrRejection(wjets)
-    isrRejection(znunu)
-    isrRejection(ttjets_nlo)
-    isrRejection(ttjets600)
-    isrRejection(ttjets800)
-    isrRejection(ttjets1200)
-    isrRejection(ttjets2500)
-    isrRejection(qcd)
+    #isrRejection(wjets)
+    #isrRejection(znunu)
+    #isrRejection(ttjets_nlo)
+    #isrRejection(ttjets600)
+    #isrRejection(ttjets800)
+    #isrRejection(ttjets1200)
+    #isrRejection(ttjets2500)
+    #isrRejection(qcd)
+    """
 
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
@@ -1749,6 +1786,9 @@ def main():
     #wgammaSamples()
     #etaPlot()
     #scaleVsEmht()
+    #compareSelections("data", data, "tr", "Spring16ID", "tr_id15", "Spring15ID")
+    #compareSelections("zg", zg, "tr", "Spring16ID", "tr_id15", "Spring15ID")
+    #compareSelections("qcd", qcd, "tr", "Spring16ID", "tr_id15", "Spring15ID")
 
 if __name__ == "__main__":
     from datasets import *
