@@ -169,9 +169,9 @@ Bool_t SignalScan::Process(Long64_t entry)
   }
   for (auto& jet : *jets) {
     if (!jet.isLoose
-//      || jet.hasPhotonMatch || jet.hasElectronMatch || jet.hasMuonMatch
+      || jet.hasPhotonMatch || jet.hasElectronMatch || jet.hasMuonMatch
       || indexOfMatchedParticle<tree::Photon*>(jet, selPhotons, .3) >= 0
-      || jet.p.Pt() < 40 || fabs(jet.p.Eta()) > 3) continue;
+      || jet.p.Pt() < 30 || fabs(jet.p.Eta()) > 3) continue;
     selJets.push_back(&jet);
   }
   float myHt=0;
