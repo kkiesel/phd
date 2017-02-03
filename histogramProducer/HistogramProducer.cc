@@ -710,6 +710,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     } else {
       fillSelection("tr_noGenE", addWeight);
     }
+    if (cutPrompt) {
+      fillSelection("tr_prompt", addWeight);
+    }
 
   }
 
@@ -783,7 +786,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
-    fillSelection("tr_eControl", addWeight);
+    fillSelection("tr_eControl", addWeight, true);
   }
 
 
@@ -805,7 +808,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selJets) myHt += p->p.Pt();
   if (selPhotons.size() && myHt > 700 && (*hlt_photon90_ht600 || !isData)) {
     auto addWeight = getPhotonWeight(*selPhotons.at(0));
-    fillSelection("tr_eControl_ee", addWeight);
+    fillSelection("tr_eControl_ee", addWeight, true);
   }
 
   resetSelection();
