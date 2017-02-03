@@ -167,7 +167,8 @@ def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSe
 def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="1"):
     if not preSet: preSet = dirSet
     dirTree = ROOT.TChain(treename)
-    preTree = ROOT.TChain(treename.replace("tr", "tr_jControl"))
+    #preTree = ROOT.TChain(treename.replace("tr", "tr_jControl"))
+    preTree = ROOT.TChain("tr_jControl/simpleTree")
     eTree = ROOT.TChain(treename.replace("tr", "tr_eControl"))
 
     for f in dirSet.files: dirTree.Add(f)
@@ -184,46 +185,20 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     dirHist = aux.createHistoFromTree(dirTree, variable, weight, nBins)
     if dirSet == data or "data" in name:
         for bin in range(dirHist.GetNbinsX()+2):
-            if dirHist.GetBinCenter(bin) > 100 and "_ee" not in name and False:
+            if dirHist.GetBinCenter(bin) > 350 and "_ee" not in name:
                 dirHist.SetBinContent(bin,0)
                 dirHist.SetBinError(bin,0)
 
     gjetHist, gjetSyst, fitScale, err, norm = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
     gjetHist.SetLineColor(ROOT.kCyan)
     # correct for other backgrounds
-    mcPreHist = aux.createHistoFromDatasetTree(zg+wg+ttg+wjets+ttjets_ht+znunu, "{}*{}".format(variable,fitScale), weight, nBins, treename.replace("tr", "tr_jControl"))
+    mcPreHist = aux.createHistoFromDatasetTree(zg+wg+ttg+wjets+ttjets_nlo+znunu, "{}*{}".format(variable,fitScale), weight, nBins, "tr_jControl/simpleTree")
     mcPreHist.Scale(norm)
     for bin in range(gjetHist.GetNbinsX()+2):
         cOld = gjetHist.GetBinContent(bin)
         subT = mcPreHist.GetBinContent(bin)
         gjetHist.SetBinContent(bin, cOld - subT)
         gjetSyst.SetBinContent(bin, cOld - subT)
-    """
-    emhtRange = [700,750,800,900,1000,1500,2000,25000]
-    gjetHist = None
-    gjetSyst = None
-    for emhtBin in range(len(emhtRange)-1):
-        emhtSliceCut = "&&{}<emht&&emht<{}".format(emhtRange[emhtBin],emhtRange[emhtBin+1])
-        gjetHist_i, gjetSyst_i, fitScale, err, norm = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight.replace(")", emhtSliceCut+")"), variable, nBins)
-        gjetHist_i.SetLineColor(ROOT.kCyan)
-        # correct for other backgrounds
-        mcPreHist = aux.createHistoFromDatasetTree(zg+wg+ttg+wjets+ttjets_ht+znunu, "{}*{}".format(variable,fitScale), weight.replace(")", emhtSliceCut+")"), nBins, treename.replace("tr", "tr_jControl"))
-        mcPreHist.Scale(norm)
-        mcPreHist.Scale(5.93369235121/36.459205898)
-        for bin in range(gjetHist_i.GetNbinsX()+2):
-            cOld = gjetHist_i.GetBinContent(bin)
-            subT = mcPreHist.GetBinContent(bin)
-            gjetHist_i.SetBinContent(bin, cOld - subT)
-            gjetSyst_i.SetBinContent(bin, cOld - subT)
-        if gjetHist: gjetHist.Add(gjetHist_i)
-        else: gjetHist = gjetHist_i
-        if gjetSyst:
-#            gjetSyst.Add(gjetSyst_i)
-            for bin in range(gjetSyst.GetNbinsX()+2):
-                gjetSyst.SetBinContent(bin, gjetSyst.GetBinContent(bin)+gjetSyst_i.GetBinContent(bin))
-                gjetSyst.SetBinError(bin, gjetSyst.GetBinError(bin)+gjetSyst_i.GetBinError(bin))
-        else: gjetSyst = gjetSyst_i
-    """
     gjetHistUnw = aux.createHistoFromTree(preTree, variable, weight, nBins)
     gjetHistUnw.Scale(dirHist.Integral(0,dirHist.FindBin(100)-1)/gjetHistUnw.Integral(0,dirHist.FindBin(100)-1))
 
@@ -239,8 +214,8 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     zHist = aux.createHistoFromDatasetTree(znunu, variable, weight, nBins, treename)
     wHist = aux.createHistoFromDatasetTree(wjets, variable, weight, nBins, treename)
     wHist.Add(aux.createHistoFromDatasetTree(wjets, variable, weight, nBins, treename.replace("/","_genE/")), -1)
-    ttHist = aux.createHistoFromDatasetTree(ttjets_ht, variable, weight, nBins, treename)
-    ttHist.Add(aux.createHistoFromDatasetTree(ttjets_ht, variable, weight, nBins, treename.replace("/","_genE/")), -1)
+    ttHist = aux.createHistoFromDatasetTree(ttjets_nlo, variable, weight, nBins, treename)
+    ttHist.Add(aux.createHistoFromDatasetTree(ttjets_nlo, variable, weight, nBins, treename.replace("/","_genE/")), -1)
     mcSystUncert = 0.3
     zgSyst = aux.getSysHisto(zgHist, mcSystUncert)
     wgSyst = aux.getSysHisto(wgHist, mcSystUncert)
@@ -631,7 +606,7 @@ def finalDistributionHist(name, dirSet, preSet, minEmht=0, maxEmht=1e8, director
 
 
 if __name__ == "__main__":
-    allMC = gjets+qcd+zg+wg+ttg+wjets+ttjets_ht+znunu
+    allMC = gjets+qcd+zg+wg+ttg+wjets+ttjets_nlo+znunu
     allMC.label = "MC mix"
     #qcdClosure("gqcd", gjets+qcd)
     #finalDistribution("mc", allMC, allMC)
@@ -650,7 +625,46 @@ if __name__ == "__main__":
     #finalDistribution("dataB_emht800", dataB, dataHtB, cut="emht<800")
     #finalDistribution("dataB_800emht900", dataB, dataHtB, cut="800<emht&&emht<900")
     #finalDistribution("dataB_900emht1000", dataB, dataHtB, cut="900<emht&&emht<1000")
-    #finalDistribution("data", data, dataHt)
+    """
+    finalDistribution("data", data, dataHt)
+    finalDistribution("data_eta1", data, dataHt, cut="abs(eta)<.5")
+    finalDistribution("data_eta2", data, dataHt, cut=".5<abs(eta)&&abs(eta)<1")
+    finalDistribution("data_eta3", data, dataHt, cut="1<abs(eta)&&abs(eta)<1.5")
+    finalDistribution("data_eta4", data, dataHt, "tr_ee/simpleTree", cut="1.5<abs(eta)&&abs(eta)<2")
+    finalDistribution("data_eta5", data, dataHt, "tr_ee/simpleTree", cut="2<abs(eta)&&abs(eta)<2.5")
+    finalDistribution("data_0eCrystal100", data, dataHt, cut="eCrystal<100")
+    finalDistribution("data_100eCrystal200", data, dataHt, cut="100<eCrystal&&eCrystal<200")
+    finalDistribution("data_200eCrystal300", data, dataHt, cut="200<eCrystal&&eCrystal<300")
+    finalDistribution("data_300eCrystal400", data, dataHt, cut="300<eCrystal&&eCrystal<400")
+    finalDistribution("data_400eCrystal500", data, dataHt, cut="400<eCrystal&&eCrystal<500")
+    finalDistribution("data_500eCrystal600", data, dataHt, cut="500<eCrystal&&eCrystal<600")
+    finalDistribution("data_600eCrystal", data, dataHt, cut="600<eCrystal")
+
+
+    finalDistribution("data_eta3_eCrystal200", data, dataHt, cut="1<abs(eta)&&abs(eta)<1.5 && eCrystal<200")
+
+    finalDistribution("data_dphi1", data, dataHt, cut="dPhi<.5")
+    finalDistribution("data_dphi3", data, dataHt, cut="2.5<dPhi")
+    finalDistribution("data_1p5dphi2", data, dataHt, cut="1.5<dPhi&&dPhi<2")
+    finalDistribution("data_1p5dphi2p2", data, dataHt, cut="1.5<dPhi&&dPhi<2.2")
+    finalDistribution("data_1p5dphi2p4", data, dataHt, cut="1.5<dPhi&&dPhi<2.4")
+    finalDistribution("data_1p5dphi2p6", data, dataHt, cut="1.5<dPhi&&dPhi<2.6")
+    finalDistribution("data_1p5dphi2p8", data, dataHt, cut="1.5<dPhi&&dPhi<2.8")
+    finalDistribution("data_1p5dphi3", data, dataHt, cut="1.5<dPhi&&dPhi<3")
+    finalDistribution("data_0p0dphi1p5", data, dataHt, cut="0<dPhi&&dPhi<1.5")
+    finalDistribution("data_0p2dphi1p5", data, dataHt, cut="0.2<dPhi&&dPhi<1.5")
+    finalDistribution("data_0p4dphi1p5", data, dataHt, cut="0.4<dPhi&&dPhi<1.5")
+    finalDistribution("data_0p6dphi1p5", data, dataHt, cut="0.6<dPhi&&dPhi<1.5")
+    finalDistribution("data_0p8dphi1p5", data, dataHt, cut="0.8<dPhi&&dPhi<1.5")
+    finalDistribution("data_0p3dphi2p7", data, dataHt, cut="0.3<dPhi&&dPhi<2.7")
+    finalDistribution("data_0p2dphi2p8", data, dataHt, cut="0.2<dPhi&&dPhi<2.8")
+    """
+    #finalDistribution("data_0p3dphi2p8_2000emht", data, dataHt, cut="0.3<dPhi&&dPhi<2.8 && 2000<emht")
+    #finalDistribution("data_0p3dphi2p8_emht2000", data, dataHt, cut="0.3<dPhi&&dPhi<2.8&&emht<2000")
+    #finalDistribution("data_ee_0p3dphi2p8_2000emht", data, dataHt, "tr_ee/simpleTree", cut="0.3<dPhi&&dPhi<2.8 && 2000<emht")
+    #finalDistribution("data_ee_0p3dphi2p8_emht2000", data, dataHt, "tr_ee/simpleTree", cut="0.3<dPhi&&dPhi<2.8&&emht<2000")
+    finalDistribution("data_2000emht", data, dataHt, cut="2000<emht")
+
     #finalDistribution("data_ee", data, dataHt, "tr_ee/simpleTree")
     #finalDistribution("data_emht2000", data, dataHt, cut="emht<2000")
     #finalDistribution("data_2000emht", data, dataHt, cut="2000<emht")
@@ -760,8 +774,8 @@ if __name__ == "__main__":
     #finalDistribution1dHist("tr/met", data, dataHt)
     #finalDistribution1dHist("tr/metCrystalSeedCorrected", data, dataHt)
     #finalDistribution1dHist("tr/metCrystalSeedCorrected2", data, dataHt)
-    #finalDistribution1dHist("tr_100mt/met", data, dataHt)
+    finalDistribution1dHist("tr_100mt/met", data, dataHt)
     #finalDistribution1dHist("tr_metp0/met", data, dataHt)
-    finalDistribution1dHist("tr_central/met", data, dataHt)
-    finalDistribution1dHist("tr_EB_forward/met", data, dataHt)
+    #finalDistribution1dHist("tr_central/met", data, dataHt)
+    #finalDistribution1dHist("tr_EB_forward/met", data, dataHt)
 
