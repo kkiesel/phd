@@ -886,7 +886,7 @@ def beautifyCutString(cut):
     return cut
 
 
-intLumi = 36.459e3
+intLumi = 36.815e3
 
 class Label:
     # Create labels
