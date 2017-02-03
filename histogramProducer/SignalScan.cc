@@ -45,16 +45,10 @@ class SignalScan : public TSelector {
   TTreeReaderValue<Float_t> pu_weight;
   TTreeReaderValue<Char_t> mc_weight;
   TTreeReaderValue<Int_t> nGoodVertices;
-  TTreeReaderValue<Float_t> genHt;
   TTreeReaderValue<Float_t> rho;
   TTreeReaderValue<ULong64_t> eventNo;
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
-  TTreeReaderValue<Bool_t> hlt_photon90_ht600;
-  TTreeReaderValue<Bool_t> hlt_photon90;
-  TTreeReaderValue<Bool_t> hlt_ht600;
-  TTreeReaderValue<Bool_t> hlt_ht800;
-  TTreeReaderValue<Int_t> hlt_ht600_pre;
 
   // signal scan
   TTreeReaderValue<UShort_t> signal_nBinos;
@@ -88,14 +82,8 @@ SignalScan::SignalScan():
   nGoodVertices(fReader, "nGoodVertices"),
   pu_weight(fReader, "pu_weight"),
   mc_weight(fReader, "mc_weight"),
-  genHt(fReader, "genHt"),
   rho(fReader, "rho"),
   runNo(fReader, "runNo"),
-  hlt_photon90_ht600(fReader, "HLT_Photon90_CaloIdL_PFHT600_v"),
-  hlt_photon90(fReader, "HLT_Photon90_v"),
-  hlt_ht600(fReader, "HLT_PFHT600_v"),
-  hlt_ht800(fReader, "HLT_PFHT800_v"),
-  hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
   signal_nBinos(fReader, "signal_nBinos"),
   signal_m1(fReader, "signal_m1"),
   signal_m2(fReader, "signal_m2"),
