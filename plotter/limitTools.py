@@ -180,12 +180,12 @@ class MyDatacard(Datacard):
         self.systs.append(('signalStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': signalStat, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]))))
 
     def newSignal(self, infos):
-        if sorted(infos.keys()) != sorted(self.bins): print "Error, not all bins replaced:", infos.keys(), self.bins
-        for b, v in infos.iteritems():
-            self.exp[b]["signal"] = v[0]
+        if sorted(infos.keys()) != sorted(self.bins): print "Error, not all bins replaced:", sorted(infos.keys()), sorted(self.bins)
+        for b, (newRate, newUncert) in infos.iteritems():
+            self.exp[b]["signal"] = newRate
             lines = [i for i, j in enumerate(self.systs) if j[0] == "signalStat_"+b]
             if len(lines) != 1: print "Error: Statistical uncertainty not found"
-            self.systs[lines[0]][4][b]["signal"] = v[1]
+            self.systs[lines[0]][4][b]["signal"] = newUncert
 
     def limit(self):
         self.write("/tmp/tmpDataCard.txt")
