@@ -34,7 +34,8 @@ class HistogramProducer : public TSelector {
 
   void resetSelection();
   void defaultSelection();
-  void fillSelection(string const& s, float w, bool, bool);
+  void fillSelection(string const& s, float w, bool);
+  void fillSignalSelection(string const& s, float w);
   void fillSelectedPhotons(const tree::Particle& p);
   tree::Jet* matchedJet(const tree::Particle& p);
   float getPhotonWeight(const tree::Photon& p);
@@ -66,6 +67,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Int_t> nTracksPV;
   TTreeReaderValue<Float_t> genHt;
   TTreeReaderValue<Float_t> rho;
+  TTreeReaderValue<Int_t> nTruePV;
   TTreeReaderValue<ULong64_t> evtNo;
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
@@ -103,6 +105,7 @@ class HistogramProducer : public TSelector {
   bool isData;
   bool genHt600;
   bool noPromptPhotons;
+  bool isSignal;
   TH1F cutFlow;
   string inputName;
 
