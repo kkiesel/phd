@@ -533,7 +533,7 @@ map<string,TH1F> initSignalHistograms(unsigned pdfWeightSize=0) {
   return hMap;
 }
 
-void HistogramProducer::fillSignalSelection(string const& s, float addWeight=1.)
+void HistogramProducer::fillSignalSelection(const string& s, float addWeight=1.)
 {
   auto weight = selW*addWeight;
   if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
@@ -603,7 +603,7 @@ void HistogramProducer::Init(TTree *tree)
   isData = inputName.find("Run201") != string::npos;
   isSignal = inputName.find("SMS") != string::npos;
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
-  weighters["sf_photon_id_loose"] = Weighter("../plotter/data/egammaEffi.txt_EGM2D.root", "EGamma_SF2D");
+  weighters["sf_photon_id_loose"] = Weighter("../plotter/data/dataMcScaleFactors_80X.root", "EGamma_SF2D");
   weighters["sf_photon_pixel"] = Weighter("../plotter/data/EleVeto_SFs_80X.root", "Scaling Factors_HasPix_InclusiveR9");
   string puUp = "pileupWeightUp_mix_2016_25ns_Moriond17MC_PoissonOOTPU";
   string puDn = "pileupWeightDown_mix_2016_25ns_Moriond17MC_PoissonOOTPU";
