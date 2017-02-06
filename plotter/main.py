@@ -827,10 +827,10 @@ def sampleMergingCheck():
 
 
 def transitions():
-    drawSameHistogram( "gjets", "tr/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600] )
-    drawSameHistogram( "gjets", "tr_jControl/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600] )
-    drawSameHistogram( "gjets_dr", "tr/genHt", [gjets40dr,gjets100dr,gjets200dr,gjets400dr,gjets600dr] )
-    drawSameHistogram( "gjets_dr", "tr_jControl/genHt", [gjets40dr,gjets100dr,gjets200dr,gjets400dr,gjets600dr] )
+    drawSameHistogram( "gjets", "tr/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600], [gjets_dr] )
+    drawSameHistogram( "gjets", "tr_jControl/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600], [gjets_dr] )
+    drawSameHistogram( "gjets_dr", "tr/genHt", [gjets40dr,gjets100dr,gjets200dr,gjets400dr,gjets600dr], [gjets] )
+    drawSameHistogram( "gjets_dr", "tr_jControl/genHt", [gjets40dr,gjets100dr,gjets200dr,gjets400dr,gjets600dr], [gjets] )
     drawSameHistogram( "qcd", "tr_jControl/genHt", [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
     drawSameHistogram( "wjets", "tr_jControl/genHt", [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
     drawSameHistogram( "znunu", "tr_jControl/genHt", [znunu100,znunu200,znunu400,znunu600,znunu800,znunu1200,znunu2500] )
@@ -1613,60 +1613,81 @@ def compareMet():
         #compareMetSmearedPhoton(gjets+qcd, None, ["metPhotonResDn", "metPhotonResUp"], "gqcd", binning, binningName)
         #compareMetSmearedPhoton(data, dataHt, ["metPhotonResDn", "metPhotonResUp"], "data", binning, binningName)
 
-def pdfUncertainty(name, dataset):
-    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
-    scales = [(1,1), (1,2), (1,.5), (2,1), (2,2), (2,.5), (.5,1), (.5,2), (.5,.5)]
-    c = ROOT.TCanvas()
-    m = multiplot.Multiplot()
-    hNominal = aux.stdHist(dataset, "tr/met_vs_emht", nBins, False)
-    hNominal.SetLineColor(ROOT.kBlack)
-    m.add(hNominal, "Nominal")
-    hists = []
-    for iWeight, (mur, muf) in enumerate(scales):
-        h = aux.stdHist(dataset, "tr/met_vs_emht_weight_{}".format(iWeight), nBins, False)
-        h.drawOption_ = "hist"
-        if iWeight/3 == 0: h.SetLineColor(ROOT.kBlack)
-        if iWeight/3 == 1: h.SetLineColor(ROOT.kRed)
-        if iWeight/3 == 2: h.SetLineColor(ROOT.kBlue)
-        if iWeight%3 == 1: h.SetLineStyle(2)
-        if iWeight%3 == 2: h.SetLineStyle(3)
-        m.add(h, "#mu_{{r}}={} #mu_{{f}}={}".format(mur,muf))
-        hists.append(h.Clone(aux.randomName()))
-    m.Draw()
-    r = ratio.Ratio("Var./Nominal", hNominal, hNominal)
-    r.draw(.5,1.5)
-    for h in hists:
-        h.Divide(hNominal)
-        h.Draw("same hist")
-    l = aux.Label(sim=True, info=dataset.label)
-    aux.save("pdfUncertainty_{}".format(name), normal=False)
-    hUp, hDn = aux.getEnvelopeHists(hists)
-    return aux.getSystFromEnvelopes(hNominal, hUp, hDn)
+def scaleUncertainty(dataset, dirName, nBins, saveName=""):
+    hNominal = aux.stdHist(dataset, dirName+"/met", nBins)
+    hList = []
+    for iWeight in range(9):
+        h = aux.stdHist(dataset, dirName+"/met_weight_{}".format(iWeight), nBins)
+        hList.append(h.Clone(aux.randomName()))
+    hUp, hDn = aux.getEnvelopeHists(hList)
+    hSys = aux.getSystFromEnvelopes(hNominal, hUp, hDn)
 
-def scaleUncertainty(name, dataset):
-    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
-    c = ROOT.TCanvas()
-    m = multiplot.Multiplot()
-    hNominal = aux.stdHist(dataset, "tr/met_vs_emht", nBins, False)
-    hNominal.SetLineColor(ROOT.kBlack)
-    m.add(hNominal)
-    hists = []
+    if saveName:
+        c = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+        hNominal.SetLineColor(ROOT.kBlack)
+        m.add(hNominal)
+        scales = [(1,1), (1,2), (1,.5), (2,1), (2,2), (2,.5), (.5,1), (.5,2), (.5,.5)]
+        for iWeight, (mur, muf) in enumerate(scales):
+            h = hList[iWeight]
+            h.drawOption_ = "hist"
+            if iWeight/3 == 0: h.SetLineColor(ROOT.kBlack)
+            if iWeight/3 == 1: h.SetLineColor(ROOT.kRed)
+            if iWeight/3 == 2: h.SetLineColor(ROOT.kBlue)
+            if iWeight%3 == 1: h.SetLineStyle(2)
+            if iWeight%3 == 2: h.SetLineStyle(3)
+            m.add(h, "#mu_{{r}}={} #mu_{{f}}={}".format(mur,muf))
+        m.Draw()
+        r = ratio.Ratio("Var./Nominal", hNominal, hNominal, hSys)
+        r.draw(.5,1.5)
+        l = aux.Label(sim=True, info=dataset.label)
+        aux.save("scaleUncertainty_"+saveName, normal=False)
+    return hSys
+
+def pdfUncertainty(dataset, dirName, nBins, saveName=""):
+    hNominal = aux.stdHist(dataset, dirName+"/met", nBins)
+    hList = []
     for iWeight in range(9,110):
-        h = aux.stdHist(dataset, "tr/met_vs_emht_weight_{}".format(iWeight), nBins, False)
-        h.SetLineColor(ROOT.kRed)
-        h.drawOption_ = "hist"
-        m.add(h)
-        hists.append(h.Clone(aux.randomName()))
-    m.Draw()
-    r = ratio.Ratio("Var./Nominal", hNominal, hNominal)
-    r.draw(.5,1.5)
-    for h in hists:
-        h.Divide(hNominal)
-        h.Draw("same hist")
-    l = aux.Label(sim=True, info=dataset.label)
-    aux.save("scaleUncertainty_{}".format(name), normal=False)
-    hUp, hDn = aux.getEnvelopeHists(hists)
-    return aux.getSystFromEnvelopes(hNominal, hUp, hDn)
+        h = aux.stdHist(dataset, dirName+"/met_weight_{}".format(iWeight), nBins)
+        hList.append(h.Clone(aux.randomName()))
+    hUp, hDn = aux.getEnvelopeHists(hList)
+    hSys = aux.getSystFromEnvelopes(hNominal, hUp, hDn)
+
+    if saveName:
+        c = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+        hNominal.SetLineColor(ROOT.kBlack)
+        m.add(hNominal)
+        for h in hList:
+            h.SetLineColor(ROOT.kRed)
+            h.darwOption_ = "hist"
+            m.add(h)
+        m.Draw()
+        r = ratio.Ratio("Var./Nominal", hNominal, hNominal, hSys)
+        r.draw(.5,1.5)
+        l = aux.Label(sim=True, info=dataset.label)
+        aux.save("pdfUncertainty_"+saveName, normal=False)
+    return hSys
+
+def puUncertainty(dataset, dirName, nBins, saveName=""):
+    hNominal = aux.stdHist(dataset, dirName+"/met", nBins)
+    hUp = aux.stdHist(dataset, dirName+"/met_puUp", nBins)
+    hDn = aux.stdHist(dataset, dirName+"/met_puDn", nBins)
+    hSys = aux.getSystFromEnvelopes(hNominal, hUp, hDn)
+
+    if saveName:
+        c = ROOT.TCanvas()
+        hSys.SetFillColor(ROOT.kRed)
+        hNominal.SetLineColor(ROOT.kBlack)
+        hSys.SetMinimum(0.00001)
+        hSys.Draw("e2")
+        hNominal.Draw("e hist same")
+        r = ratio.Ratio("Var./Nominal", hNominal, hNominal, hSys)
+        r.draw(.5,1.5)
+        l = aux.Label(sim=True, info=dataset.label)
+        aux.save("puUncertainty_"+saveName, normal=False)
+    return hSys
+
 
 def isrRejection(dataset):
     gr = dataset.getHist("triggerStudies/noPromptEvaluation").CreateGraph()
@@ -1686,6 +1707,9 @@ def main():
     scaleUncertainty("wjets800_ext", wjets800_ext)
     pdfUncertainty("wjets800", wjets800)
     scaleUncertainty("wjets800", wjets800)
+    """
+    nBinsSR = [0, 100, 200, 250, 300, 350, 450, 600, 700]
+
     #pdfUncertainty("gjets", gjets)
     #pdfUncertainty("zg", zg)
     #scaleUncertainty("zg", zg)
@@ -1693,18 +1717,19 @@ def main():
     #pdfUncertainty("t5wg_1600_1500", t5wg_1600_1500)
     #scaleUncertainty("t5wg_1600_100", t5wg_1600_100)
     #scaleUncertainty("t5wg_1600_1500", t5wg_1600_1500)
+    pdfUncertainty(t5wg_1600_100, "signal_lowEMHT", nBinsSR, "t5wg_1600_100_lowEMHT")
+    scaleUncertainty(t5wg_1600_100, "signal_lowEMHT", nBinsSR, "t5wg_1600_100_lowEMHT")
+    puUncertainty(t5wg_1600_100, "signal_lowEMHT", nBinsSR, "t5wg_1600_100_lowEMHT")
+    #puUncertainty(t5wg_1600_100, "signal_highEMHT", nBinsSR, "t5wg_1600_100_highEMHT")
+    #puUncertainty(t5wg_1600_1500, "signal_lowEMHT", nBinsSR, "t5wg_1600_1500_lowEMHT")
+    #puUncertainty(t5wg_1600_1500, "signal_highEMHT", nBinsSR, "t5wg_1600_1500_highEMHT")
 
     #transitions()
     #sampleMergingCheck()
     #isrRejection(wjets)
     #isrRejection(znunu)
     #isrRejection(ttjets_nlo)
-    #isrRejection(ttjets600)
-    #isrRejection(ttjets800)
-    #isrRejection(ttjets1200)
-    #isrRejection(ttjets2500)
     #isrRejection(qcd)
-    """
 
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
     #compareAll( "_GjetsVsZnn", gjets, znn )
