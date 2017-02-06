@@ -525,6 +525,11 @@ map<string,TH1F> initSignalHistograms(unsigned pdfWeightSize=0) {
   }
   hMap["met_puUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   hMap["met_puDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_jesUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_jesDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_jerUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_jerDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+
   return hMap;
 }
 
@@ -546,6 +551,10 @@ void HistogramProducer::fillSignalSelection(string const& s, float addWeight=1.)
   if (!isData) {
     m1->at("met_puUp").Fill(_met, weight*weighters.at("puWeightUp").getWeight(*nTruePV)/ *pu_weight);
     m1->at("met_puDn").Fill(_met, weight*weighters.at("puWeightDn").getWeight(*nTruePV)/ *pu_weight);
+    m1->at("met_jesUp").Fill(met_JESu->p.Pt(), weight);
+    m1->at("met_jesDn").Fill(met_JESd->p.Pt(), weight);
+    m1->at("met_jerUp").Fill(met_JERu->p.Pt(), weight);
+    m1->at("met_jerDn").Fill(met_JERd->p.Pt(), weight);
   }
 }
 
