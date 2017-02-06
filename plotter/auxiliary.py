@@ -262,6 +262,7 @@ def rebin( h, binEdges, scale=True ):
     hnew = h.Rebin( len(binEdges)-1, "new", binEdgesArr )
     hnew.drawOption_ = h.drawOption_ if hasattr( h, "drawOption_" ) else ""
     #if scale: hnew.Scale( 1., "width" )
+    if style.divideByBinWidth: hnew.Scale(1.,"width")
     return hnew
 
 def rebinX(h, binEdgesX=None, binEdgesY=None, binEdgesZ=None):
