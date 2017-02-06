@@ -918,7 +918,7 @@ class Label:
         else:
             self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}" )
         self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status )
-        self.lum = ROOT.TLatex( .63, .95, "%.2f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
+        self.lum = ROOT.TLatex( .61, .95, "%.2f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
         if info: self.info = ROOT.TLatex( .2, .95, info )
 
         if drawAll:
