@@ -554,8 +554,8 @@ HistogramProducer::HistogramProducer():
   hlt_ht800(fReader, "HLT_PFHT800_v"),
   hlt_el27(fReader, "HLT_Ele27_eta2p1_WPTight_Gsf_v"),
   hlt_ht600_pre(fReader, "HLT_PFHT600_v_pre"),
-  looseCutFlowPhoton({{"sigmaIetaIeta_eb",0.0102}, {"cIso_eb",3.32}, {"nIso1_eb",1.92}, {"nIso2_eb",0.014}, {"nIso3_eb",0.000019}, {"pIso1_eb",0.81}, {"pIso2_eb",0.0053},
-    {"sigmaIetaIeta_ee",0.0274}, {"cIso_ee",1.97}, {"nIso1_ee",11.86}, {"nIso2_ee",0.0139}, {"nIso3_ee",0.000025}, {"pIso1_ee",0.83}, {"pIso2_ee",0.0034} }),
+  looseCutFlowPhoton({{"hoe_eb",0.0597}, {"sigmaIetaIeta_eb",0.01031}, {"cIso_eb",1.295}, {"nIso1_eb",10.910}, {"nIso2_eb",0.0148}, {"nIso3_eb",0.000017}, {"pIso1_eb",3.630}, {"pIso2_eb",0.0047},
+    {"hoe_ee",0.0481}, {"sigmaIetaIeta_ee",0.03013}, {"cIso_ee",1.011}, {"nIso1_ee",5.931}, {"nIso2_ee",0.0163}, {"nIso3_ee",0.000014}, {"pIso1_ee",6.641}, {"pIso2_ee",0.0034} }),
   startTime(time(NULL)),
   rand()
 {

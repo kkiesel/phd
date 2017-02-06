@@ -5,6 +5,7 @@ class CutFlowPhoton {
   public:
 
     CutFlowPhoton( std::map<std::string,float> s ) {
+      cut_hoe_eb = s.at("hoe_eb");
       cut_sigmaIetaIeta_eb = s.at("sigmaIetaIeta_eb");
       cut_cIso_eb = s.at("cIso_eb");
       cut_nIso1_eb = s.at("nIso1_eb");
@@ -13,6 +14,7 @@ class CutFlowPhoton {
       cut_pIso1_eb = s.at("pIso1_eb");
       cut_pIso2_eb = s.at("pIso2_eb");
 
+      cut_hoe_ee = s.at("hoe_ee");
       cut_sigmaIetaIeta_ee = s.at("sigmaIetaIeta_ee");
       cut_cIso_ee = s.at("cIso_ee");
       cut_nIso1_ee = s.at("nIso1_ee");
@@ -45,18 +47,20 @@ class CutFlowPhoton {
       pass_eta = pass_EB || pass_EE;
 
       // identification & isolation
-      pass_hoe = photon.hOverE < 0.05;
+      pass_hoe = false;
       pass_sie = false;
       pass_cIso = false;
       pass_nIso = false;
       pass_pIso = false;
 
       if( pass_EB ) {
+        pass_hoe = photon.hOverE < cut_hoe_eb;
         pass_sie = photon.sigmaIetaIeta < cut_sigmaIetaIeta_eb;
         pass_cIso = photon.cIso < cut_cIso_eb;
         pass_nIso = photon.nIso < cut_nIso1_eb + cut_nIso2_eb * pt + cut_nIso3_eb * pow(pt,2);
         pass_pIso = photon.pIso < cut_pIso1_eb + cut_pIso2_eb * pt;
       } else if( pass_EE ) {
+        pass_hoe = photon.hOverE < cut_hoe_ee;
         pass_sie = photon.sigmaIetaIeta < cut_sigmaIetaIeta_ee;
         pass_cIso = photon.cIso < cut_cIso_ee;
         pass_nIso = photon.nIso < cut_nIso1_ee + cut_nIso2_ee * pt + cut_nIso3_ee * pow(pt,2);
@@ -89,6 +93,7 @@ class CutFlowPhoton {
     bool pass_nIso;
     bool pass_pIso;
 
+    float cut_hoe_eb;
     float cut_sigmaIetaIeta_eb;
     float cut_cIso_eb;
     float cut_nIso1_eb;
@@ -97,6 +102,7 @@ class CutFlowPhoton {
     float cut_pIso1_eb;
     float cut_pIso2_eb;
 
+    float cut_hoe_ee;
     float cut_sigmaIetaIeta_ee;
     float cut_cIso_ee;
     float cut_nIso1_ee;
