@@ -888,6 +888,11 @@ def beautifyCutString(cut):
     cut = cut.replace("emht","#it{EMH}_{T}").replace("&&",",").replace("pt", "#it{p}_{T}")
     return cut
 
+def blind(h, val=100):
+    # Set bin content and error to zero for all bins larger than 'val'
+    for b in range(h.FindFixBin(val), h.GetNbinsX()+2):
+        h.SetBinContent(b, 0)
+        h.SetBinError(b, 0)
 
 intLumi = 36.815e3
 
