@@ -92,15 +92,18 @@ ENERGY 13
 def writeDataCards(outputDir,inputData, inputSignal, combi=""):
     f = ROOT.TFile(inputSignal)
     dirs = [k.GetName() for k in f.GetListOfKeys() if k.GetName().startswith(combi)]
-    #dirs = ["Wg_1600_100"] # cross check
+    dirs = ["Wg_1600_100"] # cross check
 
-    xBins = [350, 600, 700]
-    yBins = [0, 1500, 2000]
+    xBins = [350, 450, 600]
+    yBins = [0, 2000]
 
     bInfo = {
-            "bin25": (1,3),
-            "bin26": (2,3),
-            "bin27": (3,3)
+            "binemht2000_24": (1,1),
+            "binemht2000_25": (2,1),
+            "binemht2000_26": (3,1),
+            "bin2000emht_24": (1,2),
+            "bin2000emht_25": (2,2),
+            "bin2000emht_26": (3,2),
         }
 
     options, b = DatacardParser.addDatacardParserOptions(optparse.OptionParser())
@@ -160,7 +163,64 @@ def signalScan(name, combi, inputData, inputSignal):
     writeSMSLimitConfig(outputDir+"/Graphs1d.root", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName)
     subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName, "plots/%s_limits_"%scanName])
 
+def checkHistogramConsistency(h1, h2, relTolerance=1e-6):
+    n1 = h1.GetEntries()
+    n2 = h2.GetEntries()
+    if n1 != n2: print "Number of entries not the same", n1, n2
+    nx1 = h1.GetNbinsX()
+    nx2 = h2.GetNbinsX()
+    ny1 = h1.GetNbinsY()
+    ny2 = h2.GetNbinsY()
+    if nx1 != nx2: print "Number of x bins is not the same:", nx1, nx2
+    if ny1 != ny2: print "Number of y bins is not the same:", ny1, ny2
+    for x,y in aux.loopH(h1):
+        c1 = h1.GetBinContent(x,y)
+        c2 = h2.GetBinContent(x,y)
+        if c1+c2 and abs(c1-c2)/(c1+c2)/2 > relTolerance: print "Not same bin content in bin {}:{}:".format(x,y), c1, c2
+
+
+def checkConsistency(datacardFile, signalScan, treeFile):
+    hScan = aux.getFromFile(signalScan, "Wg_1600_100/met_vs_emht")
+    hScan.Scale(aux.intLumi*aux.getXsecSMSglu(1600))
+    hPlot = aux.getFromFile(treeFile, "tr/met_vs_emht")
+    hPlot = t5wg_1600_100.getHist("tr/met_vs_emht")
+    print "Plot vs scan differences"
+    sameHists = checkHistogramConsistency(hScan, hPlot, 1e-2)
+
+    tree = ROOT.TChain("tr/simpleTree")
+    tree.AddFile(treeFile)
+    hTree = hPlot.Clone("hTree")
+    hTree.Reset("ICEM")
+    tree.Draw("emht:met>>hTree", "weight", "goff")
+    print "scan versus tree differences"
+    sameHists2 = checkHistogramConsistency(hScan, hTree, 1e-2)
+
+    print "check rebinned hists"
+    xBins = [350, 450, 600]
+    yBins = [0, 2000]
+
+    bInfo = {
+            "binemht2000_24": (1,1),
+            "binemht2000_25": (2,1),
+            "binemht2000_26": (3,1),
+            "bin2000emht_24": (1,2),
+            "bin2000emht_25": (2,2),
+            "bin2000emht_26": (3,2),
+        }
+
+    hPlotRebinned = aux.rebinX(hPlot, xBins, yBins)
+    hScanRebinned = aux.rebinX(hScan, xBins, yBins)
+    sameHists = checkHistogramConsistency(hScanRebinned, hPlotRebinned, 1e-5)
+
 
 if __name__ == "__main__":
-    signalScan("T5Wg_v4", "Wg", "limitCalculations/observation_v1.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    checkConsistency("limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
+
+    #signalScan("T5Wg_v4", "Wg", "limitCalculations/observation_v1.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("T5Wg_v5", "Wg", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("T5Wg_v5", "gg", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("T5Wg_v5", "WW", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("T5Wg_v5", "Wg", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    #signalScan("T5Wg_v5", "gg", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    #signalScan("T5Wg_v5", "WW", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
 
