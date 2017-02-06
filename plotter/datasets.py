@@ -73,7 +73,6 @@ class Dataset:
                 h.SetMarkerColor( self.color )
             if h0: h0.Add( h )
             else: h0 = h
-        if style.divideByBinWidth: h.Scale(1., "width")
         return h0
 
     def getLatexTableHeader( self ):
