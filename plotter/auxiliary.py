@@ -520,7 +520,7 @@ def modifySaveName(name):
         name = name.replace(a, b)
     return name
 
-def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
+def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True, changeMinMax=False ):
     name = modifySaveName(name)
     if normal:
         for ending in endings:
@@ -530,7 +530,7 @@ def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True ):
         if allH2s:
             ROOT.gPad.GetCanvas().SetLogz()
         else:
-            setMinMaxForLog()
+            if changeMinMax: setMinMaxForLog()
             ROOT.gPad.GetCanvas().SetLogy()
         for ending in endings:
             ROOT.gPad.GetCanvas().SaveAs( folder + name + "_log" + ending )
