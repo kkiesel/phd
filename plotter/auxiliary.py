@@ -12,6 +12,8 @@ import style
 binCfg = ConfigParser.SafeConfigParser()
 binCfg.readfp(open('rebin.cfg'))
 
+#ROOT.gErrorIgnoreLevel = kPrint, kInfo, kWarning, kError, kBreak, kSysError, kFatal
+
 def frange(x, y, jump):
     while x < y:
         yield x
