@@ -23,7 +23,7 @@ class Multiplot:
         self.histsToStack.append( h )
 
     def getMinimum( self ):
-        return min( [ h.GetMinimum(0) for h in self.hists+self.histsToStack if not isinstance( h, ROOT.THStack ) ] )
+        return min( [ h.GetMinimum(0) for h in self.hists+self.histsToStack if not isinstance( h, ROOT.THStack ) and not isinstance( h, ROOT.TGraph ) ] )
 
     def getMaximum( self ):
         return max( [ h.GetMaximum() for h in self.hists ] )
