@@ -77,17 +77,14 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
     if name.endswith("eff_hlt_ht_ct") or name.endswith("eff_hlt_met_ct"):
         gr.GetYaxis().SetRangeUser(0., 0.1)
 
-
-    if name.endswith("eff_hlt_pt") or name.endswith("eff_hlt_pt_endcap"):
+    if "eff_pt__p90ht600__ht600" in name or "eff_pt_ee__p90ht600__ht600" in name:
         cutValue = 100
-    elif name.endswith("eff_hlt_ht") \
-            or name.endswith("eff_hlt_ht_ct") \
-            or name.endswith("eff_hlt_ht_ct_preScaled"):
+    elif "emht__ht600__p90_ps" in name:
         cutValue = 700
-    elif name.endswith("eff_hlt_ele_pt"):
-        cutValue = 30
-    elif "hlt_ht_ht800" in name:
+    elif "emht__ht800" in name:
         cutValue = 900
+    elif "eff_pt__ele27__ht600" in name:
+        cutValue = 30
     else:
         cutValue = 0
 
@@ -165,7 +162,7 @@ def efficiencies(dataset, savename=""):
             efficiency(dataset, name, savename, [.0045,.007,.0075]+aux.frange(0.0075,0.011,5e-5), "1")
 
 def main():
-    #drawEfficiencyVsRun(dataHt)
+    drawEfficiencyVsRun(dataHt)
     efficiencies(data, "singlePhoton")
     efficiencies(dataHt, "jetHt")
     dataBG = Dataset("SinglePhoton_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
