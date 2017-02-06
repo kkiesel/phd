@@ -100,7 +100,7 @@ ds={
         "SMS-T5Wg_1600_1500_nTuple.root",
         ],
 }
-dir = "/net/scratch_cms1b1/cms/user/kiesel/v18/"
+dir = "/net/scratch_cms1b1/cms/user/kiesel/v20/"
 
 #############################################
 # Select datasets to process
