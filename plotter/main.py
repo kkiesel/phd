@@ -1689,6 +1689,23 @@ def isrRejection(dataset):
     print "{:<20} {:%} +{} -{}".format(dataset.label, eff, effUp, effDn)
 
 
+def printLatexResultTable(filename):
+    dc = limitTools.MyDatacard(filename)
+    out  = "\\begin{tabular}{l|rrr|rrr}"
+    out += "\n  \\EMHT (\\GeV) & \\multicolumn{3}{c|}{$<2000$} & \\multicolumn{3}{c}{$>2000$}\\\\"
+    out += "\n  \\ETmiss (\\GeV)& (350,450) & (450,600) & (600,\\infty) & (350,450) & (450,600) & (600,\\infty) \\\\"
+    out += "\n  \\hline"
+    out += "\n  non-genuine \\ETmiss &" + "&".join(["{:.2f}".format(dc.exp[x]["gqcd"]) for x in dc.bins]) + "\\\\"
+    out += "\n  $\\gamma W$ &" + "&".join(["{:.2f}".format(dc.exp[x]["wg"]) for x in dc.bins]) + "\\\\"
+    out += "\n  $\\gamma \\ttbar$ &" + "&".join(["{:.2f}".format(dc.exp[x]["ttg"]) for x in dc.bins]) + "\\\\"
+    out += "\n  $\\gamma Z$ &" + "&".join(["{:.2f}".format(dc.exp[x]["zg"]) for x in dc.bins]) + "\\\\"
+    out += "\n  $e\\rightarrow\\gamma$ &" + "&".join(["{:.2f}".format(dc.exp[x]["ele"]) for x in dc.bins]) + "\\\\"
+    out += "\n  Total &" + "&".join(["{:.2f}".format(sum([dc.exp[x][p] for p in ["gqcd", "wg", "ttg", "zg", "ele"]])) for x in dc.bins]) + "\\\\"
+    out += "\n  \\hline"
+    out += "\n  Data &" + "&".join([str(int(dc.obs[x]))+"\\phantom{.00}" for x in dc.bins]) + "\\\\"
+    out += "\n  Signal &" + "&".join(["{:.2f}".format(dc.exp[x]["signal"]) for x in dc.bins]) + "\\\\"
+    out += "\n\\end{tabular}"
+    print out
 
 
 
