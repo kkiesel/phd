@@ -312,6 +312,9 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
 
   float tree_met, tree_metRaw, tree_emht, tree_w;
   float tree_dPhi, tree_pt, tree_eta, tree_eCrystal;
+  bool tree_hasPromptPhoton = false;
+  bool tree_genE = false;
+
   if (!h1Maps.count(s)) {
     h1Maps[s] = initHistograms();
     h2Maps[s] = initHistograms2();
@@ -324,6 +327,8 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
     treeMap[s]->Branch("pt", &tree_pt);
     treeMap[s]->Branch("eta", &tree_eta);
     treeMap[s]->Branch("eCrystal", &tree_eCrystal);
+    treeMap[s]->Branch("hasPromptPhoton", &tree_hasPromptPhoton, "hasPromptPhoton/O");
+    treeMap[s]->Branch("genE", &tree_genE, "genE/O");
   }
   auto m1 = &h1Maps[s];
   auto m2 = &h2Maps[s];
@@ -333,6 +338,8 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
   tree_w = weight * sampleW;
   if (selPhotons.size()) {
     auto g = selPhotons.at(0);
+    tree_hasPromptPhoton = noPromptPhotons && count_if(genParticles->begin(), genParticles->end(), [] (const tree::GenParticle& p) { return p.pdgId==22 && p.promptStatus == DIRECTPROMPT;});
+    tree_genE = fabs(genMatchNegativePrompt(*g, *genParticles)) == 11;
     tree_dPhi = fabs(met->p.DeltaPhi(g->p));
     tree_eta = g->p.Eta();
     tree_eCrystal = g->seedCrystalE;
