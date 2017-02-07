@@ -126,17 +126,7 @@ class MyDatacard(Datacard):
         #print "rateParamsOrder    ", self.rateParamsOrder
         return ""
 
-    def write(self, filename=""):
-        maxInfoLen = max( [len(line[0])+7 for line in self.systs])
-        out = ""
-        out += "\nimax "+str(len(self.bins))
-        out += "\njmax *"
-        out += "\nkmax *"
-        out += "\n\nbin         " + ("{:<15}"*len(self.bins)).format(*self.bins)
-        out += "\nobservation " + ("{:<15}"*len(self.bins)).format(*[str(int(self.obs[x])) for x in self.bins])
-        keylineInv0, keylineInv1, keylineInv2 = zip(*self.keyline)
-        out += "\n\nbin".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv0)).format(*keylineInv0)
-        out += "\nprocess".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv1)).format(*keylineInv1)
+    def _getProcessNumbers(self):
         counter = 1
         processNumbers = {}
         for a, b in self.isSignal.iteritems():
@@ -144,10 +134,38 @@ class MyDatacard(Datacard):
             else:
                 processNumbers[a] = counter
                 counter += 1
-        out += "\nprocess".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv1)).format(*[str(processNumbers[x]) for x in keylineInv1]) # name of processes has to be the same
-        out += "\nrate".ljust(maxInfoLen) + ("{:<15}"*len(keylineInv0)).format(*[str(self.exp[keylineInv0[i]][keylineInv1[i]]) for i in range(len(keylineInv0))])
+        return processNumbers
+
+
+    def write(self, filename=""):
+        maxInfoLen = max( [len(line[0])+7 for line in self.systs])
+        out = ""
+        out += "\nimax "+str(len(self.bins))
+        out += "\njmax *"
+        out += "\nkmax *"
+        out += "\n\nbin         " + ("{:>15}"*len(self.bins)).format(*self.bins)
+        out += "\nobservation " + ("{:>15}"*len(self.bins)).format(*[str(int(self.obs[x])) for x in self.bins])
+        out += "\n\n"
+
+        # create table for syst uncerts
+        binNames, processNames, processNumbers = zip(*self.keyline)
+        table = []
+        table.append(["bin", ""] + list(binNames))
+        table.append(["process", ""] + list(processNames))
+        processNumbers = self._getProcessNumbers()
+        table.append(["process", ""] + [str(processNumbers[x]) for x in processNames])
+        table.append(["rate", ""] + [str(self.exp[bN][processNames[i]]) for i, bN in enumerate(binNames)])
         for line in self.systs:
-            out += "\n{} {} ".format(line[0],line[2]).ljust(maxInfoLen) + ("{:<15}"*len(keylineInv0)).format(*[str(line[4][keylineInv0[i]][keylineInv1[i]]) for i in range(len(keylineInv0))])
+            relUncerts = [line[4][bN][processNames[i]] for i, bN in enumerate(binNames)]
+            table.append([line[0], line[2]] + [str(x) if x!= 1 else "-" for x in relUncerts])
+        # format lengts of strings
+        columnWidths = [max([len(i) for i in line]) for line in zip(*table)]
+        for irow, row in enumerate(table):
+            for icol, col in enumerate(row):
+                table[irow][icol] = "{{:>{}}}".format(columnWidths[icol]+1).format(col)
+        # append table to output
+        for row in table: out += ''.join(row) + "\n"
+
         if filename:
             with open(filename, "wb") as f:
                 f.write(out)
@@ -216,11 +234,11 @@ class MyDatacard(Datacard):
             totRate = 0
             for process, rate in expDict.iteritems():
                 totRate += 0 if process == "signal" else rate
-            self.obs[binName] = totRate
+            self.obs[binName] = round(totRate)
 
 
 if False:
-    inFileName = "limitCalculations/observation_v2.txt"
+    inFileName = "limitCalculations/observation_v3.txt"
     dc = MyDatacard(inFileName)
     dc.setExpection()
     dc.write("test.txt")
