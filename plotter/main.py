@@ -1674,6 +1674,13 @@ def puUncertainty(dataset, dirName, nBins, saveName=""):
         aux.save("puUncertainty_"+saveName, normal=False)
     return hSys
 
+def plotMcUncertainties(dataset, nBins, saveName=""):
+    pdfUncertainty(dataset, "signal_lowEMHT", nBins, saveName+"_lowEMHT")
+    pdfUncertainty(dataset, "signal_highEMHT", nBins, saveName+"_highEMHT")
+    scaleUncertainty(dataset, "signal_lowEMHT", nBins, saveName+"_lowEMHT")
+    scaleUncertainty(dataset, "signal_highEMHT", nBins, saveName+"_highEMHT")
+    puUncertainty(dataset, "signal_lowEMHT", nBins, saveName+"_lowEMHT")
+    puUncertainty(dataset, "signal_highEMHT", nBins, saveName+"_highEMHT")
 
 def isrRejection(dataset):
     gr = dataset.getHist("triggerStudies/noPromptEvaluation").CreateGraph()
