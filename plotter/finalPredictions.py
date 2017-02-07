@@ -702,7 +702,9 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         x = r.draw(0., 2, None)
     else:
         x = r.draw(0., 1.5, m.getStack())
-    l = aux.Label(sim= not dirSet==data, info=dirSet.label if dirSet != data else "")
+    info = "#it{EMH}_{T}<2TeV" if "lowEMHT" in name else "2TeV<#it{EMH}_{T}"
+    if dirSet != data: info += "; "+dirSet.label
+    l = aux.Label(sim= not dirSet==data, info=info)
     aux.save(name, normal=False, changeMinMax=False)
 
 
