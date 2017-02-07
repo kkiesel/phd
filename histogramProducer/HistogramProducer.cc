@@ -553,7 +553,7 @@ void HistogramProducer::fillSignalSelection(const string& s, float addWeight=1.)
   m1->at("met").Fill(_met);
   for (unsigned i=0; i<pdf_weights->size(); i++) {
     string hname = "met_weight_"+to_string(i);
-    m1->at(hname).Fill(_met, weight*pdf_weights->at(i));
+    m1->at(hname).Fill(_met, weight*pdf_weights->at(i)/ *mc_weight);
   }
   if (!isData) {
     m1->at("met_puUp").Fill(_met, weight*weighters.at("puWeightUp").getWeight(*nTruePV)/ *pu_weight);
