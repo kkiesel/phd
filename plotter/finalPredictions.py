@@ -119,9 +119,8 @@ def qcdClosure(name, dirSet, treename="tr/simpleTree", preSet=None, additionalSe
 
     variable = "met"
     weight = "weight*({})".format(cut)
-    nBins = range(0,100,10)+[130, 170, 230, 300, 400, 500, 600]
-    #range(100,200,10)+[200, 250, 300, 600]
-    nBins = range(0,200,10)+[200, 300, 400, 500, 600]
+    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
+
     if binning: nBins = binning
 
     dirHist = aux.createHistoFromTree(dirTree, variable, weight, nBins)
