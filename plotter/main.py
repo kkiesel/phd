@@ -1634,6 +1634,7 @@ def pdfUncertainty(dataset, dirName, nBins, saveName=""):
         hList.append(h.Clone(aux.randomName()))
     hUp, hDn = aux.getEnvelopeHists(hList)
     hSys = aux.getSystFromEnvelopes(hNominal, hUp, hDn)
+    hSys = aux.getSystFromVariance(hNominal, hList)
 
     if saveName:
         c = ROOT.TCanvas()
