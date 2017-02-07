@@ -1674,6 +1674,41 @@ def puUncertainty(dataset, dirName, nBins, saveName=""):
         aux.save("puUncertainty_"+saveName, normal=False)
     return hSys
 
+def jecUncertainty(dataset, dirName, nBins, saveName=""):
+    hNominal = aux.stdHist(dataset, dirName+"/met", nBins)
+    hJesUp = aux.stdHist(dataset, dirName+"/met_jesUp", nBins)
+    hJesDn = aux.stdHist(dataset, dirName+"/met_jesDn", nBins)
+    hJerUp = aux.stdHist(dataset, dirName+"/met_jerUp", nBins)
+    hJerDn = aux.stdHist(dataset, dirName+"/met_jerDn", nBins)
+
+    hJesSys = aux.getSystFromEnvelopes(hNominal, hJesUp, hJesDn)
+    hJerSys = aux.getSystFromEnvelopes(hNominal, hJerUp, hJerDn)
+    hSys = aux.addUncertaintiesQuadratic([hJesSys,hJerSys])
+
+    if saveName:
+        c = ROOT.TCanvas()
+        m = multiplot.Multiplot()
+        hNominal.SetLineColor(ROOT.kBlack)
+        m.add(hNominal)
+        for h in hJesUp, hJesDn:
+            h.SetLineColor(ROOT.kRed)
+            h.drawOption_ = "hist"
+        for h in hJerUp, hJerDn:
+            h.SetLineColor(ROOT.kBlue)
+            h.drawOption_ = "hist"
+        m.add(hJesUp, "Scale +")
+        m.add(hJesDn, "Scale -")
+        m.add(hJerUp, "Resol. +")
+        m.add(hJerDn, "Resol. -")
+        m.Draw()
+        denominator = hNominal.Clone(aux.randomName())
+        for b in aux.loopH(denominator): denominator.SetBinError(b,0)
+        r = ratio.Ratio("jet uncert.", hNominal, denominator, hSys)
+        r.draw(.5,1.5)
+        l = aux.Label(sim=True, info=dataset.label)
+        aux.save("jecUncertainty_"+saveName, normal=False)
+    return hSys
+
 def plotMcUncertainties(dataset, nBins, saveName=""):
     pdfUncertainty(dataset, "signal_lowEMHT", nBins, saveName+"_lowEMHT")
     pdfUncertainty(dataset, "signal_highEMHT", nBins, saveName+"_highEMHT")
@@ -1681,6 +1716,8 @@ def plotMcUncertainties(dataset, nBins, saveName=""):
     scaleUncertainty(dataset, "signal_highEMHT", nBins, saveName+"_highEMHT")
     puUncertainty(dataset, "signal_lowEMHT", nBins, saveName+"_lowEMHT")
     puUncertainty(dataset, "signal_highEMHT", nBins, saveName+"_highEMHT")
+    jecUncertainty(dataset, "signal_lowEMHT", nBins, saveName+"_lowEMHT")
+    jecUncertainty(dataset, "signal_highEMHT", nBins, saveName+"_highEMHT")
 
 def isrRejection(dataset):
     gr = dataset.getHist("triggerStudies/noPromptEvaluation").CreateGraph()
