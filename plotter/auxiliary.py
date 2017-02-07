@@ -520,7 +520,7 @@ def modifySaveName(name):
         name = name.replace(a, b)
     return name
 
-def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True, changeMinMax=False ):
+def save( name, folder="plots/", endings=[".pdf"], normal=True, log=True, changeMinMax=True ):
     name = modifySaveName(name)
     if normal:
         for ending in endings:
