@@ -796,6 +796,16 @@ def getSystFromEnvelopes(h0, hUp, hDn, changeStyle=True):
         out.SetBinError(bin, max(abs(up-c), abs(dn-c)))
     return out
 
+def getSystFromVariance(h0, hList):
+    import numpy
+    out = h0.Clone(randomName())
+    for bin in loopH(h0):
+        cs = []
+        for h in hList: cs.append(h.GetBinContent(bin))
+        mean = numpy.mean(cs)
+        out.SetBinError(bin, max(numpy.std(cs),abs(mean-out.GetBinContent(bin))))
+    return out
+
 def dataCardToLatexTable(filename):
     import DatacardParser
     from optparse import OptionParser
@@ -893,6 +903,15 @@ def blind(h, val=100):
     for b in range(h.FindFixBin(val), h.GetNbinsX()+2):
         h.SetBinContent(b, 0)
         h.SetBinError(b, 0)
+
+def addPoissonUncertainty(hist):
+    mediumWeight = hist.Integral(0,-1)/hist.GetEntries()
+    for b in loopH(hist):
+        c = hist.GetBinContent(b)
+        if not c:
+            hist.SetBinError(b, mediumWeight * 1.84102164458)
+        elif abs((c-mediumWeight)/c) < 1e-2: # one effective entry
+            hist.SetBinError(b, mediumWeight * 2.6378596228)
 
 intLumi = 36.815e3
 
