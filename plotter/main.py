@@ -1,27 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import sys
-if sys.version_info[:2] == (2,6):
-    print "Initialize correct python version first!"
-    sys.exit()
-
-import ConfigParser
-import ROOT
-import math
-import argparse
-import re
-from random import randint
-from sys import maxint
-
-# private libs
-import ratio
-import style
-import multiplot
-from rwthColors import rwth
-
-import auxiliary as aux
-
+from include import *
 
 def compare( datasets, name, saveName ):
     m = multiplot.Multiplot()
