@@ -616,7 +616,9 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
 
     # direct stuff
+    if "electronClosure_highEMHT" in name: style.additionalPoissonUncertainty = True
     dirHist = aux.stdHist(dirSet, dirDir+"/met", nBins)
+    style.additionalPoissonUncertainty = False
     aux.drawOpt(dirHist, "data")
     if "final" in name: aux.blind(dirHist, 350)
     #if style.divideByBinWidth:
