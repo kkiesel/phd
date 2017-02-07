@@ -3,6 +3,7 @@ import ROOT
 # own style options:
 divideByBinWidth = False
 minimumOne = True
+additionalPoissonUncertainty = False
 
 def defaultStyle():
     st = ROOT.TStyle("defaultStyle", "Knut's owns style" )
