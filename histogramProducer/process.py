@@ -96,8 +96,10 @@ ds={
         "WGToLNuG_PtG-130-amcatnloFXFX_nTuple.root",
         ],
     "signal": [
+        "SMS-T5Wg_2000_100_nTuple.root",
         "SMS-T5Wg_1600_100_nTuple.root",
         "SMS-T5Wg_1600_1500_nTuple.root",
+        "SMS-T6gg_1750_1650_nTuple.root",
         ],
 }
 dir = "/net/scratch_cms1b1/cms/user/kiesel/v20/"
