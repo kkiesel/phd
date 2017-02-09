@@ -72,6 +72,7 @@ def writeDict( d, filename ):
 def getHistForModel( model ):
     h = ROOT.TH2F()
     if "T5" in model: h = ROOT.TH2F("","", 54, 775, 2125, 420, 0, 2100)
+    elif "T6" in model: h = ROOT.TH2F("","", 17, 975, 1825, 210, 0, 2100)
     else: print "Not specified model", model
     h.SetMinimum(0)
     return h
