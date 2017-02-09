@@ -68,6 +68,8 @@ class Dataset:
             h = aux.getFromFile( self.files[i], name )
             if isinstance( h, ROOT.TH1 ):
                 if self.xsecs[i]:
+                    if style.additionalPoissonUncertainty:
+                        aux.addPoissonUncertainty(h)
                     h.Scale( aux.intLumi * self.xsecs[i] / self.ngens[i] )
                 h.SetLineColor( self.color )
                 h.SetMarkerColor( self.color )
