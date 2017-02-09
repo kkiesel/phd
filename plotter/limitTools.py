@@ -110,10 +110,13 @@ def callCombineSignificance(name):
 def getContour( gr2d ):
     gr2d.Draw()
     ROOT.gPad.Update()
-    contoursN = [(c,c.GetN()) for c in gr2d.GetContourList(1.) ]
+    contours = gr2d.GetContourList(1.)
+    if not contours:
+        print "Could not find contour"
+        contours = gr2d.GetContourList(0.5)
+    contoursN = [(c,c.GetN()) for c in contours]
     contoursN = sorted( contoursN, key=lambda x: x[1] )
-    if contoursN: return contoursN[-1][0]
-    print "Could not find contour"
+    return contoursN[-1][0]
 
 class MyDatacard(Datacard):
     def __init__(self, dc):
