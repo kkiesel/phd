@@ -5,6 +5,58 @@ import DatacardParser
 import multiprocessing
 import glob
 
+###############################################################################
+# check consistency
+###############################################################################
+def checkHistogramConsistency2d(h1, h2, relTolerance=1e-6):
+    n1 = h1.GetEntries()
+    n2 = h2.GetEntries()
+    if n1 != n2: print "Number of entries not the same", n1, n2
+    nx1 = h1.GetNbinsX()
+    nx2 = h2.GetNbinsX()
+    ny1 = h1.GetNbinsY()
+    ny2 = h2.GetNbinsY()
+    if nx1 != nx2: print "Number of x bins is not the same:", nx1, nx2
+    if ny1 != ny2: print "Number of y bins is not the same:", ny1, ny2
+    for x,y in aux.loopH(h1):
+        c1 = h1.GetBinContent(x,y)
+        c2 = h2.GetBinContent(x,y)
+        if c1+c2 and abs(c1-c2)/(c1+c2)/2 > relTolerance: print "Not same bin content in bin {}:{}:".format(x,y), c1, c2
+
+def checkHistogramConsistency1d(h1, h2, relTolerance=1e-6):
+    n1 = h1.GetEntries()
+    n2 = h2.GetEntries()
+    if n1 != n2: print "Number of entries not the same", n1, n2
+    nx1 = h1.GetNbinsX()
+    nx2 = h2.GetNbinsX()
+    if nx1 != nx2: print "Number of x bins is not the same:", nx1, nx2
+    for x in aux.loopH(h1):
+        c1 = h1.GetBinContent(x)
+        c2 = h2.GetBinContent(x)
+        if c1+c2 and abs(c1-c2)/(c1+c2)/2 > relTolerance: print "Not same bin content in bin {}:".format(x), c1, c2
+
+
+def checkConsistency(datacardFile, signalScan, treeFile):
+    hScan = aux.getFromFile(signalScan, "Wg_1600_100/signal_lowEMHT/met")
+    hScan.Scale(aux.intLumi*aux.getXsecSMSglu(1600))
+    #hPlot = aux.getFromFile(treeFile, "signal_lowEMHT/met")
+    hPlot = t5wg_1600_100.getHist("signal_lowEMHT/met")
+    print "Plot vs scan differences"
+    sameHists = checkHistogramConsistency1d(hScan, hPlot, 1e-3)
+
+    xBins = [350, 450, 600]
+    hScanRebinned = aux.rebinX(hScan, xBins)
+    dc = limitTools.MyDatacard(datacardFile)
+    print "Datacard versus scan:"
+    print dc.exp["binlowEMHT_24"]["signal"], hScanRebinned.GetBinContent(1)
+    print dc.exp["binlowEMHT_25"]["signal"], hScanRebinned.GetBinContent(2)
+    print dc.exp["binlowEMHT_26"]["signal"], hScanRebinned.GetBinContent(3)
+
+    return
+
+###############################################################################
+# end check consistency
+###############################################################################
 
 def getPointFromDir(name):
     m = re.match("(.*)_(.*)_(.*)", name)
@@ -68,6 +120,20 @@ def writeDict( d, filename ):
         if ob:
             ob.Write(name)
     f.Close()
+
+def getLimit2dHist(inputSignal):
+    f = ROOT.TFile(inputSignal)
+    dirs = [k.GetName() for k in f.GetListOfKeys() if "Tree" not in k.GetName()]
+    xValues = set()
+    yValues = set()
+    for d in dirs:
+        c, m1, m2 = getPointFromDir(d)
+        xValues.add(m1)
+        yValues.add(m2)
+    xValues = sorted(xValues)
+    yValues = sorted(yValues)
+    print xValues
+    print yValues
 
 def getHistForModel( model ):
     h = ROOT.TH2F()
@@ -134,6 +200,15 @@ def callMultiCombine(outputDir, combi):
     p = multiprocessing.Pool()
     p.map(limitTools.callCombine, files)
 
+def recalculateLimits(outputDir):
+    for filename in glob.glob(outputDir+"/*txt"):
+        #if "1700" not in filename: continue
+        l = limitTools.Limit(filename)
+        l.getInfo()
+        if l.error: print filename, l.error
+        #print filename, l.obs<l.expDn or l.obs>l.expUp
+
+
 def build2dGraphs(outputDir, combi):
     files = glob.glob("{}/{}_*.txt.limit".format(outputDir, combi))
 
@@ -151,81 +226,44 @@ def build2dGraphs(outputDir, combi):
     writeDict(graphs, outputDir+"/Graphs2d.root")
     return graphs
 
-def signalScan(name, combi, inputData, inputSignal):
-    outputDir = "limitCalculations/"+name
+def getScanName(inputSignal, combi):
+    m = re.match(".*/SMS-(..)Wg.*", inputSignal)
+    return m.group(1) + combi
+
+def signalScan(dirName, combi, inputData, inputSignal):
+    outputDir = "limitCalculations/"+dirName
+    scanName = getScanName(inputSignal, combi)
     if not os.path.isdir(outputDir): os.mkdir(outputDir)
-    writeDataCards(outputDir, inputData, inputSignal, combi)
+    if "T5" in inputSignal:
+        xsecFile = "data/xSec_SMS_Gluino_13TeV.pkl"
+    elif "T6" in inputSignal:
+        xsecFile = "data/xSec_SMS_Squark_13TeV.pkl"
+    else:
+        print "Do not know if squark or gluino scan"
+        return
+
+    writeDataCards(outputDir, inputData, inputSignal, combi, xsecFile)
     callMultiCombine(outputDir, combi)
     build2dGraphs(outputDir, combi)
     graphs = readDict(outputDir+"/Graphs2d.root")
     toDraw = dict( [(name,limitTools.getContour(gr)) for name,gr in graphs.iteritems() ] )
-    toDraw.update(getObsUncertainty(graphs["obs"]))
+    toDraw.update(getObsUncertainty(graphs["obs"], xsecFile))
     toDraw["obs_hist"] = getXsecLimitHistDelaunay(graphs["obs"])
-    toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel("T5Wg") )
+    toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
     writeDict(toDraw, outputDir+"/Graphs1d.root")
 
-    scanName = "T5Wg"
-    writeSMSLimitConfig(outputDir+"/Graphs1d.root", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName)
-    subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS15xxx/%s_SUS15xxx.cfg"%scanName, "plots/%s_limits_"%scanName])
-
-def checkHistogramConsistency(h1, h2, relTolerance=1e-6):
-    n1 = h1.GetEntries()
-    n2 = h2.GetEntries()
-    if n1 != n2: print "Number of entries not the same", n1, n2
-    nx1 = h1.GetNbinsX()
-    nx2 = h2.GetNbinsX()
-    ny1 = h1.GetNbinsY()
-    ny2 = h2.GetNbinsY()
-    if nx1 != nx2: print "Number of x bins is not the same:", nx1, nx2
-    if ny1 != ny2: print "Number of y bins is not the same:", ny1, ny2
-    for x,y in aux.loopH(h1):
-        c1 = h1.GetBinContent(x,y)
-        c2 = h2.GetBinContent(x,y)
-        if c1+c2 and abs(c1-c2)/(c1+c2)/2 > relTolerance: print "Not same bin content in bin {}:{}:".format(x,y), c1, c2
-
-
-def checkConsistency(datacardFile, signalScan, treeFile):
-    hScan = aux.getFromFile(signalScan, "Wg_1600_100/met_vs_emht")
-    hScan.Scale(aux.intLumi*aux.getXsecSMSglu(1600))
-    hPlot = aux.getFromFile(treeFile, "tr/met_vs_emht")
-    hPlot = t5wg_1600_100.getHist("tr/met_vs_emht")
-    print "Plot vs scan differences"
-    sameHists = checkHistogramConsistency(hScan, hPlot, 1e-2)
-
-    tree = ROOT.TChain("tr/simpleTree")
-    tree.AddFile(treeFile)
-    hTree = hPlot.Clone("hTree")
-    hTree.Reset("ICEM")
-    tree.Draw("emht:met>>hTree", "weight", "goff")
-    print "scan versus tree differences"
-    sameHists2 = checkHistogramConsistency(hScan, hTree, 1e-2)
-
-    print "check rebinned hists"
-    xBins = [350, 450, 600]
-    yBins = [0, 2000]
-
-    bInfo = {
-            "binemht2000_24": (1,1),
-            "binemht2000_25": (2,1),
-            "binemht2000_26": (3,1),
-            "bin2000emht_24": (1,2),
-            "bin2000emht_25": (2,2),
-            "bin2000emht_26": (3,2),
-        }
-
-    hPlotRebinned = aux.rebinX(hPlot, xBins, yBins)
-    hScanRebinned = aux.rebinX(hScan, xBins, yBins)
-    sameHists = checkHistogramConsistency(hScanRebinned, hPlotRebinned, 1e-5)
-
+    writeSMSLimitConfig(outputDir+"/Graphs1d.root", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName)
+    subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName, "plots/%s_limits_"%scanName])
 
 if __name__ == "__main__":
-    checkConsistency("limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
+    #checkConsistency("limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
+    #checkConsistency("testDatacard.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
 
-    #signalScan("T5Wg_v4", "Wg", "limitCalculations/observation_v1.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("T5Wg_v5", "Wg", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("T5Wg_v5", "gg", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("T5Wg_v5", "WW", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("T5Wg_v5", "Wg", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
-    #signalScan("T5Wg_v5", "gg", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
-    #signalScan("T5Wg_v5", "WW", "limitCalculations/observation_v2.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    #signalScan("T5Wg_v6", "Wg", "limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("T5gg_v6", "gg", "limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("T6Wg_v6", "Wg", "limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    signalScan("T6gg_v6", "gg", "limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+
+    #getLimit2dHist("../histogramProducer/SMS-T6Wg_signalScan.root")
+
 
