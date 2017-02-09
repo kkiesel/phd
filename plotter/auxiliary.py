@@ -23,13 +23,13 @@ def frange(x, y, jump):
     return [ x+jump*i for i in range(int(floor((y-x)/jump)))]
 
 def getXsecInfoSMS( mother_mass, pklfilename ):
-    info = 0
+    info = (0,0)
     with open( pklfilename, 'rb') as f:
         data = pickle.load( f )
         if mother_mass in data:
             info = data[mother_mass]
         else:
-            print "could not find %s in "%mother_mass
+            print "could not find mass {} in file {}".format(mother_mass, pklfilename)
     return info
 
 def getXsecSMSglu( mother_mass ):
