@@ -86,42 +86,44 @@ PRELIMINARY PrivateWork
 LUMI {1:.2f}
 ENERGY 13
 """.format(infile,aux.intLumi/1e3)
-    t2 = "OBSERVED ../../master/singlePhoton/PlotsSMS/config/SUS14004/2015-01-09-limits/SMS_T5wg/ROOT/SMS_T5wg_gluino_chi1_Exclusion_witXsecLimit.root Expected_limit Expected_limit_up Expected_limit_dn kBlack kGray"
-    text = "\n".join([l for l in text.split("\n") if "OBSERVED" not in l]+[t2, ""])
+    #t2 = "OBSERVED ../../master/singlePhoton/PlotsSMS/config/SUS14004/2015-01-09-limits/SMS_T5wg/ROOT/SMS_T5wg_gluino_chi1_Exclusion_witXsecLimit.root Expected_limit Expected_limit_up Expected_limit_dn kBlack kGray"
+    #text = "\n".join([l for l in text.split("\n") if "OBSERVED" not in l]+[t2, ""])
     with open(configName, "w+") as f:
         f.write(text)
 
 
-def writeDataCards(outputDir,inputData, inputSignal, combi=""):
+def writeDataCards(outputDir, inputData, inputSignal, combi="", xsecFile=""):
     f = ROOT.TFile(inputSignal)
     dirs = [k.GetName() for k in f.GetListOfKeys() if k.GetName().startswith(combi)]
-    dirs = ["Wg_1600_100"] # cross check
+    #dirs = ["Wg_1600_100"] # cross check
 
     xBins = [350, 450, 600]
-    yBins = [0, 2000]
 
     bInfo = {
-            "binemht2000_24": (1,1),
-            "binemht2000_25": (2,1),
-            "binemht2000_26": (3,1),
-            "bin2000emht_24": (1,2),
-            "bin2000emht_25": (2,2),
-            "bin2000emht_26": (3,2),
+            "binlowEMHT_24": ("lowEMHT",1),
+            "binlowEMHT_25": ("lowEMHT",2),
+            "binlowEMHT_26": ("lowEMHT",3),
+            "binhighEMHT_24": ("highEMHT",1),
+            "binhighEMHT_25": ("highEMHT",2),
+            "binhighEMHT_26": ("highEMHT",3),
         }
 
-    options, b = DatacardParser.addDatacardParserOptions(optparse.OptionParser())
-    dc = limitTools.MyDatacard(DatacardParser.parseCard(file(inputData), options))
-
+    dc = limitTools.MyDatacard(inputData)
     for d in dirs:
-        h = f.Get(d+"/met_vs_emht")
-        h = aux.rebinX(h, xBins, yBins)
         combi2, m1, m2 = getPointFromDir(d)
-        xsec = aux.getXsecSMSglu(m1)
-        h.Scale(aux.intLumi*xsec)
+        xsec = aux.getXsecInfoSMS(m1, xsecFile)[0]
+        hists = {
+            "lowEMHT": f.Get(d+"/signal_lowEMHT/met"),
+            "highEMHT": f.Get(d+"/signal_highEMHT/met"),
+        }
+        for name, h in hists.iteritems():
+            h.Scale(aux.intLumi*xsec)
+            hists[name] = aux.rebinX(h, xBins)
+
         res = {}
-        for bname, (x,y) in bInfo.iteritems():
-            c = h.GetBinContent(x,y)
-            err = h.GetBinError(x,y)
+        for bname, (name,bin) in bInfo.iteritems():
+            c = hists[name].GetBinContent(bin)
+            err = hists[name].GetBinError(bin)
             res[bname] = (c, 1.+err/c) if err else (0, 1)
         dc.newSignal(res)
         dcName = "{}/{}.txt".format(outputDir, d)
