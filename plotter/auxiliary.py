@@ -913,6 +913,12 @@ def addPoissonUncertainty(hist):
         elif abs((c-mediumWeight)/c) < 1e-2: # one effective entry
             hist.SetBinError(b, mediumWeight * 2.6378596228)
 
+def addUncertaintiesQuadratic(hlist):
+    out = hlist[0].Clone(randomName())
+    for bin in loopH(out):
+        out.SetBinError(bin, sqrt(sum([h.GetBinError(bin)**2 for h in hlist])))
+    return out
+
 intLumi = 36.815e3
 
 class Label:
