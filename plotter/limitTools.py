@@ -7,6 +7,45 @@ import optparse
 import os
 from Datacard import Datacard
 
+class Limit:
+    def __init__(self, datacardname):
+        self.datacardname = datacardname
+        self.limitfilename = datacardname+".limit"
+
+        self.obs = -1
+        self.exp = -1
+        self.expUp = -1
+        self.expDn = -1
+        self.exp2Up = -1
+        self.exp2Dn = -1
+        self.rMinNLL = -1
+        self.error = None
+
+    def calculate(self):
+        if not os.path.isfile(self.limitfilename) or os.path.getmtime(self.datacardname)>os.path.getmtime(self.limitfilename):
+            with open(self.limitfilename, "w+") as f:
+                bn = os.path.basename(self.daracardname)
+                out = subprocess.check_output(["combine", "-M", "Asymptotic", self.datacardname, "-n", bn], stderr=subprocess.STDOUT)
+                f.write(out)
+                outputFile = "higgsCombine{}.Asymptotic.mH120.root".format(bn)
+                if os.path.isfile(outputFile): os.remove(outputFile)
+        with open(self.limitfilename) as f:
+            out = f.read()
+
+    def getInfo(self):
+        if not os.path.isfile(self.limitfilename): self.calculate()
+        with open(self.limitfilename) as f:
+            out = f.read()
+        lines = out.split("\n")
+        for line in lines:
+            if line.startswith("NLL at global minimum of asimov:"): self.rMinNLL = float(re.match(".*\(r = (.*)\).*",line).group(1))
+            if line.startswith("Observed Limit: r < "): self.obs    = float(line.split("<")[1])
+            if line.startswith("Expected  2.5%: r < "): self.exp2Dn = float(line.split("<")[1])
+            if line.startswith("Expected 16.0%: r < "): self.expDn  = float(line.split("<")[1])
+            if line.startswith("Expected 50.0%: r < "): self.exp    = float(line.split("<")[1])
+            if line.startswith("Expected 84.0%: r < "): self.expUp  = float(line.split("<")[1])
+            if line.startswith("Expected 97.5%: r < "): self.exp2Up = float(line.split("<")[1])
+            if "ERROR" in line: self.error = line
 
 def infoFromOut(out):
     infos = { "obs":0, "exp":0, "exp1up":0, "exp1dn":0, "exp2up":0, "exp2dn":0 }
