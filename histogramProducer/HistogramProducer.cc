@@ -696,7 +696,6 @@ float HistogramProducer::getPhotonWeight(const tree::Photon& p) {
     // sf for id and electron veto
     weight = weighters.at("sf_photon_id_loose").getWeight(eta, pt) * weighters.at("sf_photon_pixel").getWeight(fabs(eta), pt);
     // trigger efficiency
-    //weight *= fabs(eta)<photonsEtaMaxBarrel ? 0.977 : 0.953;
     weight *= fabs(eta)<photonsEtaMaxBarrel ? 0.964 : 0.94;
   }
   return weight;
@@ -739,7 +738,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     auto g = selPhotons.at(0);
     auto addWeight = getPhotonWeight(*g);
     auto dPhi = fabs(met->p.DeltaPhi(g->p));
-    bool orthogonal = .3<dPhi;
+    bool orthogonal = .3<dPhi && dPhi<2.84;
     bool genE = fabs(genMatchNegativePrompt(*g, *genParticles)) == 11;
     bool genE2 = genMatchWZDecay(*g, *intermediateGenParticles);
     bool isGenEclean = isData || isSignal || !genE;
@@ -749,9 +748,6 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
     if (!cutPrompt && orthogonal && genE && emht<2000) fillSignalSelection("signal_lowEMHT_genE", addWeight);
     if (!cutPrompt && orthogonal && genE && 2000<emht) fillSignalSelection("signal_highEMHT_genE", addWeight);
-
-    if (!cutPrompt && orthogonal && genE2 && emht<2000) fillSignalSelection("signal_lowEMHT_genE2", addWeight);
-    if (!cutPrompt && orthogonal && genE2 && 2000<emht) fillSignalSelection("signal_highEMHT_genE2", addWeight);
 
     fillSelection("tr", addWeight, true);
     if (genE) fillSelection("tr_genE", addWeight, true);
@@ -787,14 +783,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     auto g = selPhotons.at(0);
     auto addWeight = getPhotonWeight(*g);
     auto dPhi = fabs(met->p.DeltaPhi(g->p));
-    bool orthogonal = .3<dPhi;
-    bool genE2 = genMatchWZDecay(*g, *intermediateGenParticles);
+    bool orthogonal = .3<dPhi && dPhi<2.84;
     bool genE = fabs(genMatchNegativePrompt(*g, *genParticles)) == 11;
 
     bool isGenEclean = isData || isSignal || !genE;
 
     if (!cutPrompt && orthogonal && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT_ee", addWeight);
     if (!cutPrompt && orthogonal && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT_ee", addWeight);
+
 
     fillSelection("tr_ee", addWeight);
   }
@@ -818,7 +814,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     auto g = selPhotons.at(0);
     auto addWeight = getPhotonWeight(*g);
     auto dPhi = fabs(met->p.DeltaPhi(g->p));
-    bool orthogonal = .3<dPhi;
+    bool orthogonal = .3<dPhi && dPhi<2.84;
 
     if (!cutPrompt && orthogonal && emht<2000) fillSignalSelection("signal_lowEMHT_eControl", addWeight);
     if (!cutPrompt && orthogonal && 2000<emht) fillSignalSelection("signal_highEMHT_eControl", addWeight);
@@ -846,7 +842,7 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     auto g = selPhotons.at(0);
     auto addWeight = getPhotonWeight(*g);
     auto dPhi = fabs(met->p.DeltaPhi(g->p));
-    bool orthogonal = .3<dPhi;
+    bool orthogonal = .3<dPhi && dPhi<2.84;
 
     if (!cutPrompt && orthogonal && emht<2000) fillSignalSelection("signal_lowEMHT_ee_eControl", addWeight);
     if (!cutPrompt && orthogonal && 2000<emht) fillSignalSelection("signal_highEMHT_ee_eControl", addWeight);
