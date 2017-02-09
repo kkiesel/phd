@@ -172,35 +172,42 @@ Bool_t SignalScan::Process(Long64_t entry)
     unsigned int nGen = 0;
     string cutFlowName = "TreeWriter/hCutFlow";
     inputName = fReader.GetTree()->GetCurrentFile()->GetName();
-    if (inputName.find("T5") != string::npos) {
-      cutFlowName += "T5Wg";
-    } else if (inputName.find("T6") != string::npos) {
-      cutFlowName += "T6Wg";
+    if (inputName.find("1600_100") != string::npos) { // testing one point for synchronization
+        TH1F* cutFlow = (TH1F*)fReader.GetTree()->GetCurrentFile()->Get(cutFlowName.c_str());
+        if (cutFlow) {
+           nGen = cutFlow->GetBinContent(2);
+        } else {
+            cout << "Could not read cut flow histogram" << endl;
+        }
     } else {
-      cout << "Could not find correct cutflowname for " << inputName << endl;
-    }
-    cutFlowName += "_"+to_string(*signal_m1);
-    cutFlowName += "_"+to_string(*signal_m2);
-    TH1F* cutFlow = (TH1F*)fReader.GetTree()->GetCurrentFile()->Get(cutFlowName.c_str());
-    if (cutFlow) {
-      nGen = cutFlow->GetBinContent(2);
-    } else {
-      cout << "Could not read cutFlow histogram " << cutFlowName << endl;
-    }
-    if (inputName.find("T6") != string::npos or inputName.find("T5") != string::npos) {
-      switch (*signal_nBinos) {
-        case 0: nGen /= 4; break;
-        case 1: nGen /= 2; break;
-        case 2: nGen /= 4; break;
-        default: cout << "Do not know what to do with " << *signal_nBinos << " binos" << endl;
-      }
-    } else {
-      cout << "do stuff for other scans" << endl;
+        if (inputName.find("T5") != string::npos) {
+          cutFlowName += "T5Wg";
+        } else if (inputName.find("T6") != string::npos) {
+          cutFlowName += "T6Wg";
+        } else {
+          cout << "Could not find correct cutflowname for " << inputName << endl;
+        }
+        cutFlowName += "_"+to_string(*signal_m1);
+        cutFlowName += "_"+to_string(*signal_m2);
+        TH1F* cutFlow = (TH1F*)fReader.GetTree()->GetCurrentFile()->Get(cutFlowName.c_str());
+        if (cutFlow) {
+          nGen = cutFlow->GetBinContent(2);
+        } else {
+          cout << "Could not read cutFlow histogram " << cutFlowName << endl;
+        }
+        if (inputName.find("T6") != string::npos or inputName.find("T5") != string::npos) {
+          switch (*signal_nBinos) {
+            case 0: nGen /= 4; break;
+            case 1: nGen /= 2; break;
+            case 2: nGen /= 4; break;
+            default: cout << "Do not know what to do with " << *signal_nBinos << " binos" << endl;
+          }
+        } else {
+          cout << "do stuff for other scans" << endl;
+        }
     }
     nEventMap[pn] = nGen;
   }
-
-  auto selW = *mc_weight * *pu_weight/nEventMap[pn];
 
   selPhotons.clear();
   selJets.clear();
@@ -210,6 +217,9 @@ Bool_t SignalScan::Process(Long64_t entry)
     }
   }
   if (!selPhotons.size()) return kTRUE;
+  auto dPhi = fabs(met->p.DeltaPhi(selPhotons.at(0)->p));
+  bool orthogonal = .3<dPhi && dPhi<2.84;
+  if (!orthogonal) return kTRUE;
 
   for (auto& jet : *jets) {
     if (!jet.isLoose
@@ -223,7 +233,7 @@ Bool_t SignalScan::Process(Long64_t entry)
   for (auto& p : selJets) emht += p->p.Pt();
 
   if (emht<700) return kTRUE;
-  selW *= getPhotonWeight(*selPhotons.at(0));
+  auto selW = *mc_weight * *pu_weight/nEventMap[pn] * getPhotonWeight(*selPhotons.at(0));
   if (emht<2000) fillSignalSelection(pn, "signal_lowEMHT", selW);
   else fillSignalSelection(pn, "signal_highEMHT", selW);
 
