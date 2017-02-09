@@ -46,12 +46,14 @@ def getXsecLimitHistDelaunay(gr):
     h = h.Clone(aux.randomName())
     return h
 
-def getObsUncertainty(gr2d):
+def getObsUncertainty(gr2d, xsecFile):
     gr2dup = gr2d.Clone(aux.randomName())
     gr2ddn = gr2d.Clone(aux.randomName())
+    gr2dup.SetDirectory(0)
+    gr2ddn.SetDirectory(0)
     points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
     for ip, (x,y,z) in enumerate(points):
-        xsec, unc = aux.getXsecInfoSMS(x, "data/xSec_SMS_Gluino_13TeV.pkl")
+        xsec, unc = aux.getXsecInfoSMS(x, xsecFile)
         gr2dup.SetPoint(ip, x, y, z*(1-unc/100))
         gr2ddn.SetPoint(ip, x, y, z*(1+unc/100))
     obsUp = limitTools.getContour(gr2dup)
