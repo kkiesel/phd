@@ -218,7 +218,9 @@ float sampleCrossSection(const string& inputFileName) {
     {"TGJets_amcatnlo_madspin", 2.967},
     {"DYJetsToLL_M-50", 6025.2},
     {"SMS-T5Wg_1600_100", 0.00810078},
-    {"SMS-T5Wg_1600_1500", 0.00810078}
+    {"SMS-T5Wg_1600_1500", 0.00810078},
+    {"SMS-T5Wg_2000_100", 0.000981077},
+    {"SMS-T6gg_1750_1650", 0.000646271}
   };
   if (xs.count(sampleName)) {
     return xs.at(sampleName);
