@@ -550,7 +550,7 @@ void HistogramProducer::fillSignalSelection(const string& s, float addWeight=1.)
   }
   auto m1 = &h1Maps[s];
   auto _met = met->p.Pt();
-  m1->at("met").Fill(_met);
+  m1->at("met").Fill(_met, weight);
   for (unsigned i=0; i<pdf_weights->size(); i++) {
     string hname = "met_weight_"+to_string(i);
     m1->at(hname).Fill(_met, weight*pdf_weights->at(i)/ *mc_weight);
