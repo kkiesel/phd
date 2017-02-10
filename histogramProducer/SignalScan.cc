@@ -184,6 +184,8 @@ Bool_t SignalScan::Process(Long64_t entry)
           cutFlowName += "T5Wg";
         } else if (inputName.find("T6") != string::npos) {
           cutFlowName += "T6Wg";
+        } else if (inputName.find("TChiWG") != string::npos) {
+          cutFlowName += "TChiWG";
         } else {
           cout << "Could not find correct cutflowname for " << inputName << endl;
         }
@@ -202,7 +204,7 @@ Bool_t SignalScan::Process(Long64_t entry)
             case 2: nGen /= 4; break;
             default: cout << "Do not know what to do with " << *signal_nBinos << " binos" << endl;
           }
-        } else {
+        } else if(inputName.find("TChi") == string::npos) {
           cout << "do stuff for other scans" << endl;
         }
     }
