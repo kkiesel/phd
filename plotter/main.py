@@ -780,7 +780,6 @@ def sampleMergingCheck():
     drawSameHistogram("merge_tg", "tr/g_pt", [tg,ttg], [], range(100,700,10))
 
 
-    return
 
 
 
@@ -807,10 +806,10 @@ def sampleMergingCheck():
 
 
 def transitions():
-    drawSameHistogram( "gjets", "tr/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600], [gjets_dr] )
-    drawSameHistogram( "gjets", "tr_jControl/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600], [gjets_dr] )
-    drawSameHistogram( "gjets_dr", "tr/genHt", [gjets40dr,gjets100dr,gjets200dr,gjets400dr,gjets600dr], [gjets] )
-    drawSameHistogram( "gjets_dr", "tr_jControl/genHt", [gjets40dr,gjets100dr,gjets200dr,gjets400dr,gjets600dr], [gjets] )
+    drawSameHistogram( "gjets", "tr/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600], [] )
+    drawSameHistogram( "gjets", "tr_jControl/genHt", [gjets40,gjets100,gjets200,gjets400,gjets600], [] )
+    drawSameHistogram( "gjets_dr", "tr/genHt", [gjets40dr,gjets100dr,gjets200dr,gjets400dr,gjets600dr], [] )
+    drawSameHistogram( "gjets_dr", "tr_jControl/genHt", [gjets40dr,gjets100dr,gjets200dr,gjets400dr,gjets600dr], [] )
     drawSameHistogram( "qcd", "tr_jControl/genHt", [qcd100,qcd200,qcd300,qcd500,qcd700,qcd1000,qcd1500,qcd2000] )
     drawSameHistogram( "wjets", "tr_jControl/genHt", [wjets100,wjets200,wjets400,wjets600,wjets800,wjets1200,wjets2500] )
     drawSameHistogram( "znunu", "tr_jControl/genHt", [znunu100,znunu200,znunu400,znunu600,znunu800,znunu1200,znunu2500] )
@@ -1719,6 +1718,13 @@ def plotMcUncertainties(dataset, nBins, saveName=""):
     jecUncertainty(dataset, "signal_lowEMHT", nBins, saveName+"_lowEMHT")
     jecUncertainty(dataset, "signal_highEMHT", nBins, saveName+"_highEMHT")
 
+def totalMcUncertainties(dataset, dirName, nBins, savename=""):
+    h1 = pdfUncertainty(dataset, dirName, nBins, saveName)
+    h2 = scaleUncertainty(dataset, dirName, nBins, saveName)
+    h3 = puUncertainty(dataset, dirName, nBins, saveName)
+    h4 = jecUncertainty(dataset, dirName, nBins, saveName)
+    return aux.addUncertaintiesQuadratic([h1,h2,h3,h4])
+
 def isrRejection(dataset):
     gr = dataset.getHist("triggerStudies/noPromptEvaluation").CreateGraph()
     eff = gr.GetY()[0]
@@ -1730,14 +1736,14 @@ def printLatexResultTable(filename):
     dc = limitTools.MyDatacard(filename)
     out  = "\\begin{tabular}{l|rrr|rrr}"
     out += "\n  \\EMHT (\\GeV) & \\multicolumn{3}{c|}{$<2000$} & \\multicolumn{3}{c}{$>2000$}\\\\"
-    out += "\n  \\ETmiss (\\GeV)& (350,450) & (450,600) & (600,\\infty) & (350,450) & (450,600) & (600,\\infty) \\\\"
+    out += "\n  \\ETmiss (\\GeV)& (350,450) & (450,600) & (600,$\\infty$) & (350,450) & (450,600) & (600,$\\infty$) \\\\"
     out += "\n  \\hline"
     out += "\n  non-genuine \\ETmiss &" + "&".join(["{:.2f}".format(dc.exp[x]["gqcd"]) for x in dc.bins]) + "\\\\"
     out += "\n  $\\gamma W$ &" + "&".join(["{:.2f}".format(dc.exp[x]["wg"]) for x in dc.bins]) + "\\\\"
-    out += "\n  $\\gamma \\ttbar$ &" + "&".join(["{:.2f}".format(dc.exp[x]["ttg"]) for x in dc.bins]) + "\\\\"
+    out += "\n  $\\gamma \\ttbar$ &" + "&".join(["{:.2f}".format(dc.exp[x]["tg"]) for x in dc.bins]) + "\\\\"
     out += "\n  $\\gamma Z$ &" + "&".join(["{:.2f}".format(dc.exp[x]["zg"]) for x in dc.bins]) + "\\\\"
     out += "\n  $e\\rightarrow\\gamma$ &" + "&".join(["{:.2f}".format(dc.exp[x]["ele"]) for x in dc.bins]) + "\\\\"
-    out += "\n  Total &" + "&".join(["{:.2f}".format(sum([dc.exp[x][p] for p in ["gqcd", "wg", "ttg", "zg", "ele"]])) for x in dc.bins]) + "\\\\"
+    out += "\n  Total &" + "&".join(["{:.2f}".format(sum([dc.exp[x][p] for p in ["gqcd", "wg", "tg", "zg", "ele"]])) for x in dc.bins]) + "\\\\"
     out += "\n  \\hline"
     out += "\n  Data &" + "&".join([str(int(dc.obs[x]))+"\\phantom{.00}" for x in dc.bins]) + "\\\\"
     out += "\n  Signal &" + "&".join(["{:.2f}".format(dc.exp[x]["signal"]) for x in dc.bins]) + "\\\\"
@@ -1756,23 +1762,17 @@ def main():
     scaleUncertainty("wjets800", wjets800)
     """
     nBinsSR = [0, 100, 200, 250, 300, 350, 450, 600, 700]
+    #plotMcUncertainties(wg, nBinsSR, "wg")
+    #plotMcUncertainties(zg, nBinsSR, "zg")
+    #plotMcUncertainties(tg, nBinsSR, "tg")
+    #plotMcUncertainties(ttg, nBinsSR, "ttg")
+    #plotMcUncertainties(ttjets_nlo, nBinsSR, "tt_nlo")
 
-    #pdfUncertainty("gjets", gjets)
-    #pdfUncertainty("zg", zg)
-    #scaleUncertainty("zg", zg)
-    #pdfUncertainty("t5wg_1600_100", t5wg_1600_100)
-    #pdfUncertainty("t5wg_1600_1500", t5wg_1600_1500)
-    #scaleUncertainty("t5wg_1600_100", t5wg_1600_100)
-    #scaleUncertainty("t5wg_1600_1500", t5wg_1600_1500)
-    pdfUncertainty(t5wg_1600_100, "signal_lowEMHT", nBinsSR, "t5wg_1600_100_lowEMHT")
-    scaleUncertainty(t5wg_1600_100, "signal_lowEMHT", nBinsSR, "t5wg_1600_100_lowEMHT")
-    puUncertainty(t5wg_1600_100, "signal_lowEMHT", nBinsSR, "t5wg_1600_100_lowEMHT")
-    #puUncertainty(t5wg_1600_100, "signal_highEMHT", nBinsSR, "t5wg_1600_100_highEMHT")
-    #puUncertainty(t5wg_1600_1500, "signal_lowEMHT", nBinsSR, "t5wg_1600_1500_lowEMHT")
-    #puUncertainty(t5wg_1600_1500, "signal_highEMHT", nBinsSR, "t5wg_1600_1500_highEMHT")
+    #printLatexResultTable("limitCalculations/observation_v4.txt")
+    #printLatexResultTable("testDatacard.txt")
 
-    #transitions()
-    #sampleMergingCheck()
+    transitions()
+    sampleMergingCheck()
     #isrRejection(wjets)
     #isrRejection(znunu)
     #isrRejection(ttjets_nlo)
