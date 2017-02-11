@@ -79,7 +79,7 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
 
     if "eff_pt__p90ht600__ht600" in name or "eff_pt_ee__p90ht600__ht600" in name:
         cutValue = 100
-    elif "emht__ht600__p90_ps" in name:
+    elif "emht__ht600__p90_ps" in name or "emht__p90ht600" in name:
         cutValue = 700
     elif "emht__ht800" in name:
         cutValue = 900
@@ -144,27 +144,23 @@ def efficiencies(dataset, savename=""):
     names = ["triggerStudies/"+x for x in aux.getObjectNames(dataset.files[0], "triggerStudies", [ROOT.TEfficiency]) ]
     for name in names:
         efficiency(dataset, name, savename)
-        if name.endswith("eff_hlt_pt") or name.endswith("eff_hlt_pt_endcap"):
+        if "_pt_" in name and "ele" not in name:
             efficiency(dataset, name, savename, range(0,80,8) + range(80,108,4) + range(108,300,12) + [300,400,500, 1000], "1")
-        if name.endswith("eff_hlt_ht"):
-            efficiency(dataset, name, savename, range(0,1001,40) + range(1000,1500,2000), "1")
-        if name.endswith("eff_hlt_ht_ct") or name.endswith("eff_hlt_ht_ct_preScaled"):
-            efficiency(dataset, name, savename, range(450,1001,10), "1")
-        if name.endswith("eff_hlt_ht_ct2") or name.endswith("eff_hlt_ht_ct2_preScaled"):
-            efficiency(dataset, name, savename, range(500,1001,50), "1")
-        if "_met" in name:
+        if "_emht__" in name:
+            efficiency(dataset, name, savename, range(500,1001,40) + range(1000,1500,2000), "1")
+        if "_met__" in name:
             efficiency(dataset, name, savename, range(0, 100, 5)+range(100,201, 10), "1")
-        if name.endswith("eff_hlt_nIso"):
+        if "_nIso__" in name:
             efficiency(dataset, name, savename, [0, .2, .4, .8, 1, 1.2, 1.4, 1.6, 2, 2.2, 2.4, 2.6, 2.8, 3, 4, 5, 6, 7, 8, 9, 10, 15], "1")
-        if name.endswith("eff_hlt_r9"):
+        if "_r9__" in name:
             efficiency(dataset, name, savename, [.4,.5,.6,.7,.8]+aux.frange(0.8, 1.1, 0.01), "1")
-        if name.endswith("eff_hlt_sie"):
+        if "_sie__" in name:
             efficiency(dataset, name, savename, [.0045,.007,.0075]+aux.frange(0.0075,0.011,5e-5), "1")
 
 def main():
     drawEfficiencyVsRun(dataHt)
     efficiencies(data, "singlePhoton")
-    efficiencies(dataHt, "jetHt")
+    #efficiencies(dataHt, "jetHt")
     dataBG = Dataset("SinglePhoton_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
         + Dataset("SinglePhoton_Run2016C-23Sep2016-v1", 0, ROOT.kBlack ) \
         + Dataset("SinglePhoton_Run2016D-23Sep2016-v1", 0, ROOT.kBlack ) \
@@ -178,8 +174,8 @@ def main():
         + Dataset("JetHT_Run2016E-23Sep2016-v1", 0, ROOT.kBlack ) \
         + Dataset("JetHT_Run2016F-23Sep2016-v1", 0, ROOT.kBlack ) \
         + Dataset("JetHT_Run2016G-23Sep2016-v1", 0, ROOT.kBlack )
-    efficiencies(dataBG, "singlePhoton_BG")
-    efficiencies(dataHtBG, "jetHt_BG")
+    #efficiencies(dataBG, "singlePhoton_BG")
+    #efficiencies(dataHtBG, "jetHt_BG")
 
 if __name__ == "__main__":
     main()
