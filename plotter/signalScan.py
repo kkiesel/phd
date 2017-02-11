@@ -143,6 +143,54 @@ def getHistForModel( model ):
     h.SetMinimum(0)
     return h
 
+def proceedWithWeakScan(outputDir, scanName):
+    scanRes = {}
+    for fname in glob.glob("{}/*.txt.limit".format(outputDir)):
+        m = re.match(".*_(\d+)_(\d+).txt.limit", fname)
+        with open(fname) as f: scanRes[int(m.group(1))] = limitTools.infoFromOut(f.read())
+
+    defaultGr = ROOT.TGraph(len(scanRes))
+    graphs = dict( (x,defaultGr.Clone(x)) for x in ["obs","exp","exp1up","exp1dn","exp2up","exp2dn"] )
+    obsGr = ROOT.TGraph()
+    exp1sigma = ROOT.TGraphAsymmErrors()
+    exp2sigma = ROOT.TGraphAsymmErrors()
+    for i, m in enumerate(sorted(scanRes)):
+        obsGr.SetPoint(i, m, scanRes[m]["obs"])
+        expR = scanRes[m]["exp"]
+        exp1sigma.SetPoint(i, m, expR)
+        exp2sigma.SetPoint(i, m, expR)
+        exp1sigma.SetPointEYhigh(i, scanRes[m]["exp1up"]-expR)
+        exp2sigma.SetPointEYhigh(i, scanRes[m]["exp2up"]-expR)
+        exp1sigma.SetPointEYlow(i, expR-scanRes[m]["exp1dn"])
+        exp2sigma.SetPointEYlow(i, expR-scanRes[m]["exp2dn"])
+        for name in graphs:
+            graphs[name].SetPoint(i, m, scanRes[m][name] )
+    writeDict(graphs, outputDir+"/Graphs2d.root")
+
+    exp2sigma.SetFillColor(ROOT.kOrange)
+    exp1sigma.SetFillColor(ROOT.kGreen+1)
+    exp1sigma.SetLineColor(2)
+
+    exp2sigma.SetMaximum(4)
+    exp2sigma.SetTitle(";m_{#tilde{#chi}_{1}} (GeV);95% CL upper limit/cross section")
+    exp2sigma.GetXaxis().SetRangeUser(300,1500)
+
+    oneLine = ROOT.TLine()
+    oneLine.SetLineStyle(2)
+
+    exp2sigma.Draw("ap3")
+    exp1sigma.Draw("3 same")
+    exp1sigma.Draw("xc")
+    oneLine.DrawLine(300,1,1500,1)
+    obsGr.Draw("xcp")
+
+    l = aux.Label(info="TChiWG")
+
+    aux.save("test", log=False)
+
+    exit()
+
+
 def writeSMSLimitConfig(infile, configName):
     text = """
 HISTOGRAM {0} obs_hist
@@ -201,12 +249,10 @@ def callMultiCombine(outputDir, combi):
     p.map(limitTools.callCombine, files)
 
 def recalculateLimits(outputDir):
-    for filename in glob.glob(outputDir+"/*txt"):
-        #if "1700" not in filename: continue
+    for filename in sorted(glob.glob(outputDir+"/*txt")):
         l = limitTools.Limit(filename)
         l.getInfo()
-        if l.error: print filename, l.error
-        #print filename, l.obs<l.expDn or l.obs>l.expUp
+        if l.error: print filename, l.rMinNLL, l.error
 
 
 def build2dGraphs(outputDir, combi):
@@ -228,7 +274,10 @@ def build2dGraphs(outputDir, combi):
 
 def getScanName(inputSignal, combi):
     m = re.match(".*/SMS-(..)Wg.*", inputSignal)
-    return m.group(1) + combi
+    if m: return m.group(1) + combi
+    if "TChiWG" in inputSignal: return "TChiWG"
+    print "Do not know what to do"
+
 
 def signalScan(dirName, combi, inputData, inputSignal):
     outputDir = "limitCalculations/"+dirName
@@ -238,31 +287,35 @@ def signalScan(dirName, combi, inputData, inputSignal):
         xsecFile = "data/xSec_SMS_Gluino_13TeV.pkl"
     elif "T6" in inputSignal:
         xsecFile = "data/xSec_SMS_Squark_13TeV.pkl"
+    elif "TChiWG" in inputSignal:
+        xsecFile = "data/xSec_SMS_N2C1_13TeV.pkl"
     else:
         print "Do not know if squark or gluino scan"
         return
 
-    writeDataCards(outputDir, inputData, inputSignal, combi, xsecFile)
-    callMultiCombine(outputDir, combi)
+    #writeDataCards(outputDir, inputData, inputSignal, combi, xsecFile)
+    #callMultiCombine(outputDir, combi)
+    if "TChiWG" in inputSignal: proceedWithWeakScan(outputDir, scanName)
     build2dGraphs(outputDir, combi)
     graphs = readDict(outputDir+"/Graphs2d.root")
     toDraw = dict( [(name,limitTools.getContour(gr)) for name,gr in graphs.iteritems() ] )
     toDraw.update(getObsUncertainty(graphs["obs"], xsecFile))
     toDraw["obs_hist"] = getXsecLimitHistDelaunay(graphs["obs"])
-    toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
+    #toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
     writeDict(toDraw, outputDir+"/Graphs1d.root")
 
     writeSMSLimitConfig(outputDir+"/Graphs1d.root", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName)
     subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName, "plots/%s_limits_"%scanName])
 
 if __name__ == "__main__":
-    #checkConsistency("limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
+    #checkConsistency("limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
     #checkConsistency("testDatacard.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
 
-    #signalScan("T5Wg_v6", "Wg", "limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("T5gg_v6", "gg", "limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("T6Wg_v6", "Wg", "limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
-    signalScan("T6gg_v6", "gg", "limitCalculations/observation_v3.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    #signalScan("T5Wg_v7", "Wg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("T5gg_v7", "gg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("T6Wg_v7", "Wg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    #signalScan("T6gg_v7", "gg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    signalScan("TChiWg_v7", "Wg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-TChiWG_signalScan.root")
 
     #getLimit2dHist("../histogramProducer/SMS-T6Wg_signalScan.root")
 
