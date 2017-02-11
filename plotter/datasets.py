@@ -175,7 +175,7 @@ znunu1200 = Dataset( "ZJetsToNuNu_HT-1200To2500", 0.28833, ROOT.kMagenta+1 , "ZJ
 znunu2500 = Dataset( "ZJetsToNuNu_HT-2500ToInf", 0.006945, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph" )
 znunu600Inf = Dataset( "ZJetsToNuNu_HT-600ToInf", 4.116, ROOT.kMagenta+0 , "ZJetsToNuNu_HT-600ToInf_13TeV-madgraph" )
 znunuSamples = znunu100, znunu200, znunu400, znunu600, znunu800, znunu1200, znunu2500
-znunuSamples = znunu200, znunu400, znunu600, znunu800, znunu1200, znunu2500
+znunuSamples = znunu400, znunu600, znunu800, znunu1200, znunu2500
 for ds in znunuSamples: ds.xsecs = [ ds.xsecs[0] * 1.23 ]
 znunu = sum( znunuSamples )
 znunu.label = "Z#rightarrow#nu#nu"
@@ -203,9 +203,12 @@ ttjets_ht.label = "t#bar{t}"
 # WG
 # k-factor from http://cms.cern.ch/iCMS/jsp/db_notes/noteInfo.jsp?cmsnoteid=CMS%20AN-2016/078 EXO-16-014
 wg40 = Dataset( "WGJets_MonoPhoton_PtG-40to130", 12.7, ROOT.kRed, "WGJets_MonoPhoton_PtG-40to130_TuneCUETP8M1_13TeV-madgraph" )
-wg40.xsecs[0] *= 1.125/0.6565 # NLO, estimated for pt>130
+#wg40.xsecs[0] *= 1.125/0.6565 # NLO, estimated for pt>130
 wg130 = Dataset( "WGJets_MonoPhoton_PtG-130", 0.6565, ROOT.kRed-1, "WGJets_MonoPhoton_PtG-130_TuneCUETP8M1_13TeV-madgraph" )
-wg130.xsecs[0] = 1.125 # NLO
+#wg130.xsecs[0] = 1.125 # NLO
+wg40.xsecs[0] *= 1.34 # from monophotons
+wg130.xsecs[0] *= 1.34
+
 wg = wg40 + wg130
 wg.label = "#gammaW"
 wg_nlo = Dataset( "WGToLNuG-amcatnloFXFX_ext", 512.1, ROOT.kRed-2, "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8" )
@@ -228,7 +231,7 @@ zg130_nlo.label = "#gammaZ (NLO), p^{#gamma}_{T}>130"
 
 ###############################################################################
 # TTG
-ttg = Dataset( "TTGJets", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8" )
+ttg = Dataset( "TTGJets_ext", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8" )
 ttg.label = "#gammat#bar{t}"
 
 tg = Dataset( "TGJets_amcatnlo_madspin", 2.967, ROOT.kOrange+2, "TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8" )
@@ -240,6 +243,8 @@ t5wg_1600_100 = Dataset("SMS-T5Wg_1600_100", 0.00810078, ROOT.kRed, "")
 t5wg_1600_100.label = "T5Wg 1600 100"
 t5wg_1600_1500 = Dataset("SMS-T5Wg_1600_1500", 0.00810078, ROOT.kRed+4, "")
 t5wg_1600_1500.label = "T5Wg 1600 1500"
+t5wg_2000_100 = Dataset("SMS-T5Wg_2000_100", 0.000981077, ROOT.kRed+4, "")
+t5wg_2000_100.label = "T5Wg 2000 100"
 
 import collections
 class SampleCollection(collections.MutableMapping):
@@ -274,7 +279,7 @@ signal = SampleCollection()
 
 if __name__ == "__main__":
     # print information
-    for i in gjets, qcd, ttjets, ttg, wjets, wg_mg, wg_130, znunu,zg: print i.getLatexTableLine(),
+    for i in gjets_dr, qcd, ttjets_nlo, ttg, wjets, wg, znunu, zg: print i.getLatexTableLine(),
     print
 
     print gjets.getLatexTableHeader()
