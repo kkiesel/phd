@@ -37,5 +37,7 @@ if __name__ == "__main__":
     parser.add_argument('--ext', action='store_true')
 
     args = parser.parse_args()
-
-    run(args.file, ext=args.ext)
+    if args.file.endswith("SMS-T5Wg_nTuple.root") or args.file.endswith("SMS-T6Wg_nTuple.root"):
+        run(args.file, "SignalScan.cc")
+    else:
+        run(args.file, ext=args.ext)
