@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 from include import *
+from main import pdfUncertainty, scaleUncertainty, puUncertainty, jecUncertainty
+
 
 def getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins):
     weightName = weight.replace("(","").replace(")","").replace("*","").replace(">","").replace("<","").replace("&&","").replace(" ", "")
@@ -425,13 +427,23 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     preHistDn = aux.createHistoFromDatasetTree(preSet, "{}*{}".format(variable,fitScaleDn), weight, nBins, "tr_jControl/simpleTree")
     if subSet:
         mcPreHist = aux.createHistoFromDatasetTree(subSet, "{}*{}".format(variable,fitScale), weight, nBins, "tr_jControl/simpleTree")
+        preHistMcUp = preHist.Clone(aux.randomName())
+        preHistMcDn = preHist.Clone(aux.randomName())
+        preHistMcUp.Add(mcPreHist, -0.7)
+        preHistMcDn.Add(mcPreHist, -1.3)
         mcPreHistUp = aux.createHistoFromDatasetTree(subSet, "{}*{}".format(variable,fitScaleUp), weight, nBins, "tr_jControl/simpleTree")
         mcPreHistDn = aux.createHistoFromDatasetTree(subSet, "{}*{}".format(variable,fitScaleDn), weight, nBins, "tr_jControl/simpleTree")
         preHist.Add(mcPreHist, -1)
         preHistUp.Add(mcPreHistUp, -1)
         preHistDn.Add(mcPreHistDn, -1)
 
+        # consider 30% uncertainy of mc background
+        systFromMc = aux.getSystFromDifference(preHistMcDn, preHistMcUp)
+
     syst = aux.getSystFromDifference(preHistDn, preHistUp)
+    if subSet:
+        syst = aux.addUncertaintiesQuadratic([syst,systFromMc])
+
 
     # Scale
     preInt, preIntErr = aux.integralAndError(preHist, 0, maxBin)
@@ -451,6 +463,13 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
 #    if style.divideByBinWidth:
 #        preHist.Scale(1., "width")
 #        syst.Scale(1., "width")
+
+    # do not allow negative event yields
+    # set to small value, see here: https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideHiggsAnalysisCombinedLimit#Why_does_combine_have_trouble_wi
+    for h in preHist, syst:
+        for bin in aux.loopH(h):
+            if h.GetBinContent(bin)<0: h.SetBinContent(bin,1e-3)
+
     return preHist, syst
 
 def finalDistribution1dHist(name, dirSet, preSet):
@@ -609,6 +628,13 @@ def finalDistributionHist(name, dirSet, preSet, minEmht=0, maxEmht=1e8, director
             signal.GetBinContent(bin), 1.+signal.GetBinError(bin)/signal.GetBinContent(bin), 1.3)
     dc.write("testDatacard.txt")
 
+def getDatacardUncertFromHist(h,b):
+    return 1.+max(0,h.GetBinError(b)/h.GetBinContent(b))
+
+def onlyPositiveContents(h):
+    for b in aux.loopH(h):
+        if h.GetBinContent(b)<0: h.SetBinContent(b,0)
+
 def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, preDirElectron):
     #style.divideByBinWidth = True
 
@@ -619,10 +645,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     dirHist = aux.stdHist(dirSet, dirDir+"/met", nBins)
     style.additionalPoissonUncertainty = False
     aux.drawOpt(dirHist, "data")
-    if "final" in name: aux.blind(dirHist, 350)
-    #if style.divideByBinWidth:
-    #    for b in aux.loopH(dirHist):
-    #        print dirHist.GetBinContent(b), dirHist.GetBinContent(b)*dirHist.GetBinWidth(b)
+    #if "final" in name: aux.blind(dirHist, 350)
 
     if "electronClosure" not in name:
         weight = "weight*(2000<emht)"
@@ -643,20 +666,43 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     if "Closure" not in name:
         zgHist = aux.stdHist(zg+znunu, dirDir+"/met", nBins)
         wgHist = aux.stdHist(wg+wjets, dirDir+"/met", nBins)
-        tgHist = aux.stdHist(ttjets_nlo+ttg, dirDir+"/met", nBins)
+        #tgHist = aux.stdHist(ttjets_nlo+ttg, dirDir+"/met", nBins)
+        tgHist = aux.stdHist(ttg, dirDir+"/met", nBins)
+
         zgHist.SetLineColor(rwth.myRed)
         wgHist.SetLineColor(rwth.myOrange)
         tgHist.SetLineColor(rwth.myBlue)
-        mcSystUncert = 0.3
+
+        zgPdfUnc = pdfUncertainty(zg+znunu, dirDir, nBins)
+        wgPdfUnc = pdfUncertainty(wg+wjets, dirDir, nBins)
+        tgPdfUnc = pdfUncertainty(ttjets_nlo+ttg, dirDir, nBins)
+
+        zgPuUnc = puUncertainty(zg+znunu, dirDir, nBins)
+        wgPuUnc = puUncertainty(wg+wjets, dirDir, nBins)
+        tgPuUnc = puUncertainty(ttjets_nlo+ttg, dirDir, nBins)
+
+        zgScaleUnc = scaleUncertainty(zg+znunu, dirDir, nBins)
+        wgScaleUnc = scaleUncertainty(wg+wjets, dirDir, nBins)
+        tgScaleUnc = scaleUncertainty(ttjets_nlo+ttg, dirDir, nBins)
+
+        zgJesUnc = jecUncertainty(zg+znunu, dirDir, nBins)
+        wgJesUnc = jecUncertainty(wg+wjets, dirDir, nBins)
+        tgJesUnc = jecUncertainty(ttjets_nlo+ttg, dirDir, nBins)
+
+        mcSystUncert = 0.04 # SF, lumi, trigger
         zgSyst = aux.getSysHisto(zgHist, mcSystUncert)
         wgSyst = aux.getSysHisto(wgHist, mcSystUncert)
         tgSyst = aux.getSysHisto(tgHist, mcSystUncert)
+
+        zgSyst = aux.addUncertaintiesQuadratic([zgSyst,zgPdfUnc,zgScaleUnc,zgJesUnc,zgPuUnc])
+        wgSyst = aux.addUncertaintiesQuadratic([wgSyst,wgPdfUnc,wgScaleUnc,wgJesUnc,wgPuUnc])
+        tgSyst = aux.addUncertaintiesQuadratic([tgSyst,tgPdfUnc,tgScaleUnc,tgJesUnc,tgPuUnc])
 
         totStat = aux.addHists(gjetHist, eHist, zgHist, wgHist, tgHist)
         totSyst = aux.addHists(gjetSyst, eSyst, zgSyst, wgSyst, tgSyst)
 
         signal1 = aux.stdHist(t5wg_1600_100, dirDir+"/met", nBins)
-        signal2 = aux.stdHist(t5wg_1600_1500, dirDir+"/met", nBins)
+        signal2 = aux.stdHist(t5wg_2000_100, dirDir+"/met", nBins)
         for h in signal1, signal2:
             aux.drawOpt(h, "signal")
             #h.Add(totStat)
@@ -679,7 +725,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         if "final" in name: m.add(dirHist, "Data")
         elif "ee" in name: m.add(dirHist, "Data EE")
         m.add(signal1, "T5Wg 1600 100")
-        m.add(signal2, "T5Wg 1600 1500")
+        m.add(signal2, "T5Wg 2000 100")
         m.addStack(eHist, "e#rightarrow#gamma")
         m.addStack(zgHist, "#gammaZ")
         m.addStack(tgHist, "#gammat#bar{t}")
@@ -701,13 +747,69 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     if "Closure" in name:
         x = r.draw(0., 2, None)
     else:
-        x = r.draw(0., 1.5, m.getStack())
+        x = r.draw(0., 2, m.getStack())
     info = "#it{EMH}_{T}<2TeV" if "lowEMHT" in name else "2TeV<#it{EMH}_{T}"
     if dirSet != data: info += "; "+dirSet.label
     l = aux.Label(sim= not dirSet==data, info=info)
     aux.save(name, normal=False, changeMinMax=False)
 
-
+    if name == "final_lowEMHT": dc = limitTools.MyDatacard()
+    elif name == "final_highEMHT": dc = limitTools.MyDatacard("testDatacard.txt")
+    for bin in range(dirHist.GetNbinsX()-2, dirHist.GetNbinsX()+1):
+        binName = "bin{}_{}".format(name.split("_")[1],bin)
+        dc.addBin(binName, dirHist.GetBinContent(bin),
+            {
+                "signal": signal1.GetBinContent(bin),
+                "gqcd": gjetHist.GetBinContent(bin),
+                "ele": eHist.GetBinContent(bin),
+                "wg": wgHist.GetBinContent(bin),
+                "zg": zgHist.GetBinContent(bin),
+                "tg": tgHist.GetBinContent(bin),
+            }, {
+                "gqcdStat_"+binName: {"gqcd": getDatacardUncertFromHist(gjetHist,bin)},
+                "eleStat_"+binName: {"ele": getDatacardUncertFromHist(eHist,bin)},
+                "wgStat_"+binName: {"wg": getDatacardUncertFromHist(wgHist,bin)},
+                "zgStat_"+binName: {"zg": getDatacardUncertFromHist(zgHist,bin)},
+                "tgStat_"+binName: {"tg": getDatacardUncertFromHist(tgHist,bin)},
+                "signalStat_"+binName: {"signal": getDatacardUncertFromHist(signal1,bin)},
+                "gqcdSyst": {"gqcd": getDatacardUncertFromHist(gjetSyst,bin)},
+                "eleSyst": {"ele": getDatacardUncertFromHist(eSyst,bin)},
+                "pdf": {
+                    "wg": getDatacardUncertFromHist(wgPdfUnc,bin),
+                    "zg": getDatacardUncertFromHist(zgPdfUnc,bin),
+                    "tg": getDatacardUncertFromHist(tgPdfUnc,bin)},
+                "scale": {
+                    "wg": getDatacardUncertFromHist(wgScaleUnc,bin),
+                    "zg": getDatacardUncertFromHist(zgScaleUnc,bin),
+                    "tg": getDatacardUncertFromHist(tgScaleUnc,bin)},
+                "lumi": {
+                    "signal": 1.026,
+                    "wg": 1.026,
+                    "zg": 1.026,
+                    "tg": 1.026},
+                "pu": {
+                    "wg": getDatacardUncertFromHist(wgPuUnc,bin),
+                    "zg": getDatacardUncertFromHist(zgPuUnc,bin),
+                    "tg": getDatacardUncertFromHist(tgPuUnc,bin)},
+                "jes": {
+                    "wg": getDatacardUncertFromHist(wgJesUnc,bin),
+                    "zg": getDatacardUncertFromHist(zgJesUnc,bin),
+                    "tg": getDatacardUncertFromHist(tgJesUnc,bin)},
+                "dataMC": {
+                    "signal": 1.05,
+                    "wg": 1.025,
+                    "zg": 1.025,
+                    "tg": 1.025},
+                "trigger": {
+                    "signal": 1.004,
+                    "wg": 1.004,
+                    "zg": 1.004,
+                    "tg": 1.004},
+                # isr???
+                # jes, jer splitting
+            }
+        )
+    dc.write("testDatacard.txt")
 
 if __name__ == "__main__":
     allMC = gjets+qcd+zg+wg+ttg+wjets+ttjets_nlo+znunu
@@ -850,6 +952,18 @@ if __name__ == "__main__":
     #plotOverlayedPredictions("savedFitPredictions/gqcd__8__tr_simpleTree__8__weight1__met__11.root")
     #qcdClosure("gqcd_ee_2000emht", gjets+qcd, treename="tr_ee/simpleTree", cut="emht>2000")
     #qcdClosure("test", gjets600)
+    #qcdClosure("gqcd_emht2000_p3dPhi", gqcd, cut="emht<2000 && .3<dPhi")
+    #qcdClosure("gqcd_emht2000_p3dPhi_noE_noPrompt", gqcd, cut="emht<2000 && .3<dPhi && !genE && !hasPromptPhoton")
+    #qcdClosure("gqcd_emht2000_p3dPhi_noE", gqcd, cut="emht<2000 && .3<dPhi && !genE")
+    #qcdClosure("gqcd_emht2000_p3dPhi_noPrompt", gqcd, cut="emht<2000 && .3<dPhi && !hasPromptPhoton")
+    #qcdClosure("gqcdOld_emht2000_p3dPhi_noE_noPrompt", gjets+qcd, cut="emht<2000 && .3<dPhi && !genE && !hasPromptPhoton")
+    #qcdClosure("gqcdOld_emht2000_p3dPhi2p84_noE_noPrompt", gjets+qcd, cut="emht<2000 && .3<dPhi && dPhi<2.84 && !genE && !hasPromptPhoton")
+    #qcdClosure("gqcdOld_emht2000_p3dPhi2p94_noE_noPrompt", gjets+qcd, cut="emht<2000 && .3<dPhi && dPhi<2.94 && !genE && !hasPromptPhoton")
+    #qcdClosure("gqcdOld_emht2000_p3dPhi3p04_noE_noPrompt", gjets+qcd, cut="emht<2000 && .3<dPhi && dPhi<3.04 && !genE && !hasPromptPhoton")
+    #finalDistribution("data_emht2000_p3dPhi2p84_noE", data, dataHt, cut="emht<2000 && .3<dPhi && dPhi<2.84 && !genE")
+    #finalDistribution("data_emht2000_p3dPhi2p84_noPrompt", data, dataHt, cut="emht<2000 && .3<dPhi && dPhi<2.84 && !hasPromptPhoton")
+    #finalDistribution("data_emht2000_p3dPhi2p94_noE_noPrompt", data, dataHt, cut="emht<2000 && .3<dPhi && dPhi<2.94 && !genE && !hasPromptPhoton")
+    #finalDistribution("data_emht2000_p3dPhi3p04_noE_noPrompt", data, dataHt, cut="emht<2000 && .3<dPhi && dPhi<3.04 && !genE && !hasPromptPhoton")
 
     """
     qcdClosure("gqcd_700emht800", gjets+qcd, cut="700<emht && emht<800")
@@ -894,14 +1008,12 @@ if __name__ == "__main__":
     #finalDistribution1dHist("tr_central/met", data, dataHt)
     #finalDistribution1dHist("tr_EB_forward/met", data, dataHt)
 
-
     #finalDistributionSignalHist("qcdClosure_lowEMHT", gqcd, "signal_lowEMHT", gqcd, None, None)
     #finalDistributionSignalHist("qcdClosure_highEMHT", gqcd, "signal_highEMHT", gqcd, None, None)
-    finalDistributionSignalHist("electronClosure_lowEMHT", wjets, "signal_lowEMHT_genE2", None, wjets, "signal_lowEMHT_eControl")
-    finalDistributionSignalHist("electronClosure_highEMHT", wjets, "signal_highEMHT_genE2", None, wjets, "signal_highEMHT_eControl")
+    #finalDistributionSignalHist("electronClosure_lowEMHT", wjets, "signal_lowEMHT_genE", None, wjets, "signal_lowEMHT_eControl")
+    #finalDistributionSignalHist("electronClosure_highEMHT", wjets, "signal_highEMHT_genE", None, wjets, "signal_highEMHT_eControl")
     #finalDistributionSignalHist("ee_lowEMHT", data, "signal_lowEMHT_ee", dataHt, data, "signal_lowEMHT_ee_eControl")
     #finalDistributionSignalHist("ee_highEMHT", data, "signal_highEMHT_ee", dataHt, data, "signal_highEMHT_ee_eControl")
-    #finalDistributionSignalHist("final_lowEMHT", data, "signal_lowEMHT", dataHt, data, "signal_lowEMHT_eControl")
-    #finalDistributionSignalHist("final_highEMHT", data, "signal_highEMHT", dataHt, data, "signal_highEMHT_eControl")
-
+    finalDistributionSignalHist("final_lowEMHT", data, "signal_lowEMHT", dataHt, data, "signal_lowEMHT_eControl")
+    finalDistributionSignalHist("final_highEMHT", data, "signal_highEMHT", dataHt, data, "signal_highEMHT_eControl")
 
