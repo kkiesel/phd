@@ -343,6 +343,11 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     if os.path.isfile(saveNameRoot):
         print "Using saved events from {}".format(saveNameRoot)
         f = ROOT.TFile(saveNameRoot)
+        predFast = f.Get("prediction")
+        systFast = f.Get("syst")
+        for h in predFast, systFast: h.SetDirectory(0)
+        if predFast and systFast: return predFast, systFast
+
         dirHist = f.Get("dir")
         preHists = {}
         for key in f.GetListOfKeys():
@@ -469,6 +474,11 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     for h in preHist, syst:
         for bin in aux.loopH(h):
             if h.GetBinContent(bin)<0: h.SetBinContent(bin,1e-3)
+
+    f = ROOT.TFile(saveNameRoot, "update")
+    preHist.Write("prediction")
+    syst.Write("syst")
+    f.Close()
 
     return preHist, syst
 
