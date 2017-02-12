@@ -646,7 +646,7 @@ def onlyPositiveContents(h):
         if h.GetBinContent(b)<0: h.SetBinContent(b,0)
 
 def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, preDirElectron):
-    #style.divideByBinWidth = True
+    style.divideByBinWidth = True
 
     nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
 
