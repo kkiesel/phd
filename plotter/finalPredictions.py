@@ -714,7 +714,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         signal2 = aux.stdHist(t5wg_2000_100, dirDir+"/met", nBins)
         for h in signal1, signal2:
             aux.drawOpt(h, "signal")
-            #h.Add(totStat)
+            h.Add(totStat)
         signal1.SetLineColor(ROOT.kMagenta)
         signal2.SetLineColor(ROOT.kMagenta+2)
 
@@ -762,6 +762,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     l = aux.Label(sim= not dirSet==data, info=info)
     aux.save(name, normal=False, changeMinMax=False)
 
+    if "final" not in name: return
     if name == "final_lowEMHT": dc = limitTools.MyDatacard()
     elif name == "final_highEMHT": dc = limitTools.MyDatacard("testDatacard.txt")
     for bin in range(dirHist.GetNbinsX()-2, dirHist.GetNbinsX()+1):
