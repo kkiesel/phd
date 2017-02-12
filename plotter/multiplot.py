@@ -91,12 +91,10 @@ class Multiplot:
 
         # change the order for drawing
         self.hists.reverse()
-        first = True
-        for h in self.hists:
-            if first:
+        for ih, h in enumerate(self.hists):
+            if not ih:
                 h.SetMinimum(minimum)
                 h.SetMaximum(maximum)
-                first = False
             else:
                 h.drawOption_ += "same"
             h.Draw(h.drawOption_)
