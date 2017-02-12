@@ -655,7 +655,6 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     dirHist = aux.stdHist(dirSet, dirDir+"/met", nBins)
     style.additionalPoissonUncertainty = False
     aux.drawOpt(dirHist, "data")
-    #if "final" in name: aux.blind(dirHist, 350)
 
     if "electronClosure" not in name:
         weight = "weight*(2000<emht)"
