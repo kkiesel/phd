@@ -769,19 +769,20 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     l = aux.Label(sim= not dirSet==data, status="")
     aux.save(name, normal=False, changeMinMax=False)
 
-    if "final" not in name: return
     if name == "final_lowEMHT": dc = limitTools.MyDatacard()
     elif name == "final_highEMHT": dc = limitTools.MyDatacard("testDatacard.txt")
+    else: return
     for bin in range(dirHist.GetNbinsX()-2, dirHist.GetNbinsX()+1):
         binName = "bin{}_{}".format(name.split("_")[1],bin)
-        dc.addBin(binName, dirHist.GetBinContent(bin),
+        bw = dirHist.GetBinWidth(bin) if style.divideByBinWidth else 1
+        dc.addBin(binName, int(round(dirHist.GetBinContent(bin)*bw)),
             {
-                "signal": signal1.GetBinContent(bin),
-                "gqcd": gjetHist.GetBinContent(bin),
-                "ele": eHist.GetBinContent(bin),
-                "wg": wgHist.GetBinContent(bin),
-                "zg": zgHist.GetBinContent(bin),
-                "tg": tgHist.GetBinContent(bin),
+                "signal": (signal1.GetBinContent(bin)-totStat.GetBinContent(bin))*bw,
+                "gqcd": gjetHist.GetBinContent(bin)*bw,
+                "ele": eHist.GetBinContent(bin)*bw,
+                "wg": wgHist.GetBinContent(bin)*bw,
+                "zg": zgHist.GetBinContent(bin)*bw,
+                "tg": tgHist.GetBinContent(bin)*bw,
             }, {
                 "gqcdStat_"+binName: {"gqcd": getDatacardUncertFromHist(gjetHist,bin)},
                 "eleStat_"+binName: {"ele": getDatacardUncertFromHist(eHist,bin)},
