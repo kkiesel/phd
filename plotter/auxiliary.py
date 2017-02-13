@@ -654,10 +654,12 @@ def getEnvelopeHists(hlist):
             if c<hDn.GetBinContent(b): hDn.SetBinContent(b,c)
     return hUp, hDn
 
-def integerContent(h):
+def integerContent(h, scaledByWidth=False):
     for bin in loopH(h):
         c = h.GetBinContent(bin)
-        if abs(c-int(c))>1e-6:
+        if scaledByWidth:
+            c *= h.GetBinWidth(bin)
+        if abs(c-int(round(c)))>1e-5:
             return False
     return True
 
