@@ -2,6 +2,7 @@ import ROOT
 import auxiliary as aux
 from math import sqrt
 import auxiliary as aux
+import style
 
 
 def clearXaxisCurrentPad():
@@ -71,6 +72,13 @@ class Ratio:
             if den:
                 self.ratioGraph.SetPointEYhigh(bin-1, self.numerator.GetBinErrorUp(bin)/den)
                 self.ratioGraph.SetPointEYlow(bin-1, self.numerator.GetBinErrorLow(bin)/den)
+                if aux.integerContent(self.numerator, True) and style.divideByBinWidth:
+                    bw = self.numerator.GetBinWidth(bin)
+                    entries = int(round(self.numerator.GetBinContent(bin)*bw))
+                    edn, eup = aux.getPoissonUnc(entries)
+                    self.ratioGraph.SetPointEYhigh(bin-1, eup/den/bw)
+                    self.ratioGraph.SetPointEYlow(bin-1, edn/den/bw)
+
         self.ratioStat.Divide( self.denominator )
         if self.sysHisto:
             self.ratioSys.Divide( self.denominator )
