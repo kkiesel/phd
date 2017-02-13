@@ -639,7 +639,8 @@ def finalDistributionHist(name, dirSet, preSet, minEmht=0, maxEmht=1e8, director
     dc.write("testDatacard.txt")
 
 def getDatacardUncertFromHist(h,b):
-    return 1.+max(0,h.GetBinError(b)/h.GetBinContent(b))
+    c = h.GetBinContent(b)
+    return 1.+max(0,h.GetBinError(b)/c if c else 0)
 
 def onlyPositiveContents(h):
     for b in aux.loopH(h):
