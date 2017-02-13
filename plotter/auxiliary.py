@@ -140,6 +140,9 @@ def getFromFile( filename, histoname ):
     h.drawOption_ = ""
     return h
 
+def dataLikeName(name):
+    return "Data" in name or "Pseudodata" in name or "Direct" in name
+
 def getNgen( filename ):
     h = getFromFile( filename, "hCutFlow" )
     return h.GetBinContent(2)
