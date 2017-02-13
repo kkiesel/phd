@@ -611,7 +611,7 @@ void HistogramProducer::Init(TTree *tree)
   isSignal = inputName.find("SMS") != string::npos;
   resolution = Resolution(isData? "Spring16_25nsV6_DATA_PtResolution_AK4PFchs.txt": "Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt");
   weighters["sf_photon_id_loose"] = Weighter("../plotter/data/dataMcScaleFactors_80X.root", "EGamma_SF2D");
-  weighters["sf_photon_pixel"] = Weighter("../plotter/data/EleVeto_SFs_80X.root", "Scaling Factors_HasPix_InclusiveR9");
+  weighters["sf_photon_pixel"] = Weighter("../plotter/data/ScalingFactors_80X_Summer16.root", "Scaling_Factors_HasPix_R9 Inclusive");
   string puUp = "pileupWeightUp_mix_2016_25ns_Moriond17MC_PoissonOOTPU";
   string puDn = "pileupWeightDown_mix_2016_25ns_Moriond17MC_PoissonOOTPU";
   if (isSignal) {
