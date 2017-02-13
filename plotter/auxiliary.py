@@ -13,6 +13,8 @@ binCfg = ConfigParser.SafeConfigParser()
 binCfg.readfp(open('rebin.cfg'))
 
 #ROOT.gErrorIgnoreLevel = kPrint, kInfo, kWarning, kError, kBreak, kSysError, kFatal
+#ROOT.gErrorIgnoreLevel = ROOT.kBreak
+saveStuff = []
 
 def frange(x, y, jump):
     while x < y:
@@ -110,7 +112,7 @@ def drawContributions(stack, mini=0, maxi=1.1, title="Fractions"):
     newStack.SetMinimum(mini)
     newStack.SetMaximum(maxi)
     newStack.Draw("hist")
-    return newStack
+    saveStuff.append(newStack)
 
 def write2File( obj2Write, name, fname ):
     obj = obj2Write.Clone()
