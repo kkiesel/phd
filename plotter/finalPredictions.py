@@ -716,8 +716,8 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         for h in signal1, signal2:
             aux.drawOpt(h, "signal")
             h.Add(totStat)
-        signal1.SetLineColor(ROOT.kMagenta)
-        signal2.SetLineColor(ROOT.kMagenta+2)
+        signal1.SetLineColor(ROOT.kMagenta+2)
+        signal2.SetLineColor(ROOT.kMagenta)
 
     if "electronClosure" in name:
         totStat = eHist
@@ -732,8 +732,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
     if "Closure" not in name:
-        if "final" in name: m.add(dirHist, "Data")
-        elif "ee" in name: m.add(dirHist, "Data EE")
+        m.add(dirHist, "Data")
         m.add(signal1, "T5Wg 1600 100")
         m.add(signal2, "T6gg 1750 1650")
         m.addStack(eHist, "e#rightarrow#gamma")
@@ -748,9 +747,17 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         m.add(dirHist, "Direct simulation")
         m.addStack(gjetHist, "Non-genuine #it{E}_{T}^{miss} prediction")
 
-    m.add(totUnc, "Tot. uncert.")
-    m.maximum = 1.8*m.getMaximum()
+    m.add(totUnc, "Total uncertainty")
+    m.maximum = 2*m.getMaximum()
     m.minimum = m.getMinimum()
+    if "ee_lowEMHT" in name: m.minimum = 1e-2
+    if "ee_highEMHT" in name: m.minimum = 1e-3
+    if "final_lowEMHT" in name: m.minimum = 4e-2
+    if "final_highEMHT" in name: m.minimum = 2e-3
+    legInfo = "#it{EMH}_{T} < 2TeV" if "lowEMHT" in name else "2TeV < #it{EMH}_{T}"
+    if "ee" in name: legInfo += ", EE"
+    legInfo += ", |#Delta#phi|>0.3"
+    m.leg.SetHeader(legInfo)
     m.Draw()
 
     r = ratio.Ratio("Data/Pred", dirHist, totStat, totSyst)
