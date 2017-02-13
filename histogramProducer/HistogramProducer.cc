@@ -623,7 +623,7 @@ void HistogramProducer::Init(TTree *tree)
   weighters.at("sf_photon_id_loose").fillOverflow2d();
   weighters.at("sf_photon_pixel").fillOverflow2d();
 
-  float lumi = 36.814e3; // pb^{-1}
+  float lumi = 35.867e3; // pb^{-1}
   cutFlow = *((TH1F*)fReader.GetTree()->GetCurrentFile()->Get("TreeWriter/hCutFlow"));
   fReader.GetEntries(true); // jumps to last file
   string lastInputName = fReader.GetTree()->GetCurrentFile()->GetName();

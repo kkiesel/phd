@@ -919,7 +919,7 @@ def addUncertaintiesQuadratic(hlist):
         out.SetBinError(bin, sqrt(sum([h.GetBinError(bin)**2 for h in hlist])))
     return out
 
-intLumi = 36.815e3
+intLumi = 35.867e3
 
 class Label:
     # Create labels
