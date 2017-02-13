@@ -748,6 +748,7 @@ def getSysHisto(h, relUncert):
             meanWeight = hsys.Integral(0,-1)/hsys.GetEntries()
             poissonZeroError = 1.8410216450098775
             e = meanWeight*poissonZeroError
+            e /= hsys.GetBinWidth(bin) if style.divideByBinWidth else 1.
             hsys.SetBinError(bin, e)
     return hsys
 
