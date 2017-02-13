@@ -166,10 +166,10 @@ class MyDatacard(Datacard):
         table.append(["process", ""] + list(processNames))
         processNumbers = self._getProcessNumbers()
         table.append(["process", ""] + [str(processNumbers[x]) for x in processNames])
-        table.append(["rate", ""] + [str(self.exp[bN][processNames[i]]) for i, bN in enumerate(binNames)])
+        table.append(["rate", ""] + [str(round(self.exp[bN][processNames[i]],3)) for i, bN in enumerate(binNames)])
         for line in self.systs:
             relUncerts = [line[4][bN][processNames[i]] for i, bN in enumerate(binNames)]
-            table.append([line[0], line[2]] + ["-" if x==1 or x==0 else str(x) for x in relUncerts])
+            table.append([line[0], line[2]] + ["-" if x==1 or x==0 else str(round(x,3)) for x in relUncerts])
         # format lengts of strings
         columnWidths = [max([len(i) for i in line]) for line in zip(*table)]
         for irow, row in enumerate(table):
