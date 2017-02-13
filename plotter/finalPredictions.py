@@ -662,9 +662,9 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         if "lowEMHT" in name:
             weight = "weight*(emht<2000)"
         if "qcdClosure" in name:
-            gjetHist, gjetSyst = gjetPrediction(dirHist, preSet, None, "met", nBins, weight, name)
+            gjetHist, gjetSyst = gjetPrediction(dirHist, preSet, None, "met", nBins, weight, name+"_divByBinWidth" if style.divideByBinWidth else name)
         else:
-            gjetHist, gjetSyst = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, weight, name)
+            gjetHist, gjetSyst = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, weight, name+"_divByBinWidth" if style.divideByBinWidth else name)
         gjetHist.SetLineColor(rwth.myLightBlue)
 
     if "qcdClosure" not in name:
