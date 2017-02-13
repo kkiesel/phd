@@ -185,30 +185,6 @@ class MyDatacard(Datacard):
         else:
             print out
 
-    def addBin(self, name, obs, gqcd, gqcdStat, gqcdSyst, ele, eleStat, eleSyst, zg, zgStat, zgSyst, wg, wgStat, wgSyst, ttg, ttgStat, ttgSyst, signal, signalStat, signalSyst):
-        self.bins.append(name)
-        self.obs[name] = obs
-        self.keyline.extend([(name, 'signal', True), (name, 'gqcd', False), (name, 'ele', False), (name, 'zg', False), (name, 'wg', False), (name, "ttg", False)])
-        self.exp[name] = {"signal": signal, "gqcd": gqcd, "ele": ele,
-                            "wg": wg, "zg": zg, "ttg": ttg}
-        for line in self.systs:
-            if   line[0] == "lumi": line[4][name] = {'signal': 1.062, 'gqcd': 1, 'ele': 1, 'wg': 1.062, 'zg': 1.062, 'ttg': 1.062}
-            elif line[0] == "jec": line[4][name] = {'signal': 1.11, 'gqcd': 1, 'ele': 1, 'wg': 1.11, 'zg': 1.11, 'ttg': 1.11}
-            elif line[0] == "pdf": line[4][name] = {'signal': 1.11, 'gqcd': 1, 'ele': 1, 'wg': 1.11, 'zg': 1.11, 'ttg': 1.11}
-            elif line[0] == "gqcdSyst": line[4][name] = {'signal': 1, 'gqcd': gqcdSyst, 'ele': 1, 'wg': 1, 'zg': 1, 'ttg': 1}
-            elif line[0] == "eleSyst": line[4][name] = {'signal': 1, 'gqcd': 1, 'ele': eleSyst, 'wg': 1, 'zg': 1, 'ttg': 1}
-            elif line[0] == "wgSyst": line[4][name] = {'signal': 1, 'gqcd': 1, 'ele': 1, 'wg': wgSyst, 'zg': 1, 'ttg': 1}
-            elif line[0] == "zgSyst": line[4][name] = {'signal': 1, 'gqcd': 1, 'ele': 1, 'wg': 1, 'zg': zgSyst, 'ttg': 1}
-            elif line[0] == "ttgSyst": line[4][name] = {'signal': 1, 'gqcd': 1, 'ele': 1, 'wg': 1, 'zg': 1, 'ttg': ttgSyst}
-            else: line[4][name] = {'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}
-
-        self.systs.append(('qcdStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': gqcdStat, 'ele': 1, 'ttg': 1}]))))
-        self.systs.append(('eleStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': eleStat, 'ttg': 1}]))))
-        self.systs.append(('wgStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': wgStat, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]))))
-        self.systs.append(('zgStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': 1, 'zg': zgStat, 'gqcd': 1, 'ele': 1, 'ttg': 1}]))))
-        self.systs.append(('ttgStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': ttgStat}]))))
-        self.systs.append(('signalStat_'+name, False, 'lnN', [], dict(zip(self.bins, [{'wg': 1, 'signal': 1, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]*(len(self.bins)-1)+[{'wg': 1, 'signal': signalStat, 'zg': 1, 'gqcd': 1, 'ele': 1, 'ttg': 1}]))))
-
     def addBin(self, name, obs, bkgRates, bkgUncertainties):
         if self.processes:
             if self.processes != bkgRates.keys(): print "ERROR: Old processes", self.processes, " New processes:", bkgRates.keys()
