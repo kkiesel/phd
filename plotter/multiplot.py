@@ -10,7 +10,7 @@ class Multiplot:
         self.minimum = None
         self.maximum = None
 
-        self.leg = ROOT.TLegend(.6,.6,.93,.92)
+        self.leg = ROOT.TLegend(.56,.59,.94,.92)
         self.leg.SetFillColor( ROOT.kWhite )
         self.leg.SetFillStyle(0)
 
@@ -92,12 +92,25 @@ class Multiplot:
         # change the order for drawing
         self.hists.reverse()
         for ih, h in enumerate(self.hists):
-            if not ih:
-                h.SetMinimum(minimum)
-                h.SetMaximum(maximum)
+            import style
+            if aux.dataLikeName(h.GetName()) and aux.integerContent(h, True) and style.divideByBinWidth:
+                gr = ROOT.TGraphAsymmErrors(h)
+                aux.saveStuff.append(gr)
+                aux.drawOpt(gr, "data")
+                for p in range(gr.GetN()):
+                    bw = h.GetBinWidth(p+1)
+                    entries = int(round(gr.GetY()[p]*bw))
+                    edn, eup = aux.getPoissonUnc(entries)
+                    gr.SetPointEYlow(p, edn/bw)
+                    gr.SetPointEYhigh(p, eup/bw)
+                gr.Draw(gr.drawOption_+"same")
             else:
-                h.drawOption_ += "same"
-            h.Draw(h.drawOption_)
+                if not ih:
+                    h.SetMinimum(minimum)
+                    h.SetMaximum(maximum)
+                else:
+                    h.drawOption_ += "same"
+                h.Draw(h.drawOption_)
 
         self.leg.Draw()
 
