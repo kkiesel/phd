@@ -711,7 +711,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         totSyst = aux.addHists(gjetSyst, eSyst, zgSyst, wgSyst, tgSyst)
 
         signal1 = aux.stdHist(t5wg_1600_100, dirDir+"/met", nBins)
-        signal2 = aux.stdHist(t5wg_2000_100, dirDir+"/met", nBins)
+        signal2 = aux.stdHist(t6gg_1750_1650, dirDir+"/met", nBins)
         for h in signal1, signal2:
             aux.drawOpt(h, "signal")
             h.Add(totStat)
@@ -734,7 +734,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         if "final" in name: m.add(dirHist, "Data")
         elif "ee" in name: m.add(dirHist, "Data EE")
         m.add(signal1, "T5Wg 1600 100")
-        m.add(signal2, "T5Wg 2000 100")
+        m.add(signal2, "T6gg 1750 1650")
         m.addStack(eHist, "e#rightarrow#gamma")
         m.addStack(zgHist, "#gammaZ")
         m.addStack(tgHist, "#gammat#bar{t}")

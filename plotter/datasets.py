@@ -246,6 +246,9 @@ t5wg_1600_1500.label = "T5Wg 1600 1500"
 t5wg_2000_100 = Dataset("SMS-T5Wg_2000_100", 0.000981077, ROOT.kRed+4, "")
 t5wg_2000_100.label = "T5Wg 2000 100"
 
+t6gg_1750_1650 = Dataset("SMS-T6gg_1750_1650", 0.000646271, ROOT.kRed+4, "")
+t6gg_1750_1650.label = "T6gg 1750 1650"
+
 import collections
 class SampleCollection(collections.MutableMapping):
     """Dictionary used to store signal datasets.
