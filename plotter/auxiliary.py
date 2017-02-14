@@ -395,8 +395,21 @@ def getValAndError( val, err, sig=2 ):
     digit = sig - int(floor(log10(err))) - 1
     return ( round(val,digit), round(err,digit) )
 
-def getValAndErrorStr( val, err, sig=2 ):
-    return "{} #pm {}".format( getValAndError( val, err, sig ) )
+def getValAndErrorStr( val, err, sig=2, digits=False, tex=False ):
+    # if digits, treat 'sig' as number of siginifcant digits
+    out = ""
+    if digits:
+        if sig == 0:
+            out = "{:d} #pm {:d}".format(int(round(val)),int(round(err)))
+        elif sig > 0:
+            out = "{{:.{0:d}f}} #pm {{:.{0:d}f}}".format(sig).format(val,err)
+        else:
+            print "What are negative digits even meaning???"
+    else:
+        out = "{} #pm {}".format( getValAndError( val, err, sig ) )
+    if tex:
+        out = "${}$".format(out.replace("#","\\").replace(" ",""))
+    return out
 
 
 def getYAxisTitle( histo ):
