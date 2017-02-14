@@ -760,13 +760,29 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     m.leg.SetHeader(legInfo)
     m.Draw()
 
+    # draw other labels
+    if "electronClosure" not in name:
+        l = ROOT.TLine()
+        l.SetLineStyle(2)
+        l.SetLineColor(ROOT.kGray+2)
+        text = ROOT.TLatex()
+        text.SetTextSize(0.8*text.GetTextSize())
+        l.DrawLine(100, 0, 100, totUnc.GetBinContent(totUnc.FindBin(100)))
+        text.SetTextAngle(90)
+        text.DrawLatexNDC(.23,.33, "Normalization")
+        text.SetTextAngle(0)
+        text.DrawLatexNDC(.33,.33, "Validation")
+        if "final" in name:
+            l.DrawLine(350, 0, 350, totUnc.GetBinContent(totUnc.FindBin(350)))
+            text.DrawLatexNDC(.65,.33, "Search regions")
+
     if "Closure" in name:
         r = ratio.Ratio("Ratio", dirHist, totStat, totSyst)
         r.draw(0., 2, None, True)
     else:
         r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
         r.draw(0., 1.5, m.getStack(), True)
-    l = aux.Label(sim= not dirSet==data, status="")
+    aux.Label(sim= not dirSet==data, status="")
     aux.save(name, normal=False, changeMinMax=False)
 
     if name == "final_lowEMHT": dc = limitTools.MyDatacard()
@@ -1026,12 +1042,12 @@ if __name__ == "__main__":
     #finalDistribution1dHist("tr_central/met", data, dataHt)
     #finalDistribution1dHist("tr_EB_forward/met", data, dataHt)
 
-    #finalDistributionSignalHist("qcdClosure_lowEMHT", gqcd, "signal_lowEMHT", gqcd, None, None)
-    #finalDistributionSignalHist("qcdClosure_highEMHT", gqcd, "signal_highEMHT", gqcd, None, None)
-    #finalDistributionSignalHist("electronClosure_lowEMHT", wjets, "signal_lowEMHT_genE", None, wjets, "signal_lowEMHT_eControl")
-    #finalDistributionSignalHist("electronClosure_highEMHT", wjets, "signal_highEMHT_genE", None, wjets, "signal_highEMHT_eControl")
-    #finalDistributionSignalHist("ee_lowEMHT", data, "signal_lowEMHT_ee", dataHt, data, "signal_lowEMHT_ee_eControl")
-    #finalDistributionSignalHist("ee_highEMHT", data, "signal_highEMHT_ee", dataHt, data, "signal_highEMHT_ee_eControl")
+    finalDistributionSignalHist("qcdClosure_lowEMHT", gqcd, "signal_lowEMHT", gqcd, None, None)
+    finalDistributionSignalHist("qcdClosure_highEMHT", gqcd, "signal_highEMHT", gqcd, None, None)
+    finalDistributionSignalHist("electronClosure_lowEMHT", wjets, "signal_lowEMHT_genE", None, wjets, "signal_lowEMHT_eControl")
+    finalDistributionSignalHist("electronClosure_highEMHT", wjets, "signal_highEMHT_genE", None, wjets, "signal_highEMHT_eControl")
+    finalDistributionSignalHist("ee_lowEMHT", data, "signal_lowEMHT_ee", dataHt, data, "signal_lowEMHT_ee_eControl")
+    finalDistributionSignalHist("ee_highEMHT", data, "signal_highEMHT_ee", dataHt, data, "signal_highEMHT_ee_eControl")
     finalDistributionSignalHist("final_lowEMHT", data, "signal_lowEMHT", dataHt, data, "signal_lowEMHT_eControl")
     finalDistributionSignalHist("final_highEMHT", data, "signal_highEMHT", dataHt, data, "signal_highEMHT_eControl")
 
