@@ -82,6 +82,20 @@ def scaleObsWithXsec(gr2d):
         out.SetPoint(ip, x, y, z*xsec)
     return out
 
+def interpolateAlongY(h2):
+    for xbin, ybin in aux.loopH(h2):
+        if not h2.GetBinContent(xbin,ybin):
+            ybinUp, cUp = 0, 0
+            for ybinUp in range(ybin,h2.GetNbinsY()):
+                cUp = h2.GetBinContent(xbin,ybinUp)
+                if cUp: break
+            ybinDn, cDn = 0, 0
+            for ybinDn in range(ybin,0, -1):
+                cDn = h2.GetBinContent(xbin,ybinDn)
+                if cDn: break
+            if not cUp or not cDn: continue
+            h2.SetBinContent(xbin,ybin, ((cUp-cDn)*ybin+(cDn*ybinUp-cUp*ybinDn))/(ybinUp-ybinDn)) # linear interpolation
+
 def getXsecLimitHist( gr2d, h ):
     h.SetDirectory(0) # or the next line will overwrite the hist?
     points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
@@ -300,8 +314,9 @@ def signalScan(dirName, combi, inputData, inputSignal):
     graphs = readDict(outputDir+"/Graphs2d.root")
     toDraw = dict( [(name,limitTools.getContour(gr)) for name,gr in graphs.iteritems() ] )
     toDraw.update(getObsUncertainty(graphs["obs"], xsecFile))
-    toDraw["obs_hist"] = getXsecLimitHistDelaunay(graphs["obs"])
-    #toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
+    #toDraw["obs_hist"] = getXsecLimitHistDelaunay(graphs["obs"])
+    toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName) )
+    interpolateAlongY(toDraw["obs_hist"])
     writeDict(toDraw, outputDir+"/Graphs1d.root")
 
     writeSMSLimitConfig(outputDir+"/Graphs1d.root", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName)
