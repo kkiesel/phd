@@ -1731,23 +1731,42 @@ def isrRejection(dataset):
     effUp, effDn = gr.GetEYhigh()[0], gr.GetEYlow()[0]
     print "{:<20} {:%} +{} -{}".format(dataset.label, eff, effUp, effDn)
 
-
 def printLatexResultTable(filename):
     dc = limitTools.MyDatacard(filename)
-    out  = "\\begin{tabular}{l|rrr|rrr}"
-    out += "\n  \\EMHT (\\GeV) & \\multicolumn{3}{c|}{$<2000$} & \\multicolumn{3}{c}{$>2000$}\\\\"
+    r = {}
+    for b in dc.bins:
+        r[b] = {}
+        for bkg in "gqcd", "wg", "tg", "zg", "ele":
+            r[b][bkg] = {"rate": dc.exp[b][bkg], "unc": dc.exp[b][bkg]*math.sqrt(sum([(line[4][b][bkg]-1)**2 for line in dc.systs if line[4][b][bkg]]))}
+        r[b]["total"] = {"rate": sum([x["rate"] for x in r[b].values()]), "unc": math.sqrt(sum([x["unc"] for x in r[b].values()]))}
+        r[b]["signal"] = {"rate": dc.exp[b]["signal"], "unc": dc.exp[b]["signal"]*math.sqrt(sum([(line[4][b]["signal"]-1)**2 for line in dc.systs if line[4][b]["signal"]]))}
+        r[b]["obs"] = dc.obs[b]
+        r[b]["digits"] = 0 if "low" in b else 1
+
+    out  = "\\begin{{tabular}}{{l|rrr|rrr}}"
+    out += "\n  \\EMHT (\\GeV) & \\multicolumn{{3}}{{c|}}{{$<2000$}} & \\multicolumn{{3}}{{c}}{{$>2000$}}\\\\"
     out += "\n  \\ETmiss (\\GeV)& (350,450) & (450,600) & (600,$\\infty$) & (350,450) & (450,600) & (600,$\\infty$) \\\\"
     out += "\n  \\hline"
-    out += "\n  non-genuine \\ETmiss &" + "&".join(["{:.2f}".format(dc.exp[x]["gqcd"]) for x in dc.bins]) + "\\\\"
-    out += "\n  $\\gamma W$ &" + "&".join(["{:.2f}".format(dc.exp[x]["wg"]) for x in dc.bins]) + "\\\\"
-    out += "\n  $\\gamma \\ttbar$ &" + "&".join(["{:.2f}".format(dc.exp[x]["tg"]) for x in dc.bins]) + "\\\\"
-    out += "\n  $\\gamma Z$ &" + "&".join(["{:.2f}".format(dc.exp[x]["zg"]) for x in dc.bins]) + "\\\\"
-    out += "\n  $e\\rightarrow\\gamma$ &" + "&".join(["{:.2f}".format(dc.exp[x]["ele"]) for x in dc.bins]) + "\\\\"
-    out += "\n  Total &" + "&".join(["{:.2f}".format(sum([dc.exp[x][p] for p in ["gqcd", "wg", "tg", "zg", "ele"]])) for x in dc.bins]) + "\\\\"
+    out += "\n  Non-genuine \\ETmiss & {} \\\\"
+    out += "\n  $\\gamma W$ & {} \\\\"
+    out += "\n  $\\gamma \\ttbar$ & {} \\\\"
+    out += "\n  $\\gamma Z$ & {} \\\\"
+    out += "\n  $e\\rightarrow\\gamma$ & {} \\\\"
+    out += "\n  Total & {} \\\\"
     out += "\n  \\hline"
-    out += "\n  Data &" + "&".join([str(int(dc.obs[x]))+"\\phantom{.00}" for x in dc.bins]) + "\\\\"
-    out += "\n  Signal &" + "&".join(["{:.2f}".format(dc.exp[x]["signal"]) for x in dc.bins]) + "\\\\"
-    out += "\n\\end{tabular}"
+    out += "\n  Data & {} \\\\"
+    out += "\n  Signal & {} \\\\"
+    out += "\n\\end{{tabular}}"
+    out = out.format(
+        " &".join( [aux.getValAndErrorStr(r[b]["gqcd"]["rate"], r[b]["gqcd"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
+        " &".join( [aux.getValAndErrorStr(r[b]["wg"]["rate"], r[b]["wg"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
+        " &".join( [aux.getValAndErrorStr(r[b]["tg"]["rate"], r[b]["tg"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
+        " &".join( [aux.getValAndErrorStr(r[b]["zg"]["rate"], r[b]["zg"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
+        " &".join( [aux.getValAndErrorStr(r[b]["ele"]["rate"], r[b]["ele"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
+        " &".join( [aux.getValAndErrorStr(r[b]["total"]["rate"], r[b]["total"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
+        " &".join( ["{:d}\\phantom{{.0}}".format(int(round(r[b]["obs"]))) if r[b]["digits"] else "{:d}".format(int(round(r[b]["obs"]))) for b in dc.bins] ),
+        " &".join( [aux.getValAndErrorStr(r[b]["signal"]["rate"], r[b]["signal"]["unc"], r[b]["digits"], True, True) for b in dc.bins] )
+        )
     print out
 
 
