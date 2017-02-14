@@ -157,7 +157,7 @@ def getHistForModel( model ):
     h.SetMinimum(0)
     return h
 
-def proceedWithWeakScan(outputDir, scanName):
+def proceedWithWeakScan(outputDir, scanName, xsecFile):
     scanRes = {}
     for fname in glob.glob("{}/*.txt.limit".format(outputDir)):
         m = re.match(".*_(\d+)_(\d+).txt.limit", fname)
@@ -166,42 +166,71 @@ def proceedWithWeakScan(outputDir, scanName):
     defaultGr = ROOT.TGraph(len(scanRes))
     graphs = dict( (x,defaultGr.Clone(x)) for x in ["obs","exp","exp1up","exp1dn","exp2up","exp2dn"] )
     obsGr = ROOT.TGraph()
+    xsecGr = ROOT.TGraph()
+    xsecGrUp = ROOT.TGraph()
+    xsecGrDn = ROOT.TGraph()
     exp1sigma = ROOT.TGraphAsymmErrors()
     exp2sigma = ROOT.TGraphAsymmErrors()
     for i, m in enumerate(sorted(scanRes)):
-        obsGr.SetPoint(i, m, scanRes[m]["obs"])
+        xsec, xsec_unc = aux.getXsecInfoSMS(m, xsecFile)
+        xsecGr.SetPoint(i, m, xsec)
+        xsecGrUp.SetPoint(i, m, xsec*(1+xsec_unc))
+        xsecGrDn.SetPoint(i, m, xsec*(1-xsec_unc))
+        obsGr.SetPoint(i, m, xsec*scanRes[m]["obs"])
         expR = scanRes[m]["exp"]
-        exp1sigma.SetPoint(i, m, expR)
-        exp2sigma.SetPoint(i, m, expR)
-        exp1sigma.SetPointEYhigh(i, scanRes[m]["exp1up"]-expR)
-        exp2sigma.SetPointEYhigh(i, scanRes[m]["exp2up"]-expR)
-        exp1sigma.SetPointEYlow(i, expR-scanRes[m]["exp1dn"])
-        exp2sigma.SetPointEYlow(i, expR-scanRes[m]["exp2dn"])
+        exp1sigma.SetPoint(i, m, xsec*expR)
+        exp2sigma.SetPoint(i, m, xsec*expR)
+        exp1sigma.SetPointEYhigh(i, xsec*(scanRes[m]["exp1up"]-expR))
+        exp2sigma.SetPointEYhigh(i, xsec*(scanRes[m]["exp2up"]-expR))
+        exp1sigma.SetPointEYlow(i, xsec*(expR-scanRes[m]["exp1dn"]))
+        exp2sigma.SetPointEYlow(i, xsec*(expR-scanRes[m]["exp2dn"]))
         for name in graphs:
-            graphs[name].SetPoint(i, m, scanRes[m][name] )
+            graphs[name].SetPoint(i, m, xsec*scanRes[m][name] )
     writeDict(graphs, outputDir+"/Graphs2d.root")
+
+    # beautify
+    obsGr.SetLineWidth(2)
+
+    for g in xsecGr, xsecGrUp, xsecGrDn:
+        g.SetLineColor(ROOT.kBlue)
+    xsecGrUp.SetLineStyle(2)
+    xsecGrDn.SetLineStyle(2)
 
     exp2sigma.SetFillColor(ROOT.kOrange)
     exp1sigma.SetFillColor(ROOT.kGreen+1)
     exp1sigma.SetLineColor(2)
+    exp1sigma.SetLineStyle(2)
+    exp1sigma.SetLineWidth(2)
 
-    exp2sigma.SetMaximum(4)
-    exp2sigma.SetTitle(";m_{#tilde{#chi}_{1}} (GeV);95% CL upper limit/cross section")
-    exp2sigma.GetXaxis().SetRangeUser(300,1500)
+    exp2sigma.SetMaximum(2)
+    exp2sigma.SetTitle(";m_{#tilde{#chi}_{1}} (GeV);95% CL cross section upper limit (pb)")
+    exp2sigma.GetXaxis().SetRangeUser(400,1400)
 
-    oneLine = ROOT.TLine()
-    oneLine.SetLineStyle(2)
-
+    # draw
     exp2sigma.Draw("ap3")
     exp1sigma.Draw("3 same")
     exp1sigma.Draw("xc")
-    oneLine.DrawLine(300,1,1500,1)
+
+    xsecGr.Draw("xc")
+    xsecGrUp.Draw("xc")
+    xsecGrDn.Draw("xc")
+
     obsGr.Draw("xcp")
 
-    l = aux.Label(info="TChiWG")
+    # legend
+    leg = ROOT.TLegend(.56,.59,.94,.92)
+    leg.SetFillColor( ROOT.kWhite )
+    leg.SetFillStyle(0)
+    leg.AddEntry(exp1sigma, "Expected limit", "l")
+    leg.AddEntry(exp1sigma, "#pm1 s.d.", "f")
+    leg.AddEntry(exp2sigma, "#pm 2 s.d.", "f")
+    leg.AddEntry(obsGr, "Observed limit", "l")
+    leg.AddEntry(xsecGr, "Signal cross section", "l")
+    leg.Draw()
 
-    aux.save("test", log=False)
-
+    aux.Label(info="TChiWG")
+    ROOT.gPad.SetLogy()
+    aux.save("TChiWG_limit", log=False)
     exit()
 
 
