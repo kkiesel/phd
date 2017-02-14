@@ -129,6 +129,7 @@ void HistogramProducer::initUncut() {
   map<string,TH1F> h;
   h["genHt"] = TH1F("", ";#it{H}_{T}^{gen}", 3000, 0, 3000);
   h["ht600_prescale"] = TH1F("", ";Prescales for HLT_PFHT600", 65, 0.5, 65.5);
+  h["johannesSt"] = TH1F("", ";S_{T}^{#gamma} (GeV)", 10, 600, 1600);
   h1Maps["uncut"] = h;
 
   map<string,TH2F> h2;
@@ -164,6 +165,28 @@ void HistogramProducer::fillUncut() {
         }
       }
     }
+  }
+  // Johannes selection:
+  vector<TVector3> selPhotonsJo;
+  for (auto& g : *photons) {
+    if (g.isLoose && !g.hasPixelSeed && g.p.Pt() > 180 && fabs(g.p.Eta()) < photonsEtaMaxBarrel) {
+      bool foundJet = false;
+      for (auto& j: *jets) {
+        if (j.isLoose && !j.hasPhotonMatch && j.p.DeltaR(g.p)<.5) {
+          foundJet = true;
+        }
+      }
+      if (!foundJet) {
+        selPhotonsJo.push_back(g.p);
+      }
+    }
+  }
+  if (selPhotonsJo.size() && selPhotonsJo.at(0).Pt()>180 && met->p.Pt()>300 && transverseMass(selPhotonsJo.at(0), met->p)>300) {
+    auto st = met->p.Pt();
+    for (auto& g : selPhotonsJo) {
+      st += g.Pt();
+    }
+    h1Maps["uncut"].at("johannesSt").Fill(st, *mc_weight * *pu_weight);
   }
 }
 
