@@ -196,7 +196,7 @@ def writeSMSLimitConfig(infile, configName):
 HISTOGRAM {0} obs_hist
 EXPECTED {0} exp exp1up exp1dn kRed kOrange
 OBSERVED {0} obs obs1up obs1dn kBlack kGray
-PRELIMINARY PrivateWork
+PRELIMINARY
 LUMI {1:.2f}
 ENERGY 13
 """.format(infile,aux.intLumi/1e3)
