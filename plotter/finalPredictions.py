@@ -761,11 +761,11 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     m.Draw()
 
     if "Closure" in name:
-        r = ratio.Ratio("Data/Pred", dirHist, totStat, totSyst)
-        r.draw(0., 2, None)
+        r = ratio.Ratio("Ratio", dirHist, totStat, totSyst)
+        r.draw(0., 2, None, True)
     else:
         r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
-        r.draw(0., 1.5, m.getStack())
+        r.draw(0., 1.5, m.getStack(), True)
     l = aux.Label(sim= not dirSet==data, status="")
     aux.save(name, normal=False, changeMinMax=False)
 

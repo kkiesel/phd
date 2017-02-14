@@ -120,7 +120,7 @@ class Ratio:
             return 1-y, 1+y
 
 
-    def draw( self, yMin=.9, yMax=1.1, stack=None ):
+    def draw( self, yMin=.9, yMax=1.1, stack=None, onlyTotal=False ):
         self.calculateRatio()
 
         #yMin, yMax = self.getYrange()
@@ -135,7 +135,7 @@ class Ratio:
 
         self.ratioStat.Draw("e x0" + "same" if stack else "")
         if self.sysHisto:
-            self.ratioSys.Draw("same e2")
+            if not onlyTotal: self.ratioSys.Draw("same e2")
             self.totalUncert.Draw("same e2")
         #self.ratio.Draw("same "+self.ratio.drawOption_)
         self.ratioGraph.Draw("same pz0")
