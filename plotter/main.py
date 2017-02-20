@@ -1729,7 +1729,10 @@ def isrRejection(dataset):
     gr = dataset.getHist("triggerStudies/noPromptEvaluation").CreateGraph()
     eff = gr.GetY()[0]
     effUp, effDn = gr.GetEYhigh()[0], gr.GetEYlow()[0]
-    print "{:<20} {:%} +{} -{}".format(dataset.label, eff, effUp, effDn)
+    if max(effUp/eff,effDn/eff) < 1e-2: # negiligible error
+        print "{:<20} {:.2%}".format(dataset.label, eff)
+    else:
+        print "{:<20} {:%} +{:%} -{:%}".format(dataset.label, eff, effUp, effDn)
 
 def printLatexResultTable(filename):
     dc = limitTools.MyDatacard(filename)
