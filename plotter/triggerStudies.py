@@ -62,15 +62,15 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
     h_pas = eff.GetPassedHistogram()
     h_tot = eff.GetTotalHistogram()
 
-    if name.endswith("_preScaled"):
-        eff2 = dataset.getHist(name.replace("_preScaled", ""))
+    if name.endswith("_ps"):
+        eff2 = dataset.getHist(name.replace("_ps", ""))
         h_tot = eff2.GetTotalHistogram()
 
     if binning:
         h_pas = aux.rebin(h_pas, binning, False)
         h_tot = aux.rebin(h_tot, binning, False)
 
-    if name.endswith("_preScaled"):
+    if name.endswith("_ps"):
         ratio = h_pas.Clone(aux.randomName())
         ratio.Divide(h_tot)
         gr = ROOT.TGraphAsymmErrors(ratio)
@@ -87,12 +87,12 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
         gr = eff.GetPaintedGraph()
 
     gr.GetYaxis().SetRangeUser(0., 1.1)
-    if name.endswith("eff_hlt_ht_ct") or name.endswith("eff_hlt_met_ct"):
+    if name.endswith("emht__ht600__p90"):
         gr.GetYaxis().SetRangeUser(0., 0.1)
 
     if "eff_pt__p90ht600__ht600" in name or "eff_pt_ee__p90ht600__ht600" in name:
         cutValue = 100
-    elif "emht__ht600__p90_ps" in name or "emht__p90ht600" in name:
+    elif "emht__ht600" in name or "emht__p90ht600" in name:
         cutValue = 700
     elif "emht__ht800" in name:
         cutValue = 900
