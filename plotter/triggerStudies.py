@@ -40,6 +40,19 @@ def drawEfficiencyVsRun(dataset, saveName=""):
     eff.Draw("p same Z")
     aux.save("triggerEfficiencyVsRun"+saveName, log=False)
 
+    # combine bins
+    for h in hpas,htot: h.Rebin(5)
+    eff = ROOT.TEfficiency(hpas, htot)
+    c = ROOT.TCanvas("","",2400,800)
+    c.SetLeftMargin(0.05)
+    hrat.SetMaximum(1)
+    hrat.SetMinimum(0.8)
+    hrat.Draw("axis")
+    for b in aux.loopH(hrat):
+        if b%10: hrat.GetXaxis().SetBinLabel(b,"")
+    eff.Draw("p same Z")
+    aux.save("triggerEfficiencyVsRun_rebinned"+saveName, log=False)
+
 def efficiency(dataset, name, savename="", binning=None, binningName=""):
     c = ROOT.TCanvas()
     c.SetLogy(0)
