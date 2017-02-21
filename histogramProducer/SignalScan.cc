@@ -49,8 +49,11 @@ class SignalScan : public TSelector {
   TTreeReaderValue<tree::MET> met_JESd;
   TTreeReaderValue<tree::MET> met_JERu;
   TTreeReaderValue<tree::MET> met_JERd;
+  TTreeReaderValue<tree::MET> metGen;
   TTreeReaderValue<Float_t> pu_weight;
   TTreeReaderValue<Char_t> mc_weight;
+  TTreeReaderValue<std::vector<Float_t>> pdf_weights;
+
   TTreeReaderValue<Int_t> nGoodVertices;
   TTreeReaderValue<Float_t> rho;
   TTreeReaderValue<ULong64_t> eventNo;
@@ -84,7 +87,7 @@ SignalScan::SignalScan():
   jets(fReader, "jets"),
 //  electrons(fReader, "electrons"),
 //  muons(fReader, "muons"),
-//  genJets(fReader, "genJets"),
+  genJets(fReader, "genJets"),
 //  genParticles(fReader, "genParticles"),
 //  intermediateGenParticles(fReader, "intermediateGenParticles"),
  met(fReader, "met"),
@@ -93,9 +96,11 @@ SignalScan::SignalScan():
   met_JESd(fReader, "met_JESd"),
   met_JERu(fReader, "met_JERu"),
   met_JERd(fReader, "met_JERd"),
+  metGen(fReader, "met_gen"),
 //  nGoodVertices(fReader, "nGoodVertices"),
   pu_weight(fReader, "pu_weight"),
   mc_weight(fReader, "mc_weight"),
+  pdf_weights(fReader, "pdf_weights"),
 //  rho(fReader, "rho"),
 //  runNo(fReader, "runNo"),
   nTruePV(fReader, "true_nPV"),
@@ -128,6 +133,14 @@ map<string,TH1F> initSignalHistograms() {
   hMap["met_jesDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   hMap["met_jerUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   hMap["met_jerDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_weight1"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_weight2"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_weight3"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_weight4"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_weight5"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_weight6"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_weight7"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_weight8"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   return hMap;
 }
 
@@ -140,13 +153,30 @@ void SignalScan::fillSignalSelection(const string p, string const& s, float weig
   }
   auto m1 = &h1MapsMaps[p][s];
   auto _met = met->p.Pt();
+  unsigned nISRjets = genJets.size(); // TODO: correct
+
   m1->at("met").Fill(_met, weight);
+  m1->at("met_isr").Fill(_met, weight*isrReweighting(nISRjets));
+  m1->at("met_isrUp").Fill(_met, weight*(isrReweighting(nISRjets)+isrReweighting(nISRjets, true)));
+  m1->at("met_isrDn").Fill(_met, weight*(isrReweighting(nISRjets)-isrReweighting(nISRjets, true)));
+  m1->at("metGen").Fill(metGen->p.Pt(), weight);
+  m1->at("met_nopu").Fill(_met, weight/ *pu_weight);
+  if (nTruePV>=20) m1->at("met_nopuUp").Fill(_met, weight/ *pu_weight);
+  else             m1->at("met_nopuDn").Fill(_met, weight/ *pu_weight);
   m1->at("met_puUp").Fill(_met, weight*weighters.at("puWeightUp").getWeight(*nTruePV)/ *pu_weight);
   m1->at("met_puDn").Fill(_met, weight*weighters.at("puWeightDn").getWeight(*nTruePV)/ *pu_weight);
   m1->at("met_jesUp").Fill(met_JESu->p.Pt(), weight);
   m1->at("met_jesDn").Fill(met_JESd->p.Pt(), weight);
   m1->at("met_jerUp").Fill(met_JERu->p.Pt(), weight);
   m1->at("met_jerDn").Fill(met_JERd->p.Pt(), weight);
+  m1->at("met_weight1").Fill(_met, weight*pdf_weights.at(1));
+  m1->at("met_weight2").Fill(_met, weight*pdf_weights.at(2));
+  m1->at("met_weight3").Fill(_met, weight*pdf_weights.at(3));
+  m1->at("met_weight4").Fill(_met, weight*pdf_weights.at(4));
+  m1->at("met_weight5").Fill(_met, weight*pdf_weights.at(5));
+  m1->at("met_weight6").Fill(_met, weight*pdf_weights.at(6));
+  m1->at("met_weight7").Fill(_met, weight*pdf_weights.at(7));
+  m1->at("met_weight8").Fill(_met, weight*pdf_weights.at(8));
 }
 
 
@@ -211,6 +241,12 @@ Bool_t SignalScan::Process(Long64_t entry)
     nEventMap[pn] = nGen;
   }
 
+  if (unMatchedSuspiciousJet(*jets, *genJets)) {
+    nEventMap[pn] -= 1;
+    return kTRUE;
+  }
+
+
   selPhotons.clear();
   selJets.clear();
   for (auto& photon : *photons) {
@@ -235,7 +271,7 @@ Bool_t SignalScan::Process(Long64_t entry)
   for (auto& p : selJets) emht += p->p.Pt();
 
   if (emht<700) return kTRUE;
-  auto selW = *mc_weight * *pu_weight/nEventMap[pn] * getPhotonWeight(*selPhotons.at(0));
+  auto selW = *mc_weight * *pu_weight * getPhotonWeight(*selPhotons.at(0));
   if (emht<2000) fillSignalSelection(pn, "signal_lowEMHT", selW);
   else fillSignalSelection(pn, "signal_highEMHT", selW);
 
@@ -250,7 +286,7 @@ void cdNewDir(TFile& file, const string& name) {
 }
 
 template<typename T>
-void save2File(const map<string,map<string,map<string,T>>>& hMapsMaps, TFile& file)
+void save2File(map<string,map<string,map<string,T>>>& hMapsMaps, TFile& file, map<string,unsigned>& nEventMap )
 {
   for (auto& hMapMapIt: hMapsMaps) {
     file.mkdir(hMapMapIt.first.c_str());
@@ -258,6 +294,7 @@ void save2File(const map<string,map<string,map<string,T>>>& hMapsMaps, TFile& fi
       file.mkdir((hMapMapIt.first+"/"+hMapIt.first).c_str());
       file.cd((hMapMapIt.first+"/"+hMapIt.first).c_str());
       for (auto& h: hMapIt.second) {
+        h.second.Scale(1./nEventMap[hMapMapIt.first]);
         h.second.Write(h.first.c_str(), TObject::kWriteDelete);
       }
     }
@@ -269,7 +306,7 @@ void SignalScan::Terminate()
   inputName = fReader.GetTree()->GetCurrentFile()->GetName();
   auto outputName = getOutputFilename(inputName, "signalScan");
   TFile file(outputName.c_str(), "RECREATE");
-  save2File(h1MapsMaps, file);
+  save2File(h1MapsMaps, file, nEventMap);
   file.Close();
   cout << "Created " << outputName << " in " << (time(NULL) - startTime)/60 << " min" << endl;
 }
