@@ -346,14 +346,15 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
         predFast = f.Get("prediction")
         systFast = f.Get("syst")
         for h in predFast, systFast: h.SetDirectory(0)
-        if predFast and systFast: return predFast, systFast
+        if False and predFast and systFast: return predFast, systFast, dict([(x, aux.readNumber(saveNameRoot, x)) for x in "scale", "scaleErrRel", "shift", "shiftErr"])
 
         dirHist = f.Get("dir")
         preHists = {}
         for key in f.GetListOfKeys():
             name = key.GetName()
             if name == "dir": continue
-            preHists[float(name)] = key.ReadObj()
+            try: preHists[float(name)] = key.ReadObj()
+            except: pass
     else:
         print "Calculating new", saveNameRoot
         scales = [.85+.01*i for i in range(30)]
@@ -480,7 +481,10 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     syst.Write("syst")
     f.Close()
 
-    return preHist, syst
+    info = {"scale": dirInt/preInt, "scaleErrRel": relScaleUncert, "shift": fitScale, "shiftErr": err}
+    for a,b in info.iteritems():
+        aux.writeNumber(saveNameRoot, a, b)
+    return preHist, syst, info
 
 def finalDistribution1dHist(name, dirSet, preSet):
     if not preSet: preSet = dirSet
@@ -493,7 +497,7 @@ def finalDistribution1dHist(name, dirSet, preSet):
                 dirHist.SetBinContent(bin,0)
                 dirHist.SetBinError(bin,0)
 
-    gjetHist, gjetSyst = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, "weight", name)
+    gjetHist, gjetSyst, info = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, "weight", name)
     gjetHist.SetLineColor(rwth.myLightBlue)
 
     #gjetHistUnw = aux.stdHist(preSet, "tr_jControl/met_vs_emht", nBins, False, minEmht, maxEmht-1e-6)
@@ -559,7 +563,7 @@ def finalDistributionHist(name, dirSet, preSet, minEmht=0, maxEmht=1e8, director
                 dirHist.SetBinError(bin,0)
 
     weight = "weight*({}<emht&&emht<{})".format(minEmht, maxEmht)
-    gjetHist, gjetSyst = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, weight)
+    gjetHist, gjetSyst, info = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, weight)
     gjetHist.SetLineColor(rwth.myLightBlue)
 
     gjetHistUnw = aux.stdHist(preSet, "tr_jControl/met_vs_emht", nBins, False, minEmht, maxEmht-1e-6)
@@ -662,9 +666,9 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         if "lowEMHT" in name:
             weight = "weight*(emht<2000)"
         if "qcdClosure" in name:
-            gjetHist, gjetSyst = gjetPrediction(dirHist, preSet, None, "met", nBins, weight, name+"_divByBinWidth" if style.divideByBinWidth else name)
+            gjetHist, gjetSyst, info = gjetPrediction(dirHist, preSet, None, "met", nBins, weight, name+"_divByBinWidth" if style.divideByBinWidth else name)
         else:
-            gjetHist, gjetSyst = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, weight, name+"_divByBinWidth" if style.divideByBinWidth else name)
+            gjetHist, gjetSyst, info = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, weight, name+"_divByBinWidth" if style.divideByBinWidth else name)
         gjetHist.SetLineColor(rwth.myLightBlue)
 
     if "qcdClosure" not in name:
