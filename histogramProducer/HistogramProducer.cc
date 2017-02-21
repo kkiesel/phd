@@ -773,6 +773,14 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (!cutPrompt && orthogonal && genE && emht<2000) fillSignalSelection("signal_lowEMHT_genE", addWeight);
     if (!cutPrompt && orthogonal && genE && 2000<emht) fillSignalSelection("signal_highEMHT_genE", addWeight);
 
+    if (!cutPrompt && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT2", addWeight);
+    if (!cutPrompt && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT2", addWeight);
+
+    if (!cutPrompt && genE && emht<2000) fillSignalSelection("signal_lowEMHT2_genE", addWeight);
+    if (!cutPrompt && genE && 2000<emht) fillSignalSelection("signal_highEMHT2_genE", addWeight);
+
+    if (g->p.Pt()>300 && met->p.Pt()>200) cout << *runNo << ":" << *lumNo << ":" << *evtNo << endl;
+
     fillSelection("tr", addWeight, true);
     if (genE) fillSelection("tr_genE", addWeight, true);
     if (!selElectrons.size() && !selMuons.size()) fillSelection("tr_noLep", addWeight);
@@ -815,6 +823,9 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (!cutPrompt && orthogonal && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT_ee", addWeight);
     if (!cutPrompt && orthogonal && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT_ee", addWeight);
 
+    if (!cutPrompt && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT2_ee", addWeight);
+    if (!cutPrompt && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT2_ee", addWeight);
+
 
     fillSelection("tr_ee", addWeight);
   }
@@ -843,6 +854,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (!cutPrompt && orthogonal && emht<2000) fillSignalSelection("signal_lowEMHT_eControl", addWeight);
     if (!cutPrompt && orthogonal && 2000<emht) fillSignalSelection("signal_highEMHT_eControl", addWeight);
 
+    if (!cutPrompt && emht<2000) fillSignalSelection("signal_lowEMHT2_eControl", addWeight);
+    if (!cutPrompt && 2000<emht) fillSignalSelection("signal_highEMHT2_eControl", addWeight);
+
+
     fillSelection("tr_eControl", addWeight, true);
   }
 
@@ -870,6 +885,10 @@ Bool_t HistogramProducer::Process(Long64_t entry)
 
     if (!cutPrompt && orthogonal && emht<2000) fillSignalSelection("signal_lowEMHT_ee_eControl", addWeight);
     if (!cutPrompt && orthogonal && 2000<emht) fillSignalSelection("signal_highEMHT_ee_eControl", addWeight);
+
+    if (!cutPrompt && emht<2000) fillSignalSelection("signal_lowEMHT2_ee_eControl", addWeight);
+    if (!cutPrompt && 2000<emht) fillSignalSelection("signal_highEMHT2_ee_eControl", addWeight);
+
 
     fillSelection("tr_eControl_ee", addWeight);
   }
