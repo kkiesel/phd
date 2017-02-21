@@ -727,6 +727,12 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   if (genHt600 && *genHt>600) {
     return kTRUE;
   }
+  if (isSignal && unMatchedSuspiciousJet(*jets, *genJets)) {
+    for (int i=0;i<cutFlow.GetNbinsX()+2;i++) {
+      cutFlow.AddBinContent(i, -1); // this is not considered in nGen for tree weights
+    }
+    return kTRUE;
+  }
 
   bool cutPrompt = noPromptPhotons && count_if(genParticles->begin(), genParticles->end(), [] (const tree::GenParticle& p) { return p.pdgId==22 && p.promptStatus == DIRECTPROMPT;});
   effMap.at("noPromptEvaluation").Fill(cutPrompt, 0);
