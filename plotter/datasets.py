@@ -78,13 +78,13 @@ class Dataset:
         return h0
 
     def getLatexTableHeader( self ):
-        return "\\begin{tabular}{c|c|c}\nPrimary Dataset & cross section (pb) & effective Luminosity (/fb) \\\\\\hline"
+        return "\\begin{tabular}{l|r|r}\nPrimary Dataset & cross section (pb) & effective Luminosity (/fb) \\\\\\hline"
 
     def getLatexTableLine( self ):
         # full samplename & xsec [pb] & effective Luminosity [/fb]
         out = ""
         for lname, xsec, ngen in zip(self.lname,self.xsecs,self.ngens):
-            out += "{} & {} & {:.3g} \\\\\n".format( lname.replace("_","\\_"),xsec,0.001*ngen/xsec )
+            out += "{} & {:.3f} & {:.2f} \\\\\n".format( lname.replace("_","\\_"),xsec,0.001*ngen/xsec )
         return out
 
 ###############################################################################
@@ -109,6 +109,28 @@ dataHt = Dataset("JetHT_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016H-PromptReco-v2", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016H-PromptReco-v3", 0, ROOT.kBlack )
 dataHt.label = "Data (JetHt)"
+
+# Overwrite by rereco data
+data_re = Dataset("SinglePhoton_Run2016B-03Feb2017_ver2-v2", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016C-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016D-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016E-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016F-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016G-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016H-03Feb2017_ver2-v1", 0, ROOT.kBlack ) \
+    + Dataset("SinglePhoton_Run2016H-03Feb2017_ver3-v1", 0, ROOT.kBlack )
+data_re.label = "Data 03Feb"
+
+dataHt_re = Dataset("JetHT_Run2016B-03Feb2017_ver2-v2", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016C-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016D-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016E-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016F-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016G-03Feb2017-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016H-03Feb2017_ver2-v1", 0, ROOT.kBlack ) \
+    + Dataset("JetHT_Run2016H-03Feb2017_ver3-v1", 0, ROOT.kBlack )
+dataHt_re.label = "Data (JetHt)"
+
 
 ###############################################################################
 # Simulation
@@ -248,6 +270,7 @@ t5wg_2000_100.label = "T5Wg 2000 100"
 
 t6gg_1750_1650 = Dataset("SMS-T6gg_1750_1650", 0.000646271, ROOT.kRed+4, "")
 t6gg_1750_1650.label = "T6gg 1750 1650"
+t5wg_1750_1700 = Dataset("SMS-T5Wg_1750_1700", 0.00359842, ROOT.kRed+4, "")
 
 import collections
 class SampleCollection(collections.MutableMapping):
@@ -282,10 +305,6 @@ signal = SampleCollection()
 
 if __name__ == "__main__":
     # print information
-    for i in gjets_dr, qcd, ttjets_nlo, ttg, wjets, wg, znunu, zg: print i.getLatexTableLine(),
-    print
-
     print gjets.getLatexTableHeader()
-    for i in gjets40, gjets100, gjets200, gjets400, gjets600, qcd100, qcd200, qcd300, qcd500, qcd700, qcd1000, qcd1500, qcd2000, ttjets, wjets100, wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500, ttg, wg_mg, wg_130, znunu100, znunu200, znunu400, znunu600, zg:
-        print i.getLatexTableLine(),
+    for i in gjets_dr, qcd, ttjets_ht, ttg, wjets, wg, znunu, zg: print i.getLatexTableLine(),
     print "\\end{tabular}"
