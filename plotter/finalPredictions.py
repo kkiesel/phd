@@ -682,8 +682,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     if "Closure" not in name:
         zgHist = aux.stdHist(zg+znunu, dirDir+"/met", nBins)
         wgHist = aux.stdHist(wg+wjets, dirDir+"/met", nBins)
-        #tgHist = aux.stdHist(ttjets_nlo+ttg, dirDir+"/met", nBins)
-        tgHist = aux.stdHist(ttg, dirDir+"/met", nBins)
+        tgHist = aux.stdHist(ttjets_ht+ttg, dirDir+"/met", nBins)
 
         zgHist.SetLineColor(rwth.myRed)
         wgHist.SetLineColor(rwth.myOrange)
@@ -725,6 +724,9 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         signal1.SetLineColor(ROOT.kMagenta+2)
         signal2.SetLineColor(ROOT.kMagenta)
 
+        signal1_pre = aux.createHistoFromDatasetTree(t5wg_1600_100, "met*{}".format(info["shift"]), weight, nBins, "tr_jControl/simpleTree")
+        signal1_pre.Scale(info["scale"])
+
     if "electronClosure" in name:
         totStat = eHist
         totSyst = eSyst
@@ -739,6 +741,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     m = multiplot.Multiplot()
     if "Closure" not in name:
         m.add(dirHist, "Data")
+        m.add(signal1_pre, "contamination")
         m.add(signal1, "T5Wg 1600 100")
         m.add(signal2, "T6gg 1750 1650")
         m.addStack(eHist, "e#rightarrow#gamma")
@@ -805,6 +808,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
                 "wg": wgHist.GetBinContent(bin)*bw,
                 "zg": zgHist.GetBinContent(bin)*bw,
                 "tg": tgHist.GetBinContent(bin)*bw,
+                "sig-cont": signal1_pre.GetBinContent(bin)*bw
             }, {
                 "gqcdStat_"+binName: {"gqcd": getDatacardUncertFromHist(gjetHist,bin)},
                 "eleStat_"+binName: {"ele": getDatacardUncertFromHist(eHist,bin)},
