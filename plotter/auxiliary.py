@@ -142,6 +142,23 @@ def getFromFile( filename, histoname ):
     h.drawOption_ = ""
     return h
 
+def writeNumber(filename, name, number):
+    f = ROOT.TFile(filename, "update")
+    t = ROOT.TTree(name, "Title")
+    v = numpy.zeros(1, dtype=float)
+    t.Branch("var", v, "var/D")
+    v[0] = number
+    t.Fill()
+    t.Write(name, ROOT.TObject.kWriteDelete)
+    f.Close()
+
+def readNumber(filename, name):
+    t = ROOT.TChain(name)
+    t.AddFile(filename)
+    for e in t:
+        return e.var
+    print "Could not return {} from {}".format(name, filename)
+
 def dataLikeName(name):
     return "Data" in name or "Pseudodata" in name or "Direct" in name
 
