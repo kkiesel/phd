@@ -670,9 +670,11 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         else:
             gjetHist, gjetSyst, info = gjetPrediction(dirHist, preSet, zg+wg+ttg+wjets+ttjets_nlo+znunu, "met", nBins, weight, name+"_divByBinWidth" if style.divideByBinWidth else name)
         gjetHist.SetLineColor(rwth.myLightBlue)
+        gjetHist.GetXaxis().SetTitle("#it{p}_{T}^{miss} (GeV)")
 
     if "qcdClosure" not in name:
         eHist = aux.stdHist(preSetElectron, preDirElectron+"/met", nBins)
+        eHist.GetXaxis().SetTitle("#it{p}_{T}^{miss} (GeV)")
         eHist.Scale( 0.0267 if dirSet == data else 0.0154 )
         eHist.SetLineColor(rwth.myYellow)
         eSyst = aux.getSysHisto(eHist, 0.3)
@@ -743,13 +745,13 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         m.addStack(zgHist, "#gammaZ")
         m.addStack(tgHist, "#gammat#bar{t}")
         m.addStack(wgHist, "#gammaW")
-        m.addStack(gjetHist, "Non-genuine #it{E}_{T}^{miss}")
+        m.addStack(gjetHist, "Non-genuine #it{p}_{T}^{miss}")
     if "electronClosure" in name:
         m.add(dirHist, "Direct simulation")
         m.addStack(eHist, "e#rightarrow#gamma prediction")
     if "qcdClosure" in name:
         m.add(dirHist, "Direct simulation")
-        m.addStack(gjetHist, "Non-genuine #it{E}_{T}^{miss} prediction")
+        m.addStack(gjetHist, "Non-genuine #it{p}_{T}^{miss} prediction")
 
     m.add(totUnc, "Total uncertainty")
     m.maximum = 2*m.getMaximum()
