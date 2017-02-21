@@ -382,3 +382,35 @@ float crystalResponse(float energy) {
   if (response > 1) response = 1.;
   return response;
 }
+
+float isrReweighting(unsigned nJet, bool err=false) {
+  // Taken from https://indico.cern.ch/event/592621/contributions/2398559/
+  if (err) {
+    switch (nJet) {
+      case 0: return 0;
+      case 1: return 0.04;
+      case 2: return 0.09;
+      case 3: return 0.143;
+      case 4: return 0.170;
+      case 5: return 0.221;
+      default: return 0.247;
+    }
+  } else {
+    switch (nJet) {
+      case 0: return 1;
+      case 1: return 0.92;
+      case 2: return 0.821;
+      case 3: return 0.715;
+      case 4: return 0.662;
+      case 5: return 0.561;
+      default: return 0.511;
+    }
+  }
+}
+
+bool unMatchedSuspiciousJet(const vector<tree::Jet>& jets, const vector<tree::Particle>& genJets) {
+  for (const auto& j: jets) {
+    if (fabs(j.p.Eta())<2.5 && j.chf<.1 && !count_if(genJets.begin(), genJets.end(), [&j] (const tree::Particle& p) { return p.p.DeltaR(j.p)<.3;})) return true;
+  }
+  return false;
+}
