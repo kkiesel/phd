@@ -33,7 +33,7 @@ class SignalScan : public TSelector {
   virtual Int_t Version() const { return 2; }
 
   float getPhotonWeight(const tree::Photon& p);
-  void fillSignalSelection(const string p, string const& s, float weight);
+  void fillSignalSelection(const string p, string const& s, float weight, bool isSel, bool, float, float);
 
   TTreeReader fReader;
   TTreeReaderValue<std::vector<tree::Photon>> photons;
@@ -127,6 +127,13 @@ void SignalScan::Init(TTree *tree)
 map<string,TH1F> initSignalHistograms() {
   map<string,TH1F> hMap;
   hMap["met"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_isr"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_isrUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_isrDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["metGen"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_nopu"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_nopuUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_nopuDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   hMap["met_puUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   hMap["met_puDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   hMap["met_jesUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
@@ -141,42 +148,43 @@ map<string,TH1F> initSignalHistograms() {
   hMap["met_weight6"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   hMap["met_weight7"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   hMap["met_weight8"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_contamination"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
   return hMap;
 }
 
-void SignalScan::fillSignalSelection(const string p, string const& s, float weight)
+void SignalScan::fillSignalSelection(const string p, string const& s, float weight, bool isSel=false, bool controlRegion=false, float shift=1., float scale=0.)
 {
-  if (std::isnan(met->p.X()) and std::isnan(met->p.Y())) return;
-
   if (!h1MapsMaps.count(p)) {
     h1MapsMaps[p] = {{"signal_lowEMHT", initSignalHistograms()}, {"signal_highEMHT", initSignalHistograms()}};
   }
   auto m1 = &h1MapsMaps[p][s];
   auto _met = met->p.Pt();
-  unsigned nISRjets = genJets.size(); // TODO: correct
+  unsigned nISRjets = genJets->size(); // TODO: correct
 
-  m1->at("met").Fill(_met, weight);
-  m1->at("met_isr").Fill(_met, weight*isrReweighting(nISRjets));
-  m1->at("met_isrUp").Fill(_met, weight*(isrReweighting(nISRjets)+isrReweighting(nISRjets, true)));
-  m1->at("met_isrDn").Fill(_met, weight*(isrReweighting(nISRjets)-isrReweighting(nISRjets, true)));
-  m1->at("metGen").Fill(metGen->p.Pt(), weight);
-  m1->at("met_nopu").Fill(_met, weight/ *pu_weight);
-  if (nTruePV>=20) m1->at("met_nopuUp").Fill(_met, weight/ *pu_weight);
-  else             m1->at("met_nopuDn").Fill(_met, weight/ *pu_weight);
-  m1->at("met_puUp").Fill(_met, weight*weighters.at("puWeightUp").getWeight(*nTruePV)/ *pu_weight);
-  m1->at("met_puDn").Fill(_met, weight*weighters.at("puWeightDn").getWeight(*nTruePV)/ *pu_weight);
-  m1->at("met_jesUp").Fill(met_JESu->p.Pt(), weight);
-  m1->at("met_jesDn").Fill(met_JESd->p.Pt(), weight);
-  m1->at("met_jerUp").Fill(met_JERu->p.Pt(), weight);
-  m1->at("met_jerDn").Fill(met_JERd->p.Pt(), weight);
-  m1->at("met_weight1").Fill(_met, weight*pdf_weights.at(1));
-  m1->at("met_weight2").Fill(_met, weight*pdf_weights.at(2));
-  m1->at("met_weight3").Fill(_met, weight*pdf_weights.at(3));
-  m1->at("met_weight4").Fill(_met, weight*pdf_weights.at(4));
-  m1->at("met_weight5").Fill(_met, weight*pdf_weights.at(5));
-  m1->at("met_weight6").Fill(_met, weight*pdf_weights.at(6));
-  m1->at("met_weight7").Fill(_met, weight*pdf_weights.at(7));
-  m1->at("met_weight8").Fill(_met, weight*pdf_weights.at(8));
+  m1->at("met").Fill(isSel?_met:-1, weight);
+  m1->at("met_isr").Fill(isSel?_met:-1, weight*isrReweighting(nISRjets));
+  m1->at("met_isrUp").Fill(isSel?_met:-1, weight*(isrReweighting(nISRjets)+isrReweighting(nISRjets, true)));
+  m1->at("met_isrDn").Fill(isSel?_met:-1, weight*(isrReweighting(nISRjets)-isrReweighting(nISRjets, true)));
+  m1->at("metGen").Fill(isSel?metGen->p.Pt():-1, weight);
+  m1->at("met_nopu").Fill(isSel?_met:-1, weight/ *pu_weight);
+  if (*nTruePV>=20) m1->at("met_nopuUp").Fill(isSel?_met:-1, weight/ *pu_weight);
+  else             m1->at("met_nopuDn").Fill(isSel?_met:-1, weight/ *pu_weight);
+  m1->at("met_puUp").Fill(isSel?_met:-1, weight*weighters.at("puWeightUp").getWeight(*nTruePV)/ *pu_weight);
+  m1->at("met_puDn").Fill(isSel?_met:-1, weight*weighters.at("puWeightDn").getWeight(*nTruePV)/ *pu_weight);
+  m1->at("met_jesUp").Fill(isSel?met_JESu->p.Pt():-1, weight);
+  m1->at("met_jesDn").Fill(isSel?met_JESd->p.Pt():-1, weight);
+  m1->at("met_jerUp").Fill(isSel?met_JERu->p.Pt():-1, weight);
+  m1->at("met_jerDn").Fill(isSel?met_JERd->p.Pt():-1, weight);
+  m1->at("met_weight1").Fill(isSel?_met:-1, weight*pdf_weights->at(1));
+  m1->at("met_weight2").Fill(isSel?_met:-1, weight*pdf_weights->at(2));
+  m1->at("met_weight3").Fill(isSel?_met:-1, weight*pdf_weights->at(3));
+  m1->at("met_weight4").Fill(isSel?_met:-1, weight*pdf_weights->at(4));
+  m1->at("met_weight5").Fill(isSel?_met:-1, weight*pdf_weights->at(5));
+  m1->at("met_weight6").Fill(isSel?_met:-1, weight*pdf_weights->at(6));
+  m1->at("met_weight7").Fill(isSel?_met:-1, weight*pdf_weights->at(7));
+  m1->at("met_weight8").Fill(isSel?_met:-1, weight*pdf_weights->at(8));
+
+  m1->at("met_contamination").Fill(controlRegion?_met*shift:-1, weight*scale);
 }
 
 
@@ -246,7 +254,6 @@ Bool_t SignalScan::Process(Long64_t entry)
     return kTRUE;
   }
 
-
   selPhotons.clear();
   selJets.clear();
   for (auto& photon : *photons) {
@@ -254,10 +261,12 @@ Bool_t SignalScan::Process(Long64_t entry)
       selPhotons.push_back(&photon);
     }
   }
-  if (!selPhotons.size()) return kTRUE;
-  auto dPhi = fabs(met->p.DeltaPhi(selPhotons.at(0)->p));
-  bool orthogonal = .3<dPhi && dPhi<2.84;
-  if (!orthogonal) return kTRUE;
+
+ bool orthogonal = false;
+  if (selPhotons.size()) {
+    auto dPhi = fabs(met->p.DeltaPhi(selPhotons.at(0)->p));
+    orthogonal = .3<dPhi && dPhi<2.84;
+  }
 
   for (auto& jet : *jets) {
     if (!jet.isLoose
@@ -270,10 +279,11 @@ Bool_t SignalScan::Process(Long64_t entry)
   for (auto& p : selPhotons) emht += p->p.Pt();
   for (auto& p : selJets) emht += p->p.Pt();
 
-  if (emht<700) return kTRUE;
-  auto selW = *mc_weight * *pu_weight * getPhotonWeight(*selPhotons.at(0));
-  if (emht<2000) fillSignalSelection(pn, "signal_lowEMHT", selW);
-  else fillSignalSelection(pn, "signal_highEMHT", selW);
+  auto selW = *mc_weight * *pu_weight;
+  if (selPhotons.size()) selW *= getPhotonWeight(*selPhotons.at(0));
+  bool passSelection = orthogonal && selPhotons.size() && emht>700;
+  fillSignalSelection(pn, "signal_lowEMHT", selW, passSelection && emht<2000, !selPhotons.size() && emht>700 && emht<2000, 0.905, 0.001271);
+  fillSignalSelection(pn, "signal_highEMHT", selW, passSelection && emht>=2000, !selPhotons.size() && emht>=2000, 0.85, 0.003678);
 
   return kTRUE;
 }
