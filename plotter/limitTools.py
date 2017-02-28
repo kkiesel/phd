@@ -210,14 +210,15 @@ class MyDatacard(Datacard):
                     systDict[source][4][bin] = dict([(r,0) for r in self.processes])
         self.systs = sorted(systDict.values())
 
+    def newSignal(self, exp, unc):
+        for bName, newRate in exp.iteritems():
+            self.exp[bName]["signal"] = newRate
+        systDict = dict([(l[0],l) for l in self.systs])
+        for uncName, uncertaintyDict in unc.iteritems():
+            for binName, u in uncertaintyDict.iteritems():
+                systDict[uncName][4][binName]["signal"] = u
+        self.systs = sorted(systDict.values())
 
-    def newSignal(self, infos):
-        if sorted(infos.keys()) != sorted(self.bins): print "Error, not all bins replaced:", sorted(infos.keys()), sorted(self.bins)
-        for b, (newRate, newUncert) in infos.iteritems():
-            self.exp[b]["signal"] = newRate
-            lines = [i for i, j in enumerate(self.systs) if j[0] == "signalStat_"+b]
-            if len(lines) != 1: print "Error: Statistical uncertainty not found"
-            self.systs[lines[0]][4][b]["signal"] = newUncert
 
     def limit(self):
         self.write("/tmp/tmpDataCard.txt")
