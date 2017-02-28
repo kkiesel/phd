@@ -14,24 +14,24 @@ import run
 
 ds={
     "sp": [
-        "SinglePhoton_Run2016B-23Sep2016-v3_nTuple.root",
-        "SinglePhoton_Run2016C-23Sep2016-v1_nTuple.root",
-        "SinglePhoton_Run2016D-23Sep2016-v1_nTuple.root",
-        "SinglePhoton_Run2016E-23Sep2016-v1_nTuple.root",
-        "SinglePhoton_Run2016F-23Sep2016-v1_nTuple.root",
-        "SinglePhoton_Run2016G-23Sep2016-v1_nTuple.root",
-        "SinglePhoton_Run2016H-PromptReco-v2_nTuple.root",
-        "SinglePhoton_Run2016H-PromptReco-v3_nTuple.root",
+        "SinglePhoton_Run2016B-03Feb2017_ver2-v2_nTuple.root",
+        "SinglePhoton_Run2016C-03Feb2017-v1_nTuple.root",
+        "SinglePhoton_Run2016D-03Feb2017-v1_nTuple.root",
+        "SinglePhoton_Run2016E-03Feb2017-v1_nTuple.root",
+        "SinglePhoton_Run2016F-03Feb2017-v1_nTuple.root",
+        "SinglePhoton_Run2016G-03Feb2017-v1_nTuple.root",
+        "SinglePhoton_Run2016H-03Feb2017_ver2-v1_nTuple.root",
+        "SinglePhoton_Run2016H-03Feb2017_ver3-v1_nTuple.root",
         ],
     "jh": [
-        "JetHT_Run2016B-23Sep2016-v3_nTuple.root",
-        "JetHT_Run2016C-23Sep2016-v1_nTuple.root",
-        "JetHT_Run2016D-23Sep2016-v1_nTuple.root",
-        "JetHT_Run2016E-23Sep2016-v1_nTuple.root",
-        "JetHT_Run2016F-23Sep2016-v1_nTuple.root",
-        "JetHT_Run2016G-23Sep2016-v1_nTuple.root",
-        "JetHT_Run2016H-PromptReco-v2_nTuple.root",
-        "JetHT_Run2016H-PromptReco-v3_nTuple.root",
+        "JetHT_Run2016B-03Feb2017_ver2-v2_nTuple.root",
+        "JetHT_Run2016C-03Feb2017-v1_nTuple.root",
+        "JetHT_Run2016D-03Feb2017-v1_nTuple.root",
+        "JetHT_Run2016E-03Feb2017-v1_nTuple.root",
+        "JetHT_Run2016F-03Feb2017-v1_nTuple.root",
+        "JetHT_Run2016G-03Feb2017-v1_nTuple.root",
+        "JetHT_Run2016H-03Feb2017_ver2-v1_nTuple.root",
+        "JetHT_Run2016H-03Feb2017_ver3-v1_nTuple.root",
         ],
     "gjet": [
         "GJets_HT-40To100_nTuple.root",
@@ -104,7 +104,7 @@ ds={
         "SMS-T6gg_1750_1650_nTuple.root",
         ],
 }
-dir = "/net/scratch_cms1b1/cms/user/kiesel/v20/"
+dir = "/net/scratch_cms1b1/cms/user/kiesel/v22/"
 
 #############################################
 # Select datasets to process
