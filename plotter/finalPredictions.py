@@ -184,12 +184,6 @@ def finalDistribution(name, dirSet, preSet=None, treename="tr/simpleTree", cut="
     #nBins = range(0,500,10)+[500, 550, 600, 650, 660]
 
     dirHist = aux.createHistoFromTree(dirTree, variable, weight, nBins)
-    if dirSet == data or "data" in name:
-        for bin in range(dirHist.GetNbinsX()+2):
-            if dirHist.GetBinCenter(bin) > 350 and "_ee" not in name:
-                dirHist.SetBinContent(bin,0)
-                dirHist.SetBinError(bin,0)
-
     gjetHist, gjetSyst, fitScale, err, norm = getGJetFitPrediction(dirTree, preTree, name, dirSet, treename, preSet, weight, variable, nBins)
     gjetHist.SetLineColor(ROOT.kCyan)
     # correct for other backgrounds
