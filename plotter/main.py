@@ -1734,21 +1734,21 @@ def isrRejection(dataset):
     else:
         print "{:<20} {:%} +{:%} -{:%}".format(dataset.label, eff, effUp, effDn)
 
-def printLatexResultTable(filename):
+def printLatexResultTable(filename, pdfOut=True):
     dc = limitTools.MyDatacard(filename)
     r = {}
     for b in dc.bins:
         r[b] = {}
         for bkg in "gqcd", "wg", "tg", "zg", "ele":
             r[b][bkg] = {"rate": dc.exp[b][bkg], "unc": dc.exp[b][bkg]*math.sqrt(sum([(line[4][b][bkg]-1)**2 for line in dc.systs if line[4][b][bkg]]))}
-        r[b]["total"] = {"rate": sum([x["rate"] for x in r[b].values()]), "unc": math.sqrt(sum([x["unc"] for x in r[b].values()]))}
+        r[b]["total"] = {"rate": sum([x["rate"] for x in r[b].values()]), "unc": math.sqrt(sum([x["unc"]**2 for x in r[b].values()]))}
         r[b]["signal"] = {"rate": dc.exp[b]["signal"], "unc": dc.exp[b]["signal"]*math.sqrt(sum([(line[4][b]["signal"]-1)**2 for line in dc.systs if line[4][b]["signal"]]))}
         r[b]["obs"] = dc.obs[b]
-        r[b]["digits"] = 0 if "low" in b else 1
+        r[b]["digits"] = 1 if "low" in b else 2
 
     out  = "\\begin{{tabular}}{{l|rrr|rrr}}"
-    out += "\n  \\EMHT (\\GeV) & \\multicolumn{{3}}{{c|}}{{$<2000$}} & \\multicolumn{{3}}{{c}}{{$>2000$}}\\\\"
-    out += "\n  \\ETmiss (\\GeV)& (350,450) & (450,600) & (600,$\\infty$) & (350,450) & (450,600) & (600,$\\infty$) \\\\"
+    out += "\n  \\EMHT ($Ge\\hspace{-.08em}V$) & \\multicolumn{{3}}{{c|}}{{$<2000$}} & \\multicolumn{{3}}{{c}}{{$>2000$}}\\\\"
+    out += "\n  \\ptmiss ($Ge\\hspace{-.08em}V$)& (350,450) & (450,600) & (600,$\\infty$) & (350,450) & (450,600) & (600,$\\infty$) \\\\"
     out += "\n  \\hline"
     out += "\n  Non-genuine \\ETmiss & {} \\\\"
     out += "\n  $\\gamma W$ & {} \\\\"
@@ -1767,11 +1767,67 @@ def printLatexResultTable(filename):
         " &".join( [aux.getValAndErrorStr(r[b]["zg"]["rate"], r[b]["zg"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
         " &".join( [aux.getValAndErrorStr(r[b]["ele"]["rate"], r[b]["ele"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
         " &".join( [aux.getValAndErrorStr(r[b]["total"]["rate"], r[b]["total"]["unc"], r[b]["digits"], True, True) for b in dc.bins] ),
-        " &".join( ["{:d}\\phantom{{.0}}".format(int(round(r[b]["obs"]))) if r[b]["digits"] else "{:d}".format(int(round(r[b]["obs"]))) for b in dc.bins] ),
+        " &".join( ["${:d}".format(int(round(r[b]["obs"]))) + "\\phantom{{.{0}\\pm 0.{0}}}$".format("0"*r[b]["digits"]) for b in dc.bins] ),
         " &".join( [aux.getValAndErrorStr(r[b]["signal"]["rate"], r[b]["signal"]["unc"], r[b]["digits"], True, True) for b in dc.bins] )
         )
-    print out
+    if pdfOut:
+        texFile = "plots/eventYields.tex"
+        print "Writing to", texFile
+        with open(texFile, "w") as f:
+            header = "\\documentclass{standalone}\n\\usepackage{ifthen}\\usepackage{ptdr-definitions}\n\\newcommand{\\EMHT}{\\ensuremath{EM\\HT}\\xspace}\n\\begin{document}\n\n"
+            f.write(header + out + "\n\n\\end{document}")
+        #subprocess.call(["unset", "TEXMFHOME"])
+        subprocess.call(["ppdflatex", texFile])
+        print "Created", os.path.basename(texFile.replace("tex", "pdf"))
+    else:
+        print out
 
+def drawCovarinaceMatrix(filename):
+    h2 = aux.getFromFile(filename, "shapes_fit_b/overall_total_covar")
+    h2.SetTitle("")
+    h2.GetZaxis().SetTitle("Covariance between bins   ")
+    h2.GetXaxis().SetBinLabel(1, "350-450")
+    h2.GetXaxis().SetBinLabel(4, "350-450")
+    h2.GetYaxis().SetBinLabel(1, "350-450")
+    h2.GetYaxis().SetBinLabel(4, "350-450")
+    h2.GetXaxis().SetBinLabel(2, "450-600")
+    h2.GetXaxis().SetBinLabel(5, "450-600")
+    h2.GetYaxis().SetBinLabel(2, "450-600")
+    h2.GetYaxis().SetBinLabel(5, "450-600")
+    h2.GetXaxis().SetBinLabel(3, "600-#infty  ")
+    h2.GetXaxis().SetBinLabel(6, "600-#infty  ")
+    h2.GetYaxis().SetBinLabel(3, "600-#infty  ")
+    h2.GetYaxis().SetBinLabel(6, "600-#infty  ")
+    h2.GetXaxis().SetTitle("p_{T}^{miss} in EMH_{T}>2TeV | p_{T}^{miss} in EMH_{T}<2TeV")
+    h2.GetYaxis().SetTitle("p_{T}^{miss} in EMH_{T}>2TeV   |   p_{T}^{miss} in EMH_{T}<2TeV      ")
+    h2.GetXaxis().SetTitleSize(0.7*h2.GetTitleSize())
+    h2.GetYaxis().SetTitleSize(h2.GetTitleSize())
+    h2.GetXaxis().SetTitleOffset(1.5)
+    h2.GetYaxis().SetTitleOffset(3)
+    h2.GetZaxis().SetTitleOffset(1.2)
+    style.style2d()
+    ROOT.gStyle.SetPadLeftMargin(0.2)
+    c = ROOT.TCanvas()
+    h2.Draw("colz text")
+    l = aux.Label(status="")
+    l.cms = ROOT.TLatex( 0.1, .95, "#font[61]{CMS}" )
+    l.draw()
+    aux.save("covariance")
+
+    totalBkg = aux.getFromFile(filename, "shapes_fit_b/total_background")
+    bkgUnc = [totalBkg.GetBinError(bin) for bin in aux.loopH(totalBkg)]
+    for xbin, ybin in aux.loopH(h2):
+        xe = bkgUnc[xbin]
+        ye = bkgUnc[ybin]
+        if xe and ye:
+            h2.SetBinContent(xbin,ybin,h2.GetBinContent(xbin,ybin)/xe/ye)
+    c = ROOT.TCanvas()
+    h2.GetZaxis().SetTitle("Correlation between bins   ")
+    h2.Draw("colz text")
+    l = aux.Label(status="")
+    l.cms = ROOT.TLatex( 0.1, .95, "#font[61]{CMS}" )
+    l.draw()
+    aux.save("correlation")
 
 
 def main():
@@ -1786,18 +1842,21 @@ def main():
     nBinsSR = [0, 100, 200, 250, 300, 350, 450, 600, 700]
     #plotMcUncertainties(wg, nBinsSR, "wg")
     #plotMcUncertainties(zg, nBinsSR, "zg")
-    #plotMcUncertainties(tg, nBinsSR, "tg")
     #plotMcUncertainties(ttg, nBinsSR, "ttg")
     #plotMcUncertainties(ttjets_nlo, nBinsSR, "tt_nlo")
+    #plotMcUncertainties(t5wg_1600_100, nBinsSR, "t5wg_1600_100")
 
     #printLatexResultTable("limitCalculations/observation_v4.txt")
     #printLatexResultTable("testDatacard.txt")
 
-    transitions()
-    sampleMergingCheck()
+    #drawSameHistogram( "johannesCrossCheck", "uncut/johannesSt", [t5wg_1750_1700], [], [600,800,1000,1300,1600], "test" )
+    #drawSameHistogram( "johannesCrossCheck2", "uncut/johannesSt", [t6gg_1750_1650], [], [600,800,1000,1300,1600], "test" )
+
+    #transitions()
+    #sampleMergingCheck()
     #isrRejection(wjets)
     #isrRejection(znunu)
-    #isrRejection(ttjets_nlo)
+    #isrRejection(ttjets_ht)
     #isrRejection(qcd)
 
     #compareAll( "_all", gjets400, gjets600, znn400, znn600 )
@@ -1883,6 +1942,8 @@ def main():
     #compareSelections("data", data, "tr", "Spring16ID", "tr_id15", "Spring15ID")
     #compareSelections("zg", zg, "tr", "Spring16ID", "tr_id15", "Spring15ID")
     #compareSelections("qcd", qcd, "tr", "Spring16ID", "tr_id15", "Spring15ID")
+
+    #drawCovarinaceMatrix("limitCalculations/covariance/mlfit.root")
 
 if __name__ == "__main__":
     from datasets import *
