@@ -17,15 +17,15 @@ def infoFromOut(out):
         if line.startswith("Expected 50.0%: r < "): infos["exp"]    = float(line.split("<")[1])
         if line.startswith("Expected 84.0%: r < "): infos["exp1up"] = float(line.split("<")[1])
         if line.startswith("Expected 97.5%: r < "): infos["exp2up"] = float(line.split("<")[1])
-    if infos["rMinNLL"] == 2:
+    if "rMinNLL" not in infos or infos["rMinNLL"] == 2:
         infos = { "obs":0, "exp":0, "exp1up":0, "exp1dn":0, "exp2up":0, "exp2dn":0 }
     return infos
 
 def significanceFromOut(out):
-    sig = -10
     for line in out.split("\n"):
-        if line.startswith("Significance:"): sig = float(line.split(":")[1])
-    return sig
+        if line.startswith("Significance:"):
+            return float(line.split()[1])
+    return 0
 
 def guessSignalPoint(name):
     m = re.match(".*_(\d+)_(\d+).*",name)
@@ -35,7 +35,7 @@ def guessSignalPoint(name):
         print "could not determine signal point for", name
         return 0, 0
 
-def guessScanName( name ):
+def guessScanName(name):
     short = "unknown"
     if "T5Wg" in name: short = "T5Wg"
     if "T5gg" in name: short = "T5gg"
@@ -58,10 +58,10 @@ def callCombine(name):
     return out
 
 def callCombineSignificance(name):
-    nameLimit = name + ".signif.limit"
+    nameLimit = name + ".significance"
     if not os.path.isfile(nameLimit) or os.path.getmtime(name)>os.path.getmtime(nameLimit):
         with open(nameLimit, "w+") as f:
-            out = subprocess.check_output(["combine", "-M", "ProfileLikelihood", "--uncapped", "1", "--rMin", "-2", name], stderr=subprocess.STDOUT)
+            out = subprocess.check_output(["combine", "-M", "ProfileLikelihood", "--significance", "--uncapped", "1", "--rMin", "-5", name], stderr=subprocess.STDOUT)
             f.write(out)
     with open(nameLimit) as f:
         out = f.read()
