@@ -111,7 +111,7 @@ dataHt = Dataset("JetHT_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
 dataHt.label = "Data (JetHt)"
 
 # Overwrite by rereco data
-data_re = Dataset("SinglePhoton_Run2016B-03Feb2017_ver2-v2", 0, ROOT.kBlack ) \
+data = Dataset("SinglePhoton_Run2016B-03Feb2017_ver2-v2", 0, ROOT.kBlack ) \
     + Dataset("SinglePhoton_Run2016C-03Feb2017-v1", 0, ROOT.kBlack ) \
     + Dataset("SinglePhoton_Run2016D-03Feb2017-v1", 0, ROOT.kBlack ) \
     + Dataset("SinglePhoton_Run2016E-03Feb2017-v1", 0, ROOT.kBlack ) \
@@ -119,9 +119,9 @@ data_re = Dataset("SinglePhoton_Run2016B-03Feb2017_ver2-v2", 0, ROOT.kBlack ) \
     + Dataset("SinglePhoton_Run2016G-03Feb2017-v1", 0, ROOT.kBlack ) \
     + Dataset("SinglePhoton_Run2016H-03Feb2017_ver2-v1", 0, ROOT.kBlack ) \
     + Dataset("SinglePhoton_Run2016H-03Feb2017_ver3-v1", 0, ROOT.kBlack )
-data_re.label = "Data 03Feb"
+data.label = "Data 03Feb"
 
-dataHt_re = Dataset("JetHT_Run2016B-03Feb2017_ver2-v2", 0, ROOT.kBlack ) \
+dataHt = Dataset("JetHT_Run2016B-03Feb2017_ver2-v2", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016C-03Feb2017-v1", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016D-03Feb2017-v1", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016E-03Feb2017-v1", 0, ROOT.kBlack ) \
@@ -129,7 +129,7 @@ dataHt_re = Dataset("JetHT_Run2016B-03Feb2017_ver2-v2", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016G-03Feb2017-v1", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016H-03Feb2017_ver2-v1", 0, ROOT.kBlack ) \
     + Dataset("JetHT_Run2016H-03Feb2017_ver3-v1", 0, ROOT.kBlack )
-dataHt_re.label = "Data (JetHt)"
+dataHt.label = "Data (JetHt)"
 
 
 ###############################################################################
@@ -253,7 +253,7 @@ zg130_nlo.label = "#gammaZ (NLO), p^{#gamma}_{T}>130"
 
 ###############################################################################
 # TTG
-ttg = Dataset( "TTGJets_ext", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8" )
+ttg = Dataset( "TTGJets", 3.697, ROOT.kOrange, "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8" )
 ttg.label = "#gammat#bar{t}"
 
 tg = Dataset( "TGJets_amcatnlo_madspin", 2.967, ROOT.kOrange+2, "TGJets_TuneCUETP8M1_13TeV_amcatnlo_madspin_pythia8" )
