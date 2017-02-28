@@ -450,7 +450,13 @@ def drawSignalScanHist(h, scanName, saveName):
     if "T6" in scanName: h.GetXaxis().SetTitle("m_{#tilde{q}} (GeV)")
     if "gg" in scanName: h.GetYaxis().SetTitle("m_{#tilde{#chi}^{0}_{1}} (GeV)")
     if "Wg" in scanName: h.GetYaxis().SetTitle("m_{#tilde{#chi}^{0/#pm}_{1}} (GeV)")
-    if h.GetName() == "xsec":
+    hname = h.GetName()
+    if hname == "significance":
+        h.SetMinimum(-2)
+        h.SetMaximum(2)
+        style.setPaletteRWB()
+        h.GetZaxis().SetTitle("Significance (s.d.)")
+    elif hname == "xsec":
         h.Scale(1000)
         h.GetZaxis().SetTitle("signal cross section (fb)")
     else:
@@ -468,7 +474,7 @@ def drawSignalScanHist(h, scanName, saveName):
     c = ROOT.TCanvas()
     h.Draw("colz")
     aux.Label(info=scanName)
-    aux.save(saveName)
+    aux.save("{}_{}".format(scanName,saveName))
     style.defaultStyle()
 
 def drawLimitInput(outputDir, scanName, xsecFile):
@@ -589,14 +595,8 @@ def build1dGraphs(outputDir, xsecFile, scanName):
 def drawSignificance(outputDir, scanName):
     graphs = readDict(outputDir+"/saved_graphs2d_significance.root")
     h = graphs["significance"].GetHistogram()
-    h.SetTitle(";m_{g};m_{#chi};Significance (s.d.)")
-    h.SetMinimum(-2)
-    h.SetMaximum(2)
-    style.style2d()
-    style.setPaletteRWB()
-    h.Draw("colz")
-    aux.save("{}_significance".format(scanName), log=False)
-
+    h.SetName("significance")
+    drawSignalScanHist(h, scanName, "significance")
 
 def signalScan(combi, version, inputData, inputSignal):
     scanName = getScanName(inputSignal, combi)
@@ -604,14 +604,14 @@ def signalScan(combi, version, inputData, inputSignal):
     if not os.path.isdir(outputDir): os.mkdir(outputDir)
     xsecFile = getXsecFile(inputSignal)
     #writeDataCards(outputDir, inputData, inputSignal, combi, xsecFile)
-    drawLimitInput(outputDir, scanName, xsecFile)
+    #drawLimitInput(outputDir, scanName, xsecFile)
     #callMultiCombine(outputDir)
     #callMultiSignificance(outputDir)
     ##clearWrongCombineOutputs(outputDir)
     if "TChiWG" in inputSignal: proceedWithWeakScan(outputDir, scanName, xsecFile)
-    build2dGraphs(outputDir, xsecFile)
+    #build2dGraphs(outputDir, xsecFile)
     #build1dGraphs(outputDir, xsecFile, scanName)
-    #drawSignificance(outputDir, scanName)
+    drawSignificance(outputDir, scanName)
     #writeSMSLimitConfig(outputDir+"/saved_graphs1d_limit.root", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName)
     #subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName, "plots/%s_limits_"%scanName])
 
