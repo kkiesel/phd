@@ -532,5 +532,6 @@ if __name__ == "__main__":
     #binnedFakeRate("sie", "EB_40pt", True, intOnly=False, drawInclusive=True)
     #binnedFakeRate("cIso", "EB_40pt", True, intOnly=False, drawInclusive=True)
     #binnedFakeRate("nTracksPV", "EB_40pt", True, binnings["nTracksPV"], intOnly=False, drawInclusive=True)
-    binnedFakeRate("pt", "EE_40pt", True, binnings["pt"], intOnly=False, drawInclusive=True)
+    #binnedFakeRate("pt", "EE_40pt", True, binnings["pt"], intOnly=False, drawInclusive=True)
+    inclusiveFakeRate("test", "pt", "EB_40pt", True, False)
 
