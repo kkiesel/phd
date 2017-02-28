@@ -735,7 +735,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     m = multiplot.Multiplot()
     if "Closure" not in name:
         m.add(dirHist, "Data")
-        m.add(signal1_pre, "contamination")
+#        m.add(signal1_pre, "contamination")
         m.add(signal1, "T5Wg 1600 100")
         m.add(signal2, "T6gg 1750 1650")
         m.addStack(eHist, "e#rightarrow#gamma")
@@ -796,13 +796,13 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         bw = dirHist.GetBinWidth(bin) if style.divideByBinWidth else 1
         dc.addBin(binName, int(round(dirHist.GetBinContent(bin)*bw)),
             {
-                "signal": (signal1.GetBinContent(bin)-totStat.GetBinContent(bin))*bw,
+                "signal": signal1.GetBinContent(bin)*bw,
+                #"signal": (signal1.GetBinContent(bin)-totStat.GetBinContent(bin)-signal1_pre.GetBinContent(bin))*bw,
                 "gqcd": gjetHist.GetBinContent(bin)*bw,
                 "ele": eHist.GetBinContent(bin)*bw,
                 "wg": wgHist.GetBinContent(bin)*bw,
                 "zg": zgHist.GetBinContent(bin)*bw,
                 "tg": tgHist.GetBinContent(bin)*bw,
-                "sig-cont": signal1_pre.GetBinContent(bin)*bw
             }, {
                 "gqcdStat_"+binName: {"gqcd": getDatacardUncertFromHist(gjetHist,bin)},
                 "eleStat_"+binName: {"ele": getDatacardUncertFromHist(eHist,bin)},
@@ -843,7 +843,8 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
                     "wg": 1.004,
                     "zg": 1.004,
                     "tg": 1.004},
-                # isr???
+                "isr": {"signal": 1.001},
+                "genMet": {"signal": 1.001},
                 # jes, jer splitting
             }
         )
