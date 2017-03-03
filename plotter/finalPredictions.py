@@ -670,6 +670,10 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     style.divideByBinWidth = True
 
     nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
+    if name == "electronClosure_highEMHT" or name == "electronClosure_highEMHT_w": nBins = [0,50, 150, 250, 450, 700]
+    if name == "electronClosure_lowEMHT_tt": nBins = range(0,180,10)+[180, 200, 250, 300, 350, 450, 600, 700]
+    if "_fineBinned" in name: nBins = range(0,200,10)+[200, 250, 300, 350, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 990, 1000]
+    if "_rebinned1" in name: nBins = range(0,100,10)+[100, 150, 200, 250, 300, 350, 450, 600, 700]
 
     # direct stuff
     if "electronClosure_highEMHT" in name: style.additionalPoissonUncertainty = True
