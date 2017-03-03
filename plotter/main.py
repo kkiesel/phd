@@ -1747,8 +1747,8 @@ def printLatexResultTable(filename, pdfOut=True):
         r[b]["digits"] = 1 if "low" in b else 2
 
     out  = "\\begin{{tabular}}{{l|rrr|rrr}}"
-    out += "\n  \\EMHT ($Ge\\hspace{-.08em}V$) & \\multicolumn{{3}}{{c|}}{{$<2000$}} & \\multicolumn{{3}}{{c}}{{$>2000$}}\\\\"
-    out += "\n  \\ptmiss ($Ge\\hspace{-.08em}V$)& (350,450) & (450,600) & (600,$\\infty$) & (350,450) & (450,600) & (600,$\\infty$) \\\\"
+    out += "\n  \\EMHT (\\GeV) & \\multicolumn{{3}}{{c|}}{{$<2000$}} & \\multicolumn{{3}}{{c}}{{$>2000$}}\\\\"
+    out += "\n  \\ptmiss (\\GeV)& (350,450) & (450,600) & (600,$\\infty$) & (350,450) & (450,600) & (600,$\\infty$) \\\\"
     out += "\n  \\hline"
     out += "\n  Non-genuine \\ETmiss & {} \\\\"
     out += "\n  $\\gamma W$ & {} \\\\"
@@ -1809,9 +1809,7 @@ def drawCovarinaceMatrix(filename):
     ROOT.gStyle.SetPadLeftMargin(0.2)
     c = ROOT.TCanvas()
     h2.Draw("colz text")
-    l = aux.Label(status="")
-    l.cms = ROOT.TLatex( 0.1, .95, "#font[61]{CMS}" )
-    l.draw()
+    aux.Label2D(status="")
     aux.save("covariance")
 
     totalBkg = aux.getFromFile(filename, "shapes_fit_b/total_background")
@@ -1824,11 +1822,74 @@ def drawCovarinaceMatrix(filename):
     c = ROOT.TCanvas()
     h2.GetZaxis().SetTitle("Correlation between bins   ")
     h2.Draw("colz text")
-    l = aux.Label(status="")
-    l.cms = ROOT.TLatex( 0.1, .95, "#font[61]{CMS}" )
-    l.draw()
+    aux.Label2D(status="")
     aux.save("correlation")
 
+def covarinaceMatrix(datacard):
+    newDatacard = "limitCalculations/covariance/observation.txt"
+    with open(datacard) as f:
+        lines = f.readlines()
+        lines[4] = "shapes * * FAKE"
+    with open(newDatacard, "w+") as f:
+        f.write("\n".join(lines))
+    ###subprocess.call(["text2workspace.py", "--X-allow-no-signal", "--X-allow-no-background", datacard])
+    ###subprocess.call(["combine", "-M", "MaxLikelihoodFit", "--saveShapes", "--saveWithUnc", "--numToysForShape", "2000", "--saveOverall", "--preFitValue", "0", datacard.replace(".txt", ".root")])
+    subprocess.call(["text2workspace.py", "--channel-masks", "--X-allow-no-signal", "--X-allow-no-background", newDatacard])
+    subprocess.call(["combine", "-M", "MaxLikelihoodFit", "--saveShapes", "--saveWithUnc", "--numToysForShape", "2000", "--setPhysicsModelParameterRange", "mask_Signal1=1,mask_Signal2=1", "--saveOverall", newDatacard.replace(".txt", ".root")])
+    drawCovarinaceMatrix("mlfit.root")
+
+
+def compareNTuples(f1, f2, var, cut="1"):
+    c = ROOT.TCanvas()
+    t1 = ROOT.TChain("TreeWriter/eventTree")
+    t1.AddFile(f1)
+    t2 = ROOT.TChain("TreeWriter/eventTree")
+    t2.AddFile(f2)
+    t1.Draw(var, cut, "goff")
+    h1 = ROOT.htemp
+    h1.SetTitle(f1.split("/")[-1])
+    h2 = h1.Clone("htemp2")
+    h2.SetLineColor(2)
+    t2.Draw(var+">>htemp2", cut, "goff")
+    m = multiplot.Multiplot()
+    l1 = f1.split("/")[-2]
+    l2 = f2.split("/")[-2]
+    m.add(h1, l1)
+    m.add(h2, l2)
+    m.Draw()
+    r = ratio.Ratio("{}/{}".format(l1,l2), h1, h2)
+    r.draw()
+    aux.save("compareNTuples_"+aux.modifySaveName(var))
+
+def compareNTupleMain():
+    f1 = "/home/home4/institut_1b/kiesel/scratch/v21/SinglePhoton_Run2016H-03Feb2017_ver3-v1_nTuple.root"
+    f2 = "/home/home4/institut_1b/kiesel/scratch/v23/SinglePhoton_Run2016H-03Feb2017_ver3-v1_nTuple.root"
+    #f1 = "/home/home4/institut_1b/kiesel/scratch/v20/GJets_DR-0p4_HT-100To200_nTuple.root"
+    #f2 = "/home/home4/institut_1b/kiesel/scratch/v22/GJets_DR-0p4_HT-100To200_nTuple.root"
+    #f1 = "/home/home4/institut_1b/kiesel/scratch/v20/ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"
+    #f2 = "/home/home4/institut_1b/kiesel/scratch/v22/ZNuNuGJets_MonoPhoton_PtG-130_nTuple.root"
+    compareNTuples(f1, f2, "met.p.Pt()")
+    #compareNTuples(f1, f2, "photons[0].p.Pt()")
+    #compareNTuples(f1, f2, "Sum$(jets.p.Pt())")
+
+def drawSignalCutFlow(dSet):
+    newLabels = ["Initial", "p_{T}", "EMH_{T}", "|#Delta#phi|"] + ["EMH_{{T}}{},p_{{T}}^{{miss}}{}".format(x+1,y+1) for x in range(2) for y in range(3)]
+    h1 = dSet.getHist("uncut/signal_cutFlow")
+    h2 = dSet.getHist("uncut/signal_cutFlow_incPhi")
+    for h in h1, h2:
+        for iL, l in enumerate(newLabels):
+            h.GetXaxis().SetBinLabel(iL+1, l)
+        h.Scale(1./h.GetBinContent(1))
+        h.GetYaxis().SetTitle("Acceptance")
+    h1.SetLineColor(ROOT.kBlack)
+    h2.SetLineColor(ROOT.kRed)
+    c = ROOT.TCanvas()
+    m = multiplot.Multiplot()
+    m.add(h1)
+    m.add(h2)
+    m.draw()
+    l = aux.Label(info=dSet.label)
+    aux.save("signal_cutFlow_{}".format(dSet.names[0]), changeMinMax=False)
 
 def main():
     pass
@@ -1846,11 +1907,24 @@ def main():
     #plotMcUncertainties(ttjets_nlo, nBinsSR, "tt_nlo")
     #plotMcUncertainties(t5wg_1600_100, nBinsSR, "t5wg_1600_100")
 
-    #printLatexResultTable("limitCalculations/observation_v4.txt")
-    #printLatexResultTable("testDatacard.txt")
+    #printLatexResultTable("limitCalculations/observation_v6.txt", False)
+    printLatexResultTable("testDatacard.txt", False)
+
+    #drawSignalCutFlow(t5wg_1600_100)
+    #drawSignalCutFlow(t5wg_1600_800)
+    #drawSignalCutFlow(t6gg_1300_600)
 
     #drawSameHistogram( "johannesCrossCheck", "uncut/johannesSt", [t5wg_1750_1700], [], [600,800,1000,1300,1600], "test" )
     #drawSameHistogram( "johannesCrossCheck2", "uncut/johannesSt", [t6gg_1750_1650], [], [600,800,1000,1300,1600], "test" )
+
+    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
+    style.divideByBinWidth = True
+    #drawSameHistogram("sampleComposition_qcdClosure_highEMHT", "signal_highEMHT/met", [qcd500, qcd700, qcd1000, qcd1500, qcd2000,gjets40dr, gjets100dr, gjets200dr, gjets400dr, gjets600dr], [], nBins, "")
+    #drawSameHistogram("sampleComposition_electronClosure_highEMHT", "signal_highEMHT/met", [wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500, ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], [], nBins, "")
+    #drawSameHistogram("sampleComposition_electronClosure_highEMHT", "signal_highEMHT/met", [wjets1200, wjets2500, ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], [], nBins, "2")
+    #drawSameHistogram("sampleComposition_electronClosure_highEMHT", "signal_highEMHT/met", [wjets1200, wjets2500, ttjets600, ttjets800, ttjets1200, ttjets2500], [], nBins, "3")
+    #drawSameHistogram("sampleComposition_electronClosure_highEMHT", "signal_highEMHT/met", [wjets1200, wjets2500, ttjets800, ttjets1200, ttjets2500], [], nBins, "4")
+    style.divideByBinWidth = False
 
     #transitions()
     #sampleMergingCheck()
@@ -1943,7 +2017,8 @@ def main():
     #compareSelections("zg", zg, "tr", "Spring16ID", "tr_id15", "Spring15ID")
     #compareSelections("qcd", qcd, "tr", "Spring16ID", "tr_id15", "Spring15ID")
 
-    #drawCovarinaceMatrix("limitCalculations/covariance/mlfit.root")
+
+    #covarinaceMatrix("limitCalculations/observation_v6.txt")
 
 if __name__ == "__main__":
     from datasets import *
