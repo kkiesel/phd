@@ -676,7 +676,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     if "_rebinned1" in name: nBins = range(0,100,10)+[100, 150, 200, 250, 300, 350, 450, 600, 700]
 
     # direct stuff
-    if "electronClosure_highEMHT" in name: style.additionalPoissonUncertainty = True
+    if "electronClosure_highEMHT" == name or "qcdClosure_highEMHT_highHtMC" == name: style.additionalPoissonUncertainty = True
     dirHist = aux.stdHist(dirSet, dirDir+"/met", nBins)
     style.additionalPoissonUncertainty = False
     aux.drawOpt(dirHist, "data")
