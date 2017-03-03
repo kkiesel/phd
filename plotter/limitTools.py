@@ -44,6 +44,22 @@ def guessScanName(name):
 def infosFromDatacard(name):
     return infoFromOut(callCombine(name))
 
+def callSaveCombine(name, method, ending, options=[]):
+    nameLimit = name + ending
+    if not os.path.isfile(nameLimit) or os.path.getmtime(name)>os.path.getmtime(nameLimit):
+        with open(nameLimit, "w+") as f:
+            bn = os.path.basename(name)
+            out = subprocess.check_output(["combine", "-M", method, name, "-n", name] + options, stderr=subprocess.STDOUT)
+            f.write(out)
+            outputFile = "higgsCombine{}.{}.mH120.root".format(bn, method)
+            if os.path.isfile(outputFile): os.remove(outputFile)
+    with open(nameLimit) as f:
+        out = f.read()
+    return out
+
+def callCombineHybrid(name):
+    callSaveCombine(name, "HybridNew", ".limitHybrid", ["--frequentist", "--testStat", "LHC", "-H", "ProfileLikelihood"])
+
 def callCombine(name):
     nameLimit = name + ".limit"
     if not os.path.isfile(nameLimit) or os.path.getmtime(name)>os.path.getmtime(nameLimit):
