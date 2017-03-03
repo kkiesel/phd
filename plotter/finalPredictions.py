@@ -365,7 +365,7 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
             except: pass
     else:
         print "Calculating new", saveNameRoot
-        scales = [.85+.01*i for i in range(30)]
+        scales = [.75+.01*i for i in range(35)]
         preHists = {}
         for iscale, scale in enumerate(scales):
             preHist = aux.createHistoFromDatasetTree(preSet, "{}*{}".format(variable,scale), weight, nBins, "tr_jControl/simpleTree")
@@ -410,10 +410,13 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     ys = [gr.GetY()[i] for i in range(gr.GetN())]
     minIndex = ys.index(min(ys))
     sidePoints = 3
+    if "final_highEMHT" in saveName: sidePoints = 8
     gr2 = ROOT.TGraph()
     for iNew,iOld in enumerate(range(max(0,minIndex-sidePoints),min(gr.GetN(),minIndex+sidePoints+1))):
         gr2.SetPoint(iNew, points[iOld][1], points[iOld][2])
-    gr = gr2
+    if not "ee_highEMHT" in saveName:
+        gr = gr2
+
     gr.SetTitle(";Scale;#chi^{2}")
     gr.SetMarkerStyle(20)
     gr.Draw("ap")
@@ -421,7 +424,8 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     fitFunc = gr.GetFunction("pol2")
     fitFunc.SetLineColor(ROOT.kRed)
     parameters = fitFunc.GetParameters()
-    a1, a2 = parameters[1], parameters[2]
+    a0, a1, a2 = parameters[0], parameters[1], parameters[2]
+    chi2AtMin = a0 - a1**2/(4*a2)
     fitScale = -a1/(2*a2)
     deltaChi2 = 1 # change chi2 by this value for the uncertainty
     fitErr = aux.sqrt(deltaChi2/a2) if a2>0 else 0
@@ -431,6 +435,10 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     errFunc.SetFillStyle(1001)
 
     errFunc.Draw("FC same")
+    text = ROOT.TLatex()
+    text.DrawLatexNDC(.3, .7, "Scale={:.2f}#pm{:.2f}#pm{:.2f}".format(fitScale,fitErr,abs(1-fitScale)))
+    text.DrawLatexNDC(.3, .6, "#chi^{{2}}/NDF={:.1f}/{}".format(chi2AtMin, maxBin-1))
+    aux.Label()
     aux.save(saveName+"_fit", "savedFitPredictions/",log=False)
 
     err = aux.sqrt(fitErr**2 + (1-fitScale)**2)
@@ -482,7 +490,7 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     # set to small value, see here: https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideHiggsAnalysisCombinedLimit#Why_does_combine_have_trouble_wi
     for h in preHist, syst:
         for bin in aux.loopH(h):
-            if h.GetBinContent(bin)<0: h.SetBinContent(bin,1e-3)
+            if h.GetBinContent(bin)<0: h.SetBinContent(bin,1e-7)
 
     f = ROOT.TFile(saveNameRoot, "update")
     preHist.Write("prediction")
