@@ -799,15 +799,25 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         text.DrawLatexNDC(.33,.33, "Validation")
         if "final" in name:
             l.DrawLine(350, 0, 350, totUnc.GetBinContent(totUnc.FindBin(350)))
-            text.DrawLatexNDC(.65,.33, "Search regions")
+            if "lowEMHT" in name:  text.DrawLatexNDC(.58,.30, "#font[62]{#color[1]{Search regions}}")
+            if "highEMHT" in name: text.DrawLatexNDC(.58,.31, "#font[62]{#color[1]{Search regions}}")
+            #text.DrawLatexNDC(.0,.0, "#color[0]{We are one planet}")
 
     if "Closure" in name:
         r = ratio.Ratio("Ratio", dirHist, totStat, totSyst)
         r.draw(0., 2, None, True)
+    elif "final_highEMHT" in name:
+        r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
+        r.draw(0., 3.6, m.getStack(), True)
+    elif "final_lowEMHT" in name:
+        r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
+        r.draw(0., 1.6, m.getStack(), True)
     else:
         r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
         r.draw(0., 1.5, m.getStack(), True)
+
     aux.Label(sim= not dirSet==data, status="")
+    #aux.Label(sim= not dirSet==data, status="", info=dirSet.label)
     aux.save(name, normal=False, changeMinMax=False)
 
     if name == "final_lowEMHT": dc = limitTools.MyDatacard()
