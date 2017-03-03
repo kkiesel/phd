@@ -53,6 +53,19 @@ def histToKdePdf(h, x, name):
     pdf = ROOT.RooTFnPdfBinding(name, "", func, ROOT.RooArgList(x))
     return pdf
 
+def plotSmoothing(hRaw, pdf):
+    hRaw = hRaw.Clone(aux.randomName())
+    hRaw.Scale(1./hRaw.Integral(hRaw.FindBin(60),hRaw.FindBin(120)), "width")
+    h = pdf.createHistogram("x")
+    h.Scale(1./h.Integral(), "width")
+    for x in h, hRaw:
+        x.GetXaxis().SetTitle("m_{e#mu} (GeV)")
+        x.SetMinimum(0)
+        x.SetMaximum(0.04)
+    h.Draw("hist")
+    hRaw.Draw("same")
+    aux.save("fakeRate_showSmoothing", log=False)
+
 def fitHist(name, hData, hSig, hBkg, infoText=""):
     drawUnfitted(name, hData, hSig, hBkg, infoText)
     if not hData.GetEntries() or not hSig.GetEntries() or not hBkg.GetEntries(): return 0, 0
@@ -65,6 +78,7 @@ def fitHist(name, hData, hSig, hBkg, infoText=""):
 
     # background shape
     pdfBkg = histToKdePdf(hBkg, x, "pdfBkg")
+    plotSmoothing(hBkg, pdfBkg)
     nBkg = ROOT.RooRealVar("nBkg", "number of events", totalInt/10, 0, 2*totalInt)
     bkg = ROOT.RooExtendPdf("bkg", "", pdfBkg, nBkg)
 
