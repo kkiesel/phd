@@ -550,7 +550,7 @@ def setMinMaxForLog():
 
 
 def modifySaveName(name):
-    replacements = {"(": "", ")": "", "&":"AND", ".":"p", "/":"DIV", "<":"", ">":"", "*":"TIMES"}
+    replacements = {"(": "", ")": "", "&":"AND", ".":"p", "/":"DIV", "<":"", ">":"", "*":"TIMES", "$": "DOLLAR"}
     for a, b in replacements.iteritems():
         name = name.replace(a, b)
     return name
@@ -978,7 +978,6 @@ class Label:
 
     def __init__( self, drawAll=True, sim=False, status="Private Work", info="" ):
         saveStuff.append(self)
-        # todo: include margins, etc
         if sim:
             self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}" )
         else:
@@ -989,3 +988,15 @@ class Label:
 
         if drawAll:
             self.draw()
+
+class Label2D(Label):
+    def __init__(self, drawAll=True, sim=False, status="", info=""):
+        saveStuff.append(self)
+        cmsText = "#font[61]{CMS}"
+        if sim: cmsText += " #scale[0.76]{#font[52]{Simulation}}"
+        if status: cmsText += "#scale[0.76]{#font[52]{%s}}"%status
+        self.cms = ROOT.TLatex(.15, .95, cmsText)
+        if info: self.info = ROOT.TLatex(0.2, .895, info)
+        self.lum = ROOT.TLatex( .45, .95, "%.2f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
+        if drawAll: self.draw()
+
