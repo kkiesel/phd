@@ -68,12 +68,13 @@ def callCombineSignificance(name):
     return out
 
 def getContour( gr2d ):
+    c  = ROOT.TCanvas()
     gr2d.Draw()
     ROOT.gPad.Update()
     contours = gr2d.GetContourList(1.)
     if not contours:
         print "Could not find contour"
-        contours = gr2d.GetContourList(0.5)
+        contours = [ROOT.TGraph()]
     contoursN = [(c,c.GetN()) for c in contours]
     contoursN = sorted( contoursN, key=lambda x: x[1] )
     return contoursN[-1][0]
