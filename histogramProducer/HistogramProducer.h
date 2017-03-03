@@ -68,6 +68,7 @@ class HistogramProducer : public TSelector {
   TTreeReaderValue<Float_t> genHt;
   TTreeReaderValue<Float_t> rho;
   TTreeReaderValue<Int_t> nTruePV;
+  TTreeReaderValue<Int_t> nISR;
   TTreeReaderValue<ULong64_t> evtNo;
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
