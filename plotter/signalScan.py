@@ -307,7 +307,7 @@ def getSignalUncertainties(inputSignal, dirname):
 
     hGenMet = f.Get(dirname+"/metGen")
     hGenMet = aux.rebinX(hGenMet, xBins)
-    out["genMet"] = [1.+abs(hNominal.GetBinContent(b)-hGenMet.GetBinContent(b))/2/hNominal.GetBinContent(b) for b in range(1,4)]
+    out["genMet"] = [1.+abs(hNominal.GetBinContent(b)-hGenMet.GetBinContent(b))/2/hNominal.GetBinContent(b) if hNominal.GetBinContent(b) else 1 for b in range(1,4)]
 
     hPuUp = f.Get(dirname+"/met_nopuUp")
     hPuDn = f.Get(dirname+"/met_nopuDn")
@@ -315,7 +315,7 @@ def getSignalUncertainties(inputSignal, dirname):
     hPuDn.Scale(hNominal.GetEntries()/hPuDn.GetEntries())
     hPuUp = aux.rebinX(hPuUp, xBins)
     hPuDn = aux.rebinX(hPuDn, xBins)
-    out["pu"] = [1.+abs(hPuUp.GetBinContent(b)-hPuDn.GetBinContent(b))/2/hNominal.GetBinContent(b) for b in range(1,4)]
+    out["pu"] = [1.+abs(hPuUp.GetBinContent(b)-hPuDn.GetBinContent(b))/2/hNominal.GetBinContent(b) if hNominal.GetBinContent(b) else 1 for b in range(1,4)]
 
     hJesUp = f.Get(dirname+"/met_jesUp")
     hJesDn = f.Get(dirname+"/met_jesDn")
@@ -326,7 +326,7 @@ def getSignalUncertainties(inputSignal, dirname):
     hJerUp = aux.rebinX(hJerUp, xBins)
     hJerDn = aux.rebinX(hJerDn, xBins)
     out["jes"] = [1.+math.sqrt((abs(hJesUp.GetBinContent(b)-hJesDn.GetBinContent(b))/2/hNominal.GetBinContent(b))**2 \
-        + (abs(hJerUp.GetBinContent(b)-hJerDn.GetBinContent(b))/2/hNominal.GetBinContent(b))**2) for b in range(1,4)]
+        + (abs(hJerUp.GetBinContent(b)-hJerDn.GetBinContent(b))/2/hNominal.GetBinContent(b))**2) if hNominal.GetBinContent(b) else 1 for b in range(1,4)]
 
     hIsr = f.Get(dirname+"/met_isr")
     hIsrUp = f.Get(dirname+"/met_isrUp")
@@ -337,15 +337,15 @@ def getSignalUncertainties(inputSignal, dirname):
     hIsr = aux.rebinX(hIsr, xBins)
     hIsrUp = aux.rebinX(hIsrUp, xBins)
     hIsrDn = aux.rebinX(hIsrDn, xBins)
-    out["isr"] = [1.+abs(hIsrUp.GetBinContent(b)-hIsrDn.GetBinContent(b))/2/hNominal.GetBinContent(b) for b in range(1,4)]
+    out["isr"] = [1.+abs(hIsrUp.GetBinContent(b)-hIsrDn.GetBinContent(b))/2/hNominal.GetBinContent(b) if hNominal.GetBinContent(b) else 1 for b in range(1,4)]
 
     scaleHists = dict([(i,f.Get(dirname+"/met_weight{}".format(i))) for i in range(1,9)])
     for hname, h in scaleHists.iteritems():
         h.Scale(hNominal.Integral(0,-1)/h.Integral(0,-1))
         scaleHists[hname] = aux.rebin(h, xBins)
-    out["scale"] = [1.+(max([h.GetBinContent(b) for h in scaleHists.values()])-min([h.GetBinContent(b) for h in scaleHists.values()]))/2./hNominal.GetBinContent(b) for b in range(1,4)]
+    out["scale"] = [1.+(max([h.GetBinContent(b) for h in scaleHists.values()])-min([h.GetBinContent(b) for h in scaleHists.values()]))/2./hNominal.GetBinContent(b) if hNominal.GetBinContent(b) else 1 for b in range(1,4)]
 
-    out["stat"] = [1.+hNominal.GetBinError(b)/hNominal.GetBinContent(b) for b in range(1,4)]
+    out["stat"] = [1.+hNominal.GetBinError(b)/hNominal.GetBinContent(b) if hNominal.GetBinContent(b) else 1 for b in range(1,4)]
 
     hCont = f.Get(dirname+"/met_contamination")
     hCont = aux.rebinX(hCont, xBins)
@@ -443,6 +443,21 @@ def build2dGraphsSignificance(outputDir):
         defaultGr.SetPoint(ifile, m1, m2, r)
     writeDict({"significance": defaultGr}, outputDir+"/saved_graphs2d_significance.root")
 
+def latexScanName(scanName):
+    if scanName == "T6gg":
+        lsp_s = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{^{0}}}#kern[-1.3]{#scale[0.85]{_{1}}}"
+        return "pp #rightarrow #tilde{q}#tilde{q}, #tilde{q} #rightarrow q%s, %s #rightarrow #gamma#tilde{G}"%(lsp_s,lsp_s)
+    elif scanName == "T6Wg":
+        lsp_s = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{^{0/#pm}}}#kern[-1.3]{#scale[0.85]{_{1}}}"
+        return "pp #rightarrow #tilde{q}#tilde{q}, #tilde{q} #rightarrow q%s, %s #rightarrow #gamma/W^{#pm}#tilde{G}"%(lsp_s,lsp_s)
+    elif scanName == "T5gg":
+        lsp_s = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{^{0}}}#kern[-1.3]{#scale[0.85]{_{1}}}"
+        return "pp #rightarrow #tilde{g}#tilde{g}, #tilde{g} #rightarrow qq%s, %s #rightarrow #gamma#tilde{G}"%(lsp_s,lsp_s)
+    elif scanName == "T5Wg":
+        lsp_s = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{^{0/#pm}}}#kern[-1.3]{#scale[0.85]{_{1}}}"
+        return "pp #rightarrow #tilde{g}#tilde{g}, #tilde{g} #rightarrow qq%s, %s #rightarrow #gamma/W^{#pm}#tilde{G}"%(lsp_s,lsp_s)
+    return scanName
+
 def drawSignalScanHist(h, scanName, saveName):
     style.style2d()
     h.SetTitle("")
@@ -469,11 +484,12 @@ def drawSignalScanHist(h, scanName, saveName):
         metSel = metSel.replace("24", "350-450").replace("25", "450-600").replace("26", "600-#infty")
         var = uncerts[var] if var in uncerts else var
         h.GetZaxis().SetTitle("{} ({},{})".format(var, emhtSel, metSel))
-    h.GetZaxis().SetTitleOffset(1.45)
+    h.GetZaxis().SetTitleOffset(1.42)
+    h.GetYaxis().SetTitleOffset(h.GetYaxis().GetTitleOffset()*.95)
 
     c = ROOT.TCanvas()
     h.Draw("colz")
-    aux.Label(info=scanName)
+    aux.Label2D(info="#scale[.76]{{{}}}".format(latexScanName(scanName)))
     aux.save("{}_{}".format(scanName,saveName))
     style.defaultStyle()
 
@@ -543,6 +559,20 @@ def interpolateAlongY(h2):
             if not cUp or not cDn: continue
             h2.SetBinContent(xbin,ybin, ((cUp-cDn)*ybin+(cDn*ybinUp-cUp*ybinDn))/(ybinUp-ybinDn)) # linear interpolation
 
+def interpolateHoles(h2):
+    for xbin, ybin in aux.loopH(h2):
+        c = h2.GetBinContent(xbin, ybin)
+        if abs(c)>1e-5: continue
+        cNord = h2.GetBinContent(xbin, ybin+1)
+        cSout = h2.GetBinContent(xbin, ybin-1)
+        cWest = h2.GetBinContent(xbin+1, ybin)
+        cEast = h2.GetBinContent(xbin-1, ybin)
+        if cNord and cSout and cWest and cEast:
+            h2.SetBinContent(xbin, ybin, sum([cNord,cSout,cWest,cEast])/4.)
+    return h2
+
+
+
 def getXsecLimitHist( gr2d, h, xsecFile ):
     h.SetDirectory(0) # or the next line will overwrite the hist?
     points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
@@ -553,7 +583,7 @@ def getXsecLimitHist( gr2d, h, xsecFile ):
 
 def getHistForModel( model ):
     h = ROOT.TH2F()
-    if "T5" in model: h = ROOT.TH2F("","", 27, 775, 2125, 420, 0, 2100)
+    if "T5" in model: h = ROOT.TH2F("","", 35, 775, 2525, 500, 0, 2500)
     elif "T6" in model: h = ROOT.TH2F("","", 17, 975, 1825, 210, 0, 2100)
     else: print "Not specified model", model
     h.SetMinimum(0)
@@ -596,6 +626,7 @@ def drawSignificance(outputDir, scanName):
     graphs = readDict(outputDir+"/saved_graphs2d_significance.root")
     h = graphs["significance"].GetHistogram()
     h.SetName("significance")
+    interpolateHoles(h)
     drawSignalScanHist(h, scanName, "significance")
 
 def signalScan(combi, version, inputData, inputSignal):
@@ -610,16 +641,19 @@ def signalScan(combi, version, inputData, inputSignal):
     ##clearWrongCombineOutputs(outputDir)
     if "TChiWG" in inputSignal: proceedWithWeakScan(outputDir, scanName, xsecFile)
     #build2dGraphs(outputDir, xsecFile)
-    #build1dGraphs(outputDir, xsecFile, scanName)
-    drawSignificance(outputDir, scanName)
-    #writeSMSLimitConfig(outputDir+"/saved_graphs1d_limit.root", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName)
-    #subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName, "plots/%s_limits_"%scanName])
+    build1dGraphs(outputDir, xsecFile, scanName)
+    #drawSignificance(outputDir, scanName)
+    writeSMSLimitConfig(outputDir+"/saved_graphs1d_limit.root", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName)
+    subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName, "plots/%s_limits_"%scanName])
 
 
 if __name__ == "__main__":
-    signalScan("Wg", "v8", "limitCalculations/observation_v5.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("gg", "v8", "limitCalculations/observation_v5.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("Wg", "v8", "limitCalculations/observation_v5.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
-    #signalScan("gg", "v8", "limitCalculations/observation_v5.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    #signalScan("Wg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    #signalScan("gg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
+    signalScan("Wg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    #signalScan("gg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+
+    #signalScan("Wg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T5Wg_mGo2150To2500_signalScan.root")
+    #signalScan("gg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T5Wg_mGo2150To2500_signalScan.root")
 
 
