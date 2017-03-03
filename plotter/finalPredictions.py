@@ -828,13 +828,14 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         bw = dirHist.GetBinWidth(bin) if style.divideByBinWidth else 1
         dc.addBin(binName, int(round(dirHist.GetBinContent(bin)*bw)),
             {
-                "signal": signal1.GetBinContent(bin)*bw,
+                "signal": (signal1.GetBinContent(bin)-totStat.GetBinContent(bin))*bw,
                 #"signal": (signal1.GetBinContent(bin)-totStat.GetBinContent(bin)-signal1_pre.GetBinContent(bin))*bw,
                 "gqcd": gjetHist.GetBinContent(bin)*bw,
                 "ele": eHist.GetBinContent(bin)*bw,
                 "wg": wgHist.GetBinContent(bin)*bw,
                 "zg": zgHist.GetBinContent(bin)*bw,
                 "tg": tgHist.GetBinContent(bin)*bw,
+#                "cont": signal1_pre.GetBinContent(bin)*bw
             }, {
                 "gqcdStat_"+binName: {"gqcd": getDatacardUncertFromHist(gjetHist,bin)},
                 "eleStat_"+binName: {"ele": getDatacardUncertFromHist(eHist,bin)},
@@ -1021,6 +1022,8 @@ if __name__ == "__main__":
     #qcdClosure("gqcd_2500emht", gjets+qcd, cut="emht>2500")
     #plotOverlayedPredictions("savedFitPredictions/data__8__tr_simpleTree__8__weight1__met__11.root")
     #plotOverlayedPredictions("savedFitPredictions/gqcd__8__tr_simpleTree__8__weight1__met__11.root")
+    #plotOverlayedPredictions("savedFitPredictions/weight_final_lowEMHT_divByBinWidth_weightTIMESemht2000.root")
+    #plotOverlayedPredictions("savedFitPredictions/weight_final_highEMHT_divByBinWidth_weightTIMES2000emht.root")
     #qcdClosure("gqcd_ee_2000emht", gjets+qcd, treename="tr_ee/simpleTree", cut="emht>2000")
     #qcdClosure("test", gjets600)
     #qcdClosure("gqcd_emht2000_p3dPhi", gqcd, cut="emht<2000 && .3<dPhi")
@@ -1035,6 +1038,7 @@ if __name__ == "__main__":
     #finalDistribution("data_emht2000_p3dPhi2p84_noPrompt", data, dataHt, cut="emht<2000 && .3<dPhi && dPhi<2.84 && !hasPromptPhoton")
     #finalDistribution("data_emht2000_p3dPhi2p94_noE_noPrompt", data, dataHt, cut="emht<2000 && .3<dPhi && dPhi<2.94 && !genE && !hasPromptPhoton")
     #finalDistribution("data_emht2000_p3dPhi3p04_noE_noPrompt", data, dataHt, cut="emht<2000 && .3<dPhi && dPhi<3.04 && !genE && !hasPromptPhoton")
+    #finalDistribution("data_emht2000_p3dPhi2p84", data, dataHt, cut="emht<2000 && .3<dPhi && dPhi<2.84")
 
     """
     qcdClosure("gqcd_700emht800", gjets+qcd, cut="700<emht && emht<800")
@@ -1079,12 +1083,26 @@ if __name__ == "__main__":
     #finalDistribution1dHist("tr_central/met", data, dataHt)
     #finalDistribution1dHist("tr_EB_forward/met", data, dataHt)
 
-    finalDistributionSignalHist("qcdClosure_lowEMHT", gqcd, "signal_lowEMHT", gqcd, None, None)
-    finalDistributionSignalHist("qcdClosure_highEMHT", gqcd, "signal_highEMHT", gqcd, None, None)
-    finalDistributionSignalHist("electronClosure_lowEMHT", wjets, "signal_lowEMHT_genE", None, wjets, "signal_lowEMHT_eControl")
-    finalDistributionSignalHist("electronClosure_highEMHT", wjets, "signal_highEMHT_genE", None, wjets, "signal_highEMHT_eControl")
-    finalDistributionSignalHist("ee_lowEMHT", data, "signal_lowEMHT_ee", dataHt, data, "signal_lowEMHT_ee_eControl")
-    finalDistributionSignalHist("ee_highEMHT", data, "signal_highEMHT_ee", dataHt, data, "signal_highEMHT_ee_eControl")
+    gqcd_highestHT = gjets600dr+qcd2000
+    gqcd_highestHT.label = "(#gamma)+jet"
+    #finalDistributionSignalHist("qcdClosure_lowEMHT_fineBinned", gqcd, "signal_lowEMHT", gqcd, None, None)
+    #finalDistributionSignalHist("qcdClosure_highEMHT_fineBinned", gqcd, "signal_highEMHT", gqcd, None, None)
+    #finalDistributionSignalHist("qcdClosure_lowEMHT", gqcd, "signal_lowEMHT", gqcd, None, None)
+    #finalDistributionSignalHist("qcdClosure_highEMHT", gqcd, "signal_highEMHT", gqcd, None, None)
+    #finalDistributionSignalHist("qcdClosure_highEMHT_highHtMC", gqcd_highestHT, "signal_highEMHT", gqcd, None, None)
+    #finalDistributionSignalHist("electronClosure_lowEMHT_tt", ttjets_ht, "signal_lowEMHT_genE", None, ttjets_ht, "signal_lowEMHT_eControl")
+    #finalDistributionSignalHist("electronClosure_highEMHT_tt", ttjets_ht, "signal_highEMHT_genE", None, ttjets_ht, "signal_highEMHT_eControl")
+    #finalDistributionSignalHist("electronClosure_lowEMHT_w", wjets, "signal_lowEMHT_genE", None, wjets, "signal_lowEMHT_eControl")
+    #finalDistributionSignalHist("electronClosure_highEMHT_w", wjets, "signal_highEMHT_genE", None, wjets, "signal_highEMHT_eControl")
+    #finalDistributionSignalHist("electronClosure_lowEMHT", ttjets_ht+wjets, "signal_lowEMHT_genE", None, ttjets_ht+wjets, "signal_lowEMHT_eControl")
+    #finalDistributionSignalHist("electronClosure_highEMHT", ttjets_ht+wjets, "signal_highEMHT_genE", None, ttjets_ht+wjets, "signal_highEMHT_eControl")
+    #finalDistributionSignalHist("ee_lowEMHT", data, "signal_lowEMHT_ee", dataHt, data, "signal_lowEMHT_ee_eControl")
+    #finalDistributionSignalHist("ee_highEMHT", data, "signal_highEMHT_ee", dataHt, data, "signal_highEMHT_ee_eControl")
+    #finalDistributionSignalHist("ee_highEMHT_rebinned1", data, "signal_highEMHT_ee", dataHt, data, "signal_highEMHT_ee_eControl")
     finalDistributionSignalHist("final_lowEMHT", data, "signal_lowEMHT", dataHt, data, "signal_lowEMHT_eControl")
-    finalDistributionSignalHist("final_highEMHT", data, "signal_highEMHT", dataHt, data, "signal_highEMHT_eControl")
+    #finalDistributionSignalHist("final_highEMHT", data, "signal_highEMHT", dataHt, data, "signal_highEMHT_eControl")
+    #finalDistributionSignalHist("final_lowEMHT_reMini", data_re, "signal_lowEMHT", dataHt_re, data, "signal_lowEMHT_eControl")
+    #finalDistributionSignalHist("final_highEMHT_reMini", data_re, "signal_highEMHT", dataHt_re, data, "signal_highEMHT_eControl")
+    #finalDistributionSignalHist("final_lowEMHT2_reMini", data_re, "signal_lowEMHT2", dataHt_re, data, "signal_lowEMHT2_eControl")
+    #finalDistributionSignalHist("final_highEMHT2_reMini", data_re, "signal_highEMHT2", dataHt_re, data, "signal_highEMHT2_eControl")
 
