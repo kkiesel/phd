@@ -119,7 +119,7 @@ def compare(myFile, joFile, oldFile=""):
 
 
 if __name__ == "__main__":
-    compare("limitCalculations/T6gg_v7/Graphs1d.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-SUS-16-046-T6gg.root")
-    compare("limitCalculations/T6Wg_v7/Graphs1d.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-SUS-16-046-T6wg.root")
-    compare("limitCalculations/T5gg_v7/Graphs1d.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-SUS-16-046-T5gg.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-PAS-SUS-16-023-T5gg.root")
-    compare("limitCalculations/T5Wg_v7/Graphs1d.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-SUS-16-046-T5wg.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-PAS-SUS-16-023-T5wg.root")
+    compare("limitCalculations/T6gg_v9/saved_graphs1d_limit.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-SUS-16-046-T6gg.root")
+    compare("limitCalculations/T6Wg_v9/saved_graphs1d_limit.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-SUS-16-046-T6wg.root")
+    compare("limitCalculations/T5gg_v9/saved_graphs1d_limit.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-SUS-16-046-T5gg.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-PAS-SUS-16-023-T5gg.root")
+    compare("limitCalculations/T5Wg_v9/saved_graphs1d_limit.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-SUS-16-046-T5wg.root", "/home/home4/institut_1b/kiesel/other_photon_limits/CMS-PAS-SUS-16-023-T5wg.root")
