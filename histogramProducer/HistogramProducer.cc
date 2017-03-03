@@ -14,15 +14,15 @@ void HistogramProducer::initTriggerStudies() {
   effMap["eff_pIso__p90ht600__ht600"] = TEfficiency("", ";I_{#gamma} (GeV)", 100, 0, 20);
   effMap["eff_hasPixelSeeds__p90ht600__ht600"] = TEfficiency("", ";has pixel seeds", 2, 0, 2);
   effMap["eff_nJet__p90ht600__ht600"] = TEfficiency("", ";uncleaned jet multiplicity", 15, -0.5, 14.5);
-  effMap["eff_met__p90ht600__ht600"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 250, 0, 250);
+  effMap["eff_met__p90ht600__ht600"] = TEfficiency("", ";#it{p}_{T}^{miss} (GeV)", 250, 0, 250);
   effMap["eff_pt__ele27__ht600"] = TEfficiency("", ";#it{p}_{T} (GeV);#varepsilon", 100, 0, 100);
   effMap["eff_emht__ht800__ht600"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
   effMap["eff_emht__p90ht600__p90"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
   effMap["eff_emht__ht800__p90"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
   effMap["eff_emht__ht600__p90"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon", 200, 0, 2000);
   effMap["eff_emht__ht600__p90_ps"] = TEfficiency("", ";#it{EMH}_{T} (GeV);#varepsilon (prescaled)", 200, 0, 2000);
-  effMap["eff_met__ht600__p90"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV)", 250, 0, 250);
-  effMap["eff_met__ht600__p90_ps"] = TEfficiency("", ";#it{E}_{T}^{miss} (GeV) (prescaled)", 250, 0, 250);
+  effMap["eff_met__ht600__p90"] = TEfficiency("", ";#it{p}_{T}^{miss} (GeV)", 250, 0, 250);
+  effMap["eff_met__ht600__p90_ps"] = TEfficiency("", ";#it{p}_{T}^{miss} (GeV) (prescaled)", 250, 0, 250);
   effMap.at("eff_emht__ht600__p90_ps").SetUseWeightedEvents();
   effMap.at("eff_met__ht600__p90_ps").SetUseWeightedEvents();
 }
@@ -120,11 +120,30 @@ void HistogramProducer::fillTriggerStudies() {
   }
 }
 
+TH1F createSignalCutFlowHist() {
+  vector<TString> cutStages{{
+    "initial",
+    "pt",
+    "emht",
+    "dphi",
+    "emht1_met1",
+    "emht1_met2",
+    "emht1_met3",
+    "emht2_met1",
+    "emht2_met2",
+    "emht2_met3"}};
+   TH1F h("", "", cutStages.size(), 0, cutStages.size());
+   for (unsigned i=0; i<cutStages.size(); i++) h.GetXaxis()->SetBinLabel(i+1,cutStages.at(i));
+   return h;
+}
+
 void HistogramProducer::initUncut() {
   map<string,TH1F> h;
   h["genHt"] = TH1F("", ";#it{H}_{T}^{gen}", 3000, 0, 3000);
   h["ht600_prescale"] = TH1F("", ";Prescales for HLT_PFHT600", 65, 0.5, 65.5);
   h["johannesSt"] = TH1F("", ";S_{T}^{#gamma} (GeV)", 10, 600, 1600);
+  h["signal_cutFlow"] = createSignalCutFlowHist();
+  h["signal_cutFlow_incPhi"] = createSignalCutFlowHist();
   h1Maps["uncut"] = h;
 
   map<string,TH2F> h2;
@@ -190,25 +209,25 @@ map<string,TH2F> initHistograms2() {
 
   hMap["n_jets_vs_photonPosition"] = TH2F("",";jet multiplicity;#gamma position",10, -0.5, 9.5, 10, -0.5, 9.5);
   hMap["g_eta_vs_g_phi"] = TH2F("",";|#eta|;|#phi|", 260, 2.6, 2.6, 100, -3.1, 3.1);
-  hMap["met_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["met_vs_emht_JESu"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["met_vs_emht_JESd"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["met_vs_emht_JERu"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["met_vs_emht_JERd"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metPar_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss} #parallel (GeV);#it{EMH}_{T} (GeV)", 600, -3000, 3000, 450, 500, 5000);
+  hMap["met_vs_emht"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["met_vs_emht_JESu"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["met_vs_emht_JESd"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["met_vs_emht_JERu"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["met_vs_emht_JERd"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metPar_vs_emht"] = TH2F("", ";#it{p}_{T}^{miss} #parallel (GeV);#it{EMH}_{T} (GeV)", 600, -3000, 3000, 450, 500, 5000);
   hMap["metPer_vs_emht"] = TH2F("", ";#it{E}_{T}^{miss #perp  } (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["metParRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} #parallel (GeV);#it{EMH}_{T} (GeV)", 600, -3000, 3000, 450, 500, 5000);
+  hMap["metRaw_vs_emht"] = TH2F("", ";uncorrected #it{p}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
+  hMap["metParRaw_vs_emht"] = TH2F("", ";uncorrected #it{p}_{T}^{miss} #parallel (GeV);#it{EMH}_{T} (GeV)", 600, -3000, 3000, 450, 500, 5000);
   hMap["metPerRaw_vs_emht"] = TH2F("", ";uncorrected #it{E}_{T}^{miss #perp  } (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
-  hMap["met_vs_n_jet"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
-  hMap["met_vs_n_obj"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
-  hMap["metRaw_vs_n_jet"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
-  hMap["metRaw_vs_n_obj"] = TH2F("", ";uncorrected #it{E}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
-  hMap["met_vs_g_pt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
-  hMap["metRaw_vs_g_pt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
-  hMap["met_vs_g_e"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{E} (GeV)", 300, 0, 3000, 100, 0, 1000);
-  hMap["met_vs_j1_pt"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);#it{p}_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
-  hMap["met_vs_mht"] = TH2F("", ";#it{E}_{T}^{miss} (GeV);|#vec{H}_{T}| (GeV)", 300, 0, 3000, 1500, 0, 1500);
+  hMap["met_vs_n_jet"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["met_vs_n_obj"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["metRaw_vs_n_jet"] = TH2F("", ";uncorrected #it{p}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["metRaw_vs_n_obj"] = TH2F("", ";uncorrected #it{p}_{T}^{miss} (GeV);N_{jet}", 300, 0, 3000, 15, -.5, 14.5);
+  hMap["met_vs_g_pt"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
+  hMap["metRaw_vs_g_pt"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{p}_{T} (GeV)", 300, 0, 3000, 100, 0, 1000);
+  hMap["met_vs_g_e"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{E} (GeV)", 300, 0, 3000, 100, 0, 1000);
+  hMap["met_vs_j1_pt"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);#it{p}_{T}^{jet} (GeV)", 300, 0, 3000, 200, 0, 2000);
+  hMap["met_vs_mht"] = TH2F("", ";#it{p}_{T}^{miss} (GeV);|#vec{H}_{T}| (GeV)", 300, 0, 3000, 1500, 0, 1500);
   hMap["memht_vs_emht"] = TH2F("", ";#it{EMH}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
   hMap["mht_vs_emht"] = TH2F("", ";#it{H}_{T}^{miss} (GeV);#it{EMH}_{T} (GeV)", 300, 0, 3000, 450, 500, 5000);
   hMap["razor"] = TH2F("",";M_{R} (GeV);R^{2}", 500, 0, 5000, 200, 0, 2);
@@ -221,48 +240,48 @@ map<string,TH1F> initHistograms() {
   map<string,TH1F> hMap;
 
   // mets
-  hMap["met"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metCrystalSeedCorrected"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metCrystalSeedCorrected2"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metCrystalSeedCorrected3"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metPhotonPtUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metPhotonPtDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhotonByJERUp"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhotonByJERDn"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhotonByJER"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhotonByJERUp_fixedRho"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhotonByJERDn_fixedRho"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metSmearedPhotonByJER_fixedRho"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metPhotonResUp"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metPhotonResDn"] = TH1F("", ";smeared #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metUncertUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metUncertDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metJet1ResPhi"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metJet1Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metJet2Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metJet3Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metJet4Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metJet5Res"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metCrystalSeedCorrected"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metCrystalSeedCorrected2"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metCrystalSeedCorrected3"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metPhotonPtUp"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metPhotonPtDn"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJERUp"] = TH1F("", ";smeared #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJERDn"] = TH1F("", ";smeared #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJER"] = TH1F("", ";smeared #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJERUp_fixedRho"] = TH1F("", ";smeared #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJERDn_fixedRho"] = TH1F("", ";smeared #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metSmearedPhotonByJER_fixedRho"] = TH1F("", ";smeared #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metPhotonResUp"] = TH1F("", ";smeared #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metPhotonResDn"] = TH1F("", ";smeared #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metUncertUp"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metUncertDn"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metJet1ResPhi"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metJet1Res"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metJet2Res"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metJet3Res"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metJet4Res"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metJet5Res"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
 
 
 //  int maxNjets = 8;
 //  for (int i=0; i<maxNjets; i++) {
 //    for (int j=0; j<i; j++) {
 //      string hname = "metJetSmeared_"+to_string(j)+"_"+to_string(i);
-//      hMap[hname+"_up"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-//      hMap[hname+"_dn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
+//      hMap[hname+"_up"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+//      hMap[hname+"_dn"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
 //    }
 //  }
 
   // met projections
-  hMap["metPar"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
-  hMap["metParUp"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
-  hMap["metParDn"] = TH1F("", ";#it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
+  hMap["metPar"] = TH1F("", ";#it{p}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
+  hMap["metParUp"] = TH1F("", ";#it{p}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
+  hMap["metParDn"] = TH1F("", ";#it{p}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
   hMap["metPer"] = TH1F("", ";#it{E}_{T}^{miss #perp  } (GeV)", 200, 0, 2000);
-  hMap["metRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss} (GeV)", 200, 0, 2000);
-  hMap["metParRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
+  hMap["metRaw"] = TH1F("", ";uncorrected #it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["metParRaw"] = TH1F("", ";uncorrected #it{p}_{T}^{miss} #parallel (GeV)", 400, -2000, 2000);
   hMap["metPerRaw"] = TH1F("", ";uncorrected #it{E}_{T}^{miss #perp  } (GeV)", 200, 0, 2000);
-  hMap["mt_g_met"] = TH1F("", ";m(#gamma,#it{E}_{T}^{miss}_{T}) (GeV)", 150, 0, 1500);
+  hMap["mt_g_met"] = TH1F("", ";m(#gamma,#it{p}_{T}^{miss}_{T}) (GeV)", 150, 0, 1500);
   hMap["metTimesPt"] = TH1F("", ";#vec{#it{E}}_{T}^{miss}#upoint #vec{#it{p}}_{T} (GeV^{2})", 400, -200000, 200000);
 
   hMap["metSig"] = TH1F("", ";#it{S}", 3000, 0, 3000);
@@ -298,11 +317,11 @@ map<string,TH1F> initHistograms() {
   hMap["j3_eta"] = TH1F("", ";|#eta^{3.jet}|", 150, 0, 3);
 
   // angles
-  hMap["dphi_met_g"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},#gamma)|", 70, 0, 3.5);
-  hMap["dphi_met_j1"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},1.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_j2"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},2.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_j3"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},3.jet)|", 70, 0, 3.5);
-  hMap["dphi_met_recoil"] = TH1F("", ";|#Delta#phi(#it{E}_{T}^{miss},#vec{#it{H}}_{T})|", 70, 0, 3.5);
+  hMap["dphi_met_g"] = TH1F("", ";|#Delta#phi(#it{p}_{T}^{miss},#gamma)|", 70, 0, 3.5);
+  hMap["dphi_met_j1"] = TH1F("", ";|#Delta#phi(#it{p}_{T}^{miss},1.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_j2"] = TH1F("", ";|#Delta#phi(#it{p}_{T}^{miss},2.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_j3"] = TH1F("", ";|#Delta#phi(#it{p}_{T}^{miss},3.jet)|", 70, 0, 3.5);
+  hMap["dphi_met_recoil"] = TH1F("", ";|#Delta#phi(#it{p}_{T}^{miss},#vec{#it{H}}_{T})|", 70, 0, 3.5);
   hMap["dphi_g_j1"] = TH1F("", ";|#Delta#phi(#gamma,1.jet)|", 70, 0, 3.5);
   hMap["dphi_g_j2"] = TH1F("", ";|#Delta#phi(#gamma,2.jet)|", 70, 0, 3.5);
 
@@ -543,17 +562,20 @@ void HistogramProducer::fillSelection(string const& s, float addWeight=1., bool 
 
 map<string,TH1F> initSignalHistograms(unsigned pdfWeightSize=0) {
   map<string,TH1F> hMap;
-  hMap["met"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
   for (unsigned i=0; i<pdfWeightSize; i++) {
     string hname = "met_weight_"+to_string(i);
-    hMap[hname] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+    hMap[hname] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
   }
-  hMap["met_puUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
-  hMap["met_puDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
-  hMap["met_jesUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
-  hMap["met_jesDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
-  hMap["met_jerUp"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
-  hMap["met_jerDn"] = TH1F("", ";#it{E}_{T}^{miss} (GeV)", 100, 0, 1000);
+  hMap["met_puUp"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met_puDn"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met_jesUp"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met_jesDn"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met_jerUp"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met_jerDn"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met_isr"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met_isrUp"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
+  hMap["met_isrDn"] = TH1F("", ";#it{p}_{T}^{miss} (GeV)", 200, 0, 2000);
 
   return hMap;
 }
@@ -581,6 +603,9 @@ void HistogramProducer::fillSignalSelection(const string& s, float addWeight=1.)
     m1->at("met_jerUp").Fill(met_JERu->p.Pt(), weight);
     m1->at("met_jerDn").Fill(met_JERd->p.Pt(), weight);
   }
+  m1->at("met_isr").Fill(_met, weight*isrReweighting(*nISR));
+  m1->at("met_isrUp").Fill(_met, weight*(isrReweighting(*nISR)+isrReweighting(*nISR, true)));
+  m1->at("met_isrDn").Fill(_met, weight*(isrReweighting(*nISR)-isrReweighting(*nISR, true)));
 }
 
 
@@ -605,6 +630,7 @@ HistogramProducer::HistogramProducer():
   pdf_weights(fReader, "pdf_weights"),
   genHt(fReader, "genHt"),
   nTruePV(fReader, "true_nPV"),
+  nISR(fReader, "nISR"),
   runNo(fReader, "runNo"),
   lumNo(fReader, "lumNo"),
   evtNo(fReader, "evtNo"),
@@ -758,28 +784,54 @@ Bool_t HistogramProducer::Process(Long64_t entry)
   for (auto& p : selPhotons) emht += p->p.Pt();
   for (auto& p : selJets) emht += p->p.Pt();
 
+  h1Maps.at("uncut").at("signal_cutFlow").Fill("initial", selW);
+  h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("initial", selW);
+  if (selPhotons.size()) h1Maps.at("uncut").at("signal_cutFlow").Fill("pt", selW);
+  if (selPhotons.size()) h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("pt", selW);
   if (selPhotons.size() && emht > 700 && (*hlt_photon90_ht600 || !isData)) {
+    h1Maps.at("uncut").at("signal_cutFlow").Fill("emht", selW);
+    h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("emht", selW);
     auto g = selPhotons.at(0);
     auto addWeight = getPhotonWeight(*g);
     auto dPhi = fabs(met->p.DeltaPhi(g->p));
     bool orthogonal = .3<dPhi && dPhi<2.84;
-    bool genE = fabs(genMatchNegativePrompt(*g, *genParticles)) == 11;
-    bool genE2 = genMatchWZDecay(*g, *intermediateGenParticles);
+    bool genE = genMatchToId(*g, *genParticles, 11);
     bool isGenEclean = isData || isSignal || !genE;
-
+    if (orthogonal) {
+      h1Maps.at("uncut").at("signal_cutFlow").Fill("dphi", selW);
+      auto metPt = met->p.Pt();
+      if (emht<2000) {
+        if (metPt>600) h1Maps.at("uncut").at("signal_cutFlow").Fill("emht1_met3", selW);
+        else if (metPt>450) h1Maps.at("uncut").at("signal_cutFlow").Fill("emht1_met2", selW);
+        else if (metPt>350) h1Maps.at("uncut").at("signal_cutFlow").Fill("emht1_met1", selW);
+      } else {
+        if (metPt>600) h1Maps.at("uncut").at("signal_cutFlow").Fill("emht2_met3", selW);
+        else if (metPt>450) h1Maps.at("uncut").at("signal_cutFlow").Fill("emht2_met2", selW);
+        else if (metPt>350) h1Maps.at("uncut").at("signal_cutFlow").Fill("emht2_met1", selW);
+      }
+    }
+    h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("dphi", selW);
+    auto metPt = met->p.Pt();
+    if (emht<2000) {
+      if (metPt>600) h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("emht1_met3", selW);
+      else if (metPt>450) h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("emht1_met2", selW);
+      else if (metPt>350) h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("emht1_met1", selW);
+    } else {
+      if (metPt>600) h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("emht2_met3", selW);
+      else if (metPt>450) h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("emht2_met2", selW);
+      else if (metPt>350) h1Maps.at("uncut").at("signal_cutFlow_incPhi").Fill("emht2_met1", selW);
+    }
     if (!cutPrompt && orthogonal && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT", addWeight);
     if (!cutPrompt && orthogonal && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT", addWeight);
 
     if (!cutPrompt && orthogonal && genE && emht<2000) fillSignalSelection("signal_lowEMHT_genE", addWeight);
     if (!cutPrompt && orthogonal && genE && 2000<emht) fillSignalSelection("signal_highEMHT_genE", addWeight);
 
-    if (!cutPrompt && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT2", addWeight);
-    if (!cutPrompt && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT2", addWeight);
+    if (!cutPrompt && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT_incPhi", addWeight);
+    if (!cutPrompt && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT_incPhi", addWeight);
 
-    if (!cutPrompt && genE && emht<2000) fillSignalSelection("signal_lowEMHT2_genE", addWeight);
-    if (!cutPrompt && genE && 2000<emht) fillSignalSelection("signal_highEMHT2_genE", addWeight);
-
-    if (g->p.Pt()>300 && met->p.Pt()>200) cout << *runNo << ":" << *lumNo << ":" << *evtNo << endl;
+    if (!cutPrompt && genE && emht<2000) fillSignalSelection("signal_lowEMHT_incPhi_genE", addWeight);
+    if (!cutPrompt && genE && 2000<emht) fillSignalSelection("signal_highEMHT_incPhi_genE", addWeight);
 
     fillSelection("tr", addWeight, true);
     if (genE) fillSelection("tr_genE", addWeight, true);
@@ -823,9 +875,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (!cutPrompt && orthogonal && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT_ee", addWeight);
     if (!cutPrompt && orthogonal && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT_ee", addWeight);
 
-    if (!cutPrompt && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT2_ee", addWeight);
-    if (!cutPrompt && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT2_ee", addWeight);
-
+    if (!cutPrompt && isGenEclean && emht<2000) fillSignalSelection("signal_lowEMHT_incPhi_ee", addWeight);
+    if (!cutPrompt && isGenEclean && 2000<emht) fillSignalSelection("signal_highEMHT_incPhi_ee", addWeight);
 
     fillSelection("tr_ee", addWeight);
   }
@@ -854,9 +905,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (!cutPrompt && orthogonal && emht<2000) fillSignalSelection("signal_lowEMHT_eControl", addWeight);
     if (!cutPrompt && orthogonal && 2000<emht) fillSignalSelection("signal_highEMHT_eControl", addWeight);
 
-    if (!cutPrompt && emht<2000) fillSignalSelection("signal_lowEMHT2_eControl", addWeight);
-    if (!cutPrompt && 2000<emht) fillSignalSelection("signal_highEMHT2_eControl", addWeight);
-
+    if (!cutPrompt && emht<2000) fillSignalSelection("signal_lowEMHT_incPhi_eControl", addWeight);
+    if (!cutPrompt && 2000<emht) fillSignalSelection("signal_highEMHT_incPhi_eControl", addWeight);
 
     fillSelection("tr_eControl", addWeight, true);
   }
@@ -886,9 +936,8 @@ Bool_t HistogramProducer::Process(Long64_t entry)
     if (!cutPrompt && orthogonal && emht<2000) fillSignalSelection("signal_lowEMHT_ee_eControl", addWeight);
     if (!cutPrompt && orthogonal && 2000<emht) fillSignalSelection("signal_highEMHT_ee_eControl", addWeight);
 
-    if (!cutPrompt && emht<2000) fillSignalSelection("signal_lowEMHT2_ee_eControl", addWeight);
-    if (!cutPrompt && 2000<emht) fillSignalSelection("signal_highEMHT2_ee_eControl", addWeight);
-
+    if (!cutPrompt && emht<2000) fillSignalSelection("signal_lowEMHT_incPhi_ee_eControl", addWeight);
+    if (!cutPrompt && 2000<emht) fillSignalSelection("signal_highEMHT_incPhi_ee_eControl", addWeight);
 
     fillSelection("tr_eControl_ee", addWeight);
   }
