@@ -310,10 +310,15 @@ def plotOverlayedPredictions(filename):
     aux.drawOpt(hdir, "data")
     m = multiplot.Multiplot()
     m.add(hdir, "Pseudo(Data)")
+    histsForRatio = []
+    colors = {"0.88": rwth.myBlue, "0.89": rwth.magenta, "0.9": rwth.lila, "0.91":rwth.mayGreen, "0.92": rwth.red, "0.93": rwth.orange}
+    selScales = ["0.88", "0.89", "0.9", "0.91"]
+    if "highEMHT" in filename: selScales = ["0.89", "0.9", "0.91", "0.92", "0.93"]
     for key in sorted([k for k in f.GetListOfKeys()]):
         name = key.GetName()
         if name == "dir": continue
         h = key.ReadObj()
+        if not isinstance(h, ROOT.TH1): continue
         h.GetXaxis().SetRangeUser(0,100)
         h.Scale(hdir.Integral()/h.Integral())
         h.SetLineColor(ROOT.kRed)
@@ -322,11 +327,20 @@ def plotOverlayedPredictions(filename):
             h.SetLineColor(ROOT.kBlue)
             h.SetMarkerColor(ROOT.kBlue)
             m.add(h, "Jet selection")
-        elif name == "1.1":
-            m.add(h, "Jet selection, shifted #it{E}_{T}^{miss}")
-        else:
-            m.add(h, "")
+        elif name in selScales:
+            h.SetLineColor(colors[name])
+            m.add(h, "Jet selection, shifted by "+name)
+            histsForRatio.append(h.Clone(aux.randomName()))
+        #elif name == "1.1":
+        #    m.add(h, "Jet selection, shifted #it{E}_{T}^{miss}")
+        #else:
+        #    m.add(h, "")
     m.Draw()
+    r = ratio.Ratio("Shift/Data", histsForRatio[0], hdir)
+    r.draw()
+    for h in histsForRatio[1:]:
+        h.Divide(hdir)
+        h.Draw("same")
     l = aux.Label(sim="data" not in filename)
     aux.save(filename.replace(".root","_overlay").replace("/","_"))
 
