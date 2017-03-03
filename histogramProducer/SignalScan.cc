@@ -60,6 +60,7 @@ class SignalScan : public TSelector {
   TTreeReaderValue<UInt_t> runNo;
   TTreeReaderValue<UInt_t> lumNo;
   TTreeReaderValue<Int_t> nTruePV;
+  TTreeReaderValue<Int_t> nISR;
 
   // signal scan
   TTreeReaderValue<UShort_t> signal_nBinos;
@@ -104,6 +105,7 @@ SignalScan::SignalScan():
 //  rho(fReader, "rho"),
 //  runNo(fReader, "runNo"),
   nTruePV(fReader, "true_nPV"),
+  nISR(fReader, "nISR"),
   signal_nBinos(fReader, "signal_nBinos"),
   signal_m1(fReader, "signal_m1"),
   signal_m2(fReader, "signal_m2"),
@@ -159,12 +161,11 @@ void SignalScan::fillSignalSelection(const string p, string const& s, float weig
   }
   auto m1 = &h1MapsMaps[p][s];
   auto _met = met->p.Pt();
-  unsigned nISRjets = genJets->size(); // TODO: correct
 
   m1->at("met").Fill(isSel?_met:-1, weight);
-  m1->at("met_isr").Fill(isSel?_met:-1, weight*isrReweighting(nISRjets));
-  m1->at("met_isrUp").Fill(isSel?_met:-1, weight*(isrReweighting(nISRjets)+isrReweighting(nISRjets, true)));
-  m1->at("met_isrDn").Fill(isSel?_met:-1, weight*(isrReweighting(nISRjets)-isrReweighting(nISRjets, true)));
+  m1->at("met_isr").Fill(isSel?_met:-1, weight*isrReweighting(*nISR));
+  m1->at("met_isrUp").Fill(isSel?_met:-1, weight*(isrReweighting(*nISR)+isrReweighting(*nISR, true)));
+  m1->at("met_isrDn").Fill(isSel?_met:-1, weight*(isrReweighting(*nISR)-isrReweighting(*nISR, true)));
   m1->at("metGen").Fill(isSel?metGen->p.Pt():-1, weight);
   m1->at("met_nopu").Fill(isSel?_met:-1, weight/ *pu_weight);
   if (*nTruePV>=20) m1->at("met_nopuUp").Fill(isSel?_met:-1, weight/ *pu_weight);
