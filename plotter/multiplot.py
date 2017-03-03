@@ -115,3 +115,6 @@ class Multiplot:
         self.leg.Draw()
 
         return True
+
+    def draw(self): # simple alias
+        self.Draw()
