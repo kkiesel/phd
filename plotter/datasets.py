@@ -267,10 +267,14 @@ t5wg_1600_1500 = Dataset("SMS-T5Wg_1600_1500", 0.00810078, ROOT.kRed+4, "")
 t5wg_1600_1500.label = "T5Wg 1600 1500"
 t5wg_2000_100 = Dataset("SMS-T5Wg_2000_100", 0.000981077, ROOT.kRed+4, "")
 t5wg_2000_100.label = "T5Wg 2000 100"
+t5wg_1750_1700 = Dataset("SMS-T5Wg_1750_1700", 0.00359842, ROOT.kRed+4, "")
+t5wg_1750_1700 = Dataset("SMS-T5Wg_1750_1700", 0.00359842, ROOT.kRed+4, "")
+t5wg_1600_800 = Dataset("SMS-T5Wg_1600_800", 0.000981077, ROOT.kRed+4, "")
 
 t6gg_1750_1650 = Dataset("SMS-T6gg_1750_1650", 0.000646271, ROOT.kRed+4, "")
 t6gg_1750_1650.label = "T6gg 1750 1650"
-t5wg_1750_1700 = Dataset("SMS-T5Wg_1750_1700", 0.00359842, ROOT.kRed+4, "")
+t6gg_1300_600 = Dataset("SMS-T6gg_1300_600", 0.0086557, ROOT.kRed+4, "")
+t6gg_1100_600 = Dataset("SMS-T6gg_1100_600", 0.0313372, ROOT.kRed+4, "")
 
 import collections
 class SampleCollection(collections.MutableMapping):
