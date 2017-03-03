@@ -282,12 +282,12 @@ float smearedPtDataMC(const TVector3& p, const vector<tree::Particle>& genJets, 
   return newPt;
 }
 
-int genMatchNegativePrompt(const tree::Particle& p, const std::vector<tree::GenParticle>& particles) {
+int genMatchNegativePrompt(const tree::Particle& p, const std::vector<tree::GenParticle>& particles, float maxDr=.15, float maxDpt=.15) {
   for (auto const& genP : particles) {
     auto id = fabs(genP.pdgId);
     auto dr = p.p.DeltaR(genP.p);
     auto dpt = p.p.Pt()/genP.p.Pt();
-    if (dr < 0.15 && fabs(dpt-1) < 0.15) {
+    if (dr < maxDr && fabs(dpt-1) < maxDpt) {
       if (genP.isPrompt) return id;
       else return -id;
     }
@@ -306,6 +306,26 @@ int genMatchWZDecay(const tree::Particle& p, const std::vector<tree::Intermediat
     }
   }
   return 0;
+}
+
+bool genMatchToId(const tree::Particle& p, const std::vector<tree::GenParticle>& particles, unsigned pdgId, float maxDr=.15, float maxDpt=100) {
+  for (auto const& genP : particles) {
+    if (pdgId == fabs(genP.pdgId) && p.p.DeltaR(genP.p) < maxDr && fabs(p.p.Pt()/genP.p.Pt()-1)<maxDpt) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool genMatchToId(const tree::Particle& p, const std::vector<tree::IntermediateGenParticle>& particles, unsigned pdgId, float maxDr=.15, float maxDpt=100) {
+  for (auto const& genP : particles) {
+    for (auto const & d : genP.daughters) {
+      if (pdgId == fabs(d.pdgId) && p.p.DeltaR(d.p) < maxDr && fabs(p.p.Pt()/d.p.Pt()-1)<maxDpt) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 float topPtReweighting(std::vector<tree::GenParticle>& particles) {
