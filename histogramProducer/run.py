@@ -38,7 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--signal', action='store_true')
 
     args = parser.parse_args()
-    signalScans = ["SMS-T5Wg_nTuple.root", "SMS-T6Wg_nTuple.root", "SMS-T5Wg_mGo2150To2500_nTuple.root"]
+    signalScans = ["SMS-T5Wg_nTuple.root", "SMS-T6Wg_nTuple.root", "SMS-T5Wg_mGo2150To2500_nTuple.root", "SMS-T6Wg_mSq1850To2150_nTuple.root", "SMS-TChiWG_nTuple.root", "SMS-TChiNG_nTuple.root"]
     if os.path.basename(args.file) in signalScans or args.signal:
         run(args.file, "SignalScan.cc")
     else:
