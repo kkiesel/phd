@@ -225,11 +225,13 @@ Bool_t SignalScan::Process(Long64_t entry)
           cutFlowName += "T6Wg";
         } else if (inputName.find("TChiWG") != string::npos) {
           cutFlowName += "TChiWG";
+        } else if (inputName.find("TChiNG") != string::npos) {
+          cutFlowName += "TChiNG";
         } else {
           cout << "Could not find correct cutflowname for " << inputName << endl;
         }
         cutFlowName += "_"+to_string(*signal_m1);
-        cutFlowName += "_"+to_string(*signal_m2);
+        if (*signal_m2) cutFlowName += "_"+to_string(*signal_m2);
         TH1F* cutFlow = (TH1F*)fReader.GetTree()->GetCurrentFile()->Get(cutFlowName.c_str());
         if (cutFlow) {
           nGen = cutFlow->GetBinContent(2);
