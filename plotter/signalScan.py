@@ -4,7 +4,7 @@ from include import *
 import DatacardParser
 import multiprocessing
 import glob
-'''
+"""
 ###############################################################################
 # check consistency
 ###############################################################################
@@ -57,97 +57,21 @@ def checkConsistency(datacardFile, signalScan, treeFile):
 ###############################################################################
 # end check consistency
 ###############################################################################
+"""
 
-def scaleObsWithXsec(gr2d):
-    out = gr2d.Clone(aux.randomName())
-    points = [ (gr2d.GetX()[i], gr2d.GetY()[i], gr2d.GetZ()[i]) for i in range(gr2d.GetN()) ]
-    for ip, (x,y,z) in enumerate(points):
-        xsec = aux.getXsecSMSglu(x)
-        out.SetPoint(ip, x, y, z*xsec)
-    return out
-
-def getLimit2dHist(inputSignal):
-    f = ROOT.TFile(inputSignal)
-    dirs = [k.GetName() for k in f.GetListOfKeys() if "Tree" not in k.GetName()]
-    xValues = set()
-    yValues = set()
-    for d in dirs:
-        c, m1, m2 = getPointFromDir(d)
-        xValues.add(m1)
-        yValues.add(m2)
-    xValues = sorted(xValues)
-    yValues = sorted(yValues)
-    print xValues
-    print yValues
-
-def recalculateLimits(outputDir):
-    for filename in sorted(glob.glob(outputDir+"/*txt")):
-        l = limitTools.Limit(filename)
-        l.getInfo()
-        if l.error: print filename, l.rMinNLL, l.error
-
-
-
-
-def signalScan(dirName, combi, inputData, inputSignal):
-    outputDir = "limitCalculations/"+dirName
-    scanName = getScanName(inputSignal, combi)
-    if not os.path.isdir(outputDir): os.mkdir(outputDir)
-    if "T5" in inputSignal:
-        xsecFile = "data/xSec_SMS_Gluino_13TeV.pkl"
-    elif "T6" in inputSignal:
-        xsecFile = "data/xSec_SMS_Squark_13TeV.pkl"
-    elif "TChiWG" in inputSignal:
-        xsecFile = "data/xSec_SMS_N2C1_13TeV.pkl"
-    else:
-        print "Do not know if squark or gluino scan"
+def checkUpToDateInputSignal(inputSignal):
+    t1 = os.path.getmtime(inputSignal)
+    toCheck = []
+    if "T5" in inputSignal: toCheck = ["SMS-T5Wg_signalScan.root", "SMS-T5Wg_mGo2150To2500_signalScan.root"]
+    if "T6" in inputSignal: toCheck = ["SMS-T6Wg_signalScan.root", "SMS-T6Wg_mSq1850To2150_signalScan.root"]
+    tCheck = max([0]+[os.path.getmtime(os.path.join(os.path.dirname(inputSignal),x)) for x in toCheck])
+    if tCheck:
+        if tCheck>t1: print "please rerun hadd"
+    elif "TChi" in inputSignal:
         return
-    #writeDataCards(outputDir, inputData, inputSignal, combi, xsecFile)
-    #callMultiCombine(outputDir, combi)
-    if "TChiWG" in inputSignal: proceedWithWeakScan(outputDir, scanName, xsecFile)
-    #build2dGraphs(outputDir, combi)
-    #graphs = readDict(outputDir+"/Graphs2d.root")
-    #toDraw = dict( [(name,limitTools.getContour(gr)) for name,gr in graphs.iteritems() ] )
-    #toDraw.update(getObsUncertainty(graphs["obs"], xsecFile))
-    #toDraw["obs_hist"] = getXsecLimitHistDelaunay(graphs["obs"])
-    #toDraw["obs_hist"] = getXsecLimitHist( graphs["obs"], getHistForModel(scanName), xsecFile )
-    #interpolateAlongY(toDraw["obs_hist"])
-    #writeDict(toDraw, outputDir+"/Graphs1d.root")
+    else:
+        print "please add files"
 
-    writeSMSLimitConfig(outputDir+"/Graphs1d.root", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName)
-    subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName, "plots/%s_limits_"%scanName])
-
-def significanceScan(dirName):
-    gr = ROOT.TGraph2D()
-    for ipoint, f in enumerate(glob.glob("limitCalculations/{}/*.txt".format(dirName))):
-        out = limitTools.callCombineSignificance(f)
-        for line in out.split("\n"):
-            if line.startswith("Limit:"):
-                r = float(line.split()[3])
-        m = re.match(".*_(\d+)_(\d+).txt", f)
-        m1 = int(m.group(1))
-        m2 = int(m.group(2))
-        gr.SetPoint(ipoint, m1, m2, r)
-        print out, r
-
-
-#if __name__ == "__main__":
-    #checkConsistency("limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
-    #checkConsistency("testDatacard.txt", "../histogramProducer/SMS-T5Wg_signalScan.root", "../histogramProducer/SMS-T5Wg_1600_100_hists.root")
-
-    #signalScan("T5Wg_v7", "Wg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("T5gg_v7", "gg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("T6Wg_v7", "Wg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
-    #signalScan("T6gg_v7", "gg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
-    #signalScan("TChiWg_v7", "Wg", "limitCalculations/observation_v4.txt", "../histogramProducer/SMS-TChiWG_signalScan.root")
-
-    #significanceScan("T6gg_v7")
-
-    #getLimit2dHist("../histogramProducer/SMS-T6Wg_signalScan.root")
-    #getLimit2dHist("../histogramProducer/SMS-T5Wg_signalScan.root")
-
-###############################################################################
-'''
 def proceedWithWeakScan(outputDir, scanName, xsecFile):
     scanRes = {}
     for fname in glob.glob("{}/*.txt.limit".format(outputDir)):
@@ -194,8 +118,13 @@ def proceedWithWeakScan(outputDir, scanName, xsecFile):
     exp1sigma.SetLineStyle(2)
     exp1sigma.SetLineWidth(2)
 
+    lsp_ = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{}}#scale[0.85]{_{1}}"
+    lsp_0 = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{^{0}}}#kern[-1.3]{#scale[0.85]{_{1}}}"
+    lsp_pm = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{^{#pm}}}#kern[-1.3]{#scale[0.85]{_{1}}}"
+
+    scanParticle = lsp_0 if "NG" in scanName else lsp_
     exp2sigma.SetMaximum(2)
-    exp2sigma.SetTitle(";m_{#tilde{#chi}_{1}} (GeV);95% CL cross section upper limit (pb)")
+    exp2sigma.SetTitle(";m_{{{}}} (GeV);95% CL cross section upper limit (pb)".format(scanParticle))
     exp2sigma.GetXaxis().SetLimits(300,1300)
 
     # draw
@@ -240,13 +169,17 @@ def proceedWithWeakScan(outputDir, scanName, xsecFile):
     leg4.AddEntry(xsecGrUp, "", "l")
     leg4.Draw()
 
-    lsp_s1 = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{^{0}}}#kern[-1.3]{#scale[0.85]{_{1}}}"
-    lsp_s2 = "#lower[-0.12]{#tilde{#chi}}#lower[0.2]{#scale[0.85]{^{#pm}}}#kern[-1.3]{#scale[0.85]{_{1}}}"
-
-    aux.Label(info="pp#rightarrow%s(#tilde{G}#gamma)%s(#tilde{G}W^{#pm})"%(lsp_s1,lsp_s2))
+    t = ROOT.TLatex()
+    if "WG" in scanName:
+        info = "pp#rightarrow%s(#tilde{G}#gamma) %s(#tilde{G}W^{#pm})"%(lsp_0,lsp_pm)
+        t.DrawLatexNDC(.18,.18, info)
+    if "NG" in scanName:
+        t.DrawLatexNDC(.18,.3, "pp#rightarrow{1}{1}/{1}{0}".format(lsp_0,lsp_pm))
+        t.DrawLatexNDC(.18,.25, "{}#rightarrow{}+soft".format(lsp_pm,lsp_0))
+        t.DrawLatexNDC(.18,.18, "{0}(#tilde{{G}}#gamma) {0}(#tilde{{G}}H/Z)".format(lsp_0))
+    aux.Label()
     ROOT.gPad.SetLogy()
-    aux.save("TChiWG_limit", log=False)
-    exit()
+    aux.save("{}_limit".format(scanName), log=False)
 
 def getPointFromDir(name):
     m = re.match("(.*)_(.*)_(.*)", name)
@@ -276,7 +209,7 @@ HISTOGRAM {0} obs_hist
 EXPECTED {0} exp exp1up exp1dn kRed kOrange
 OBSERVED {0} obs obs1up obs1dn kBlack kGray
 PRELIMINARY
-LUMI {1:.2f}
+LUMI {1:.1f}
 ENERGY 13
 """.format(infile,aux.intLumi/1e3)
     #t2 = "OBSERVED ../../master/singlePhoton/PlotsSMS/config/SUS14004/2015-01-09-limits/SMS_T5wg/ROOT/SMS_T5wg_gluino_chi1_Exclusion_witXsecLimit.root Expected_limit Expected_limit_up Expected_limit_dn kBlack kGray"
@@ -289,6 +222,7 @@ def getXsecFile(name):
     if "T5" in name: xsecFile = "data/xSec_SMS_Gluino_13TeV.pkl"
     elif "T6" in name: xsecFile = "data/xSec_SMS_Squark_13TeV.pkl"
     elif "TChiWG" in name: xsecFile = "data/xSec_SMS_N2C1_13TeV.pkl"
+    elif "TChiNG" in name: xsecFile = "data/xSec_SMS_TChiNG_13TeV.pkl"
     else: print "Do not know which cross section belongs to", name
     return xsecFile
 
@@ -459,6 +393,7 @@ def latexScanName(scanName):
     return scanName
 
 def drawSignalScanHist(h, scanName, saveName):
+    smsScan = sms.sms(scanName)
     style.style2d()
     h.SetTitle("")
     if "T5" in scanName: h.GetXaxis().SetTitle("m_{#tilde{g}} (GeV)")
@@ -467,9 +402,12 @@ def drawSignalScanHist(h, scanName, saveName):
     if "Wg" in scanName: h.GetYaxis().SetTitle("m_{#tilde{#chi}^{0/#pm}_{1}} (GeV)")
     hname = h.GetName()
     if hname == "significance":
-        h.SetMinimum(-2)
-        h.SetMaximum(2)
-        style.setPaletteRWB()
+        h.SetMinimum(-3)
+        h.SetMaximum(3)
+        style.setPaletteBWR()
+        #ROOT.gStyle.SetPalette(ROOT.kTemperatureMap)
+        h.GetXaxis().SetRangeUser(smsScan.Xmin,smsScan.Xmax)
+        h.GetZaxis().SetNdivisions(6,0,0)
         h.GetZaxis().SetTitle("Significance (s.d.)")
     elif hname == "xsec":
         h.Scale(1000)
@@ -489,7 +427,8 @@ def drawSignalScanHist(h, scanName, saveName):
 
     c = ROOT.TCanvas()
     h.Draw("colz")
-    aux.Label2D(info="#scale[.76]{{{}}}".format(latexScanName(scanName)))
+    aux.drawDiagonal(h, smsScan.Xmin)
+    aux.Label2D(info="#scale[.76]{{{}}}".format(latexScanName(scanName)), status="Preliminary")
     aux.save("{}_{}".format(scanName,saveName))
     style.defaultStyle()
 
@@ -583,9 +522,11 @@ def getXsecLimitHist( gr2d, h, xsecFile ):
 
 def getHistForModel( model ):
     h = ROOT.TH2F()
-    if "T5" in model: h = ROOT.TH2F("","", 35, 775, 2525, 500, 0, 2500)
-    elif "T6" in model: h = ROOT.TH2F("","", 17, 975, 1825, 210, 0, 2100)
+    if "T5" in model: h = ROOT.TH2F("", "", 35, 775, 2525, 500, 0, 2500)
+    elif "T6" in model: h = ROOT.TH2F("", "", 24, 975, 2175, 220, 0, 2200)
     else: print "Not specified model", model
+    smsScan = sms.sms(model)
+    h.SetTitle("{};{};{};95% CL upper limit on cross section (fb)".format(model, smsScan.sParticle, smsScan.LSP))
     h.SetMinimum(0)
     return h
 
@@ -594,9 +535,13 @@ def smoothContour(gr, neighbors=5, sigma=.5):
     fgaus.SetParameters(1,0,1)
     weights = [fgaus.Eval(i*sigma) for i in range(neighbors)]
     out = gr.Clone(aux.randomName())
+    out.Set(0)
     n = gr.GetN()
     Xs = [gr.GetX()[i] for i in range(n)]
     Ys = [gr.GetY()[i] for i in range(n)]
+    n = Ys.index(max(Ys))+1
+    Xs = Xs[0:n]
+    Ys = Ys[0:n]
     for i, (x, y) in enumerate(zip(Xs,Ys)):
         pNeigh = min(neighbors, i+1, n-i)
         newX, ws, newY = 0, 0, 0
@@ -626,10 +571,14 @@ def drawSignificance(outputDir, scanName):
     graphs = readDict(outputDir+"/saved_graphs2d_significance.root")
     h = graphs["significance"].GetHistogram()
     h.SetName("significance")
+    smsScan = sms.sms(scanName)
+    h.SetTitle("{};{};{};Significance (s.d.)".format(scanName, smsScan.sParticle, smsScan.LSP))
     interpolateHoles(h)
+    writeDict({"significance":h}, outputDir+"/saved_graphs1d_significance.root")
     drawSignalScanHist(h, scanName, "significance")
 
 def signalScan(combi, version, inputData, inputSignal):
+    checkUpToDateInputSignal(inputSignal)
     scanName = getScanName(inputSignal, combi)
     outputDir = "limitCalculations/{}_{}".format(scanName, version)
     if not os.path.isdir(outputDir): os.mkdir(outputDir)
@@ -639,21 +588,25 @@ def signalScan(combi, version, inputData, inputSignal):
     #callMultiCombine(outputDir)
     #callMultiSignificance(outputDir)
     ##clearWrongCombineOutputs(outputDir)
-    if "TChiWG" in inputSignal: proceedWithWeakScan(outputDir, scanName, xsecFile)
+    if "TChi" in inputSignal: return proceedWithWeakScan(outputDir, scanName, xsecFile)
     #build2dGraphs(outputDir, xsecFile)
-    build1dGraphs(outputDir, xsecFile, scanName)
+    #build1dGraphs(outputDir, xsecFile, scanName)
     #drawSignificance(outputDir, scanName)
     writeSMSLimitConfig(outputDir+"/saved_graphs1d_limit.root", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName)
     subprocess.call(["python2", "smsPlotter/python/makeSMSplots.py", "smsPlotter/config/SUS16047/%s_SUS16047.cfg"%scanName, "plots/%s_limits_"%scanName])
 
 
 if __name__ == "__main__":
-    #signalScan("Wg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    #signalScan("gg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T5Wg_signalScan.root")
-    signalScan("Wg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
-    #signalScan("gg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T6Wg_signalScan.root")
+    signalScan("gg", "v11", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-T6Wg_signalScan_combined.root")
+    signalScan("Wg", "v11", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-T6Wg_signalScan_combined.root")
+    signalScan("gg", "v11", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-T5Wg_signalScan_combined.root")
+    signalScan("Wg", "v11", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-T5Wg_signalScan_combined.root")
 
-    #signalScan("Wg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T5Wg_mGo2150To2500_signalScan.root")
-    #signalScan("gg", "v9", "limitCalculations/observation_v6.txt", "../histogramProducer/SMS-T5Wg_mGo2150To2500_signalScan.root")
+    #signalScan("Wg", "v10", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-T5Wg_signalScan_combined.root")
+    #signalScan("gg", "v10", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-T5Wg_signalScan_combined.root")
+    #signalScan("Wg", "v10", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-T6Wg_signalScan_combined.root")
+    #signalScan("gg", "v10", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-T6Wg_signalScan_combined.root")
+    #signalScan("Wg", "v10", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-TChiNG_signalScan.root")
+    #signalScan("Wg", "v10", "limitCalculations/observation_v7.txt", "../histogramProducer/SMS-TChiWG_signalScan.root")
 
 
