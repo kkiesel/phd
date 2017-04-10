@@ -992,12 +992,18 @@ class Label:
 
     def __init__( self, drawAll=True, sim=False, status="Private Work", info="" ):
         saveStuff.append(self)
-        if sim:
-            self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}" )
+        if status == "Private Work":
+            if sim:
+                self.cms = ROOT.TLatex( 0.2, .895, "#scale[0.76]{#font[52]{Private Work Simulation}}" )
+            else:
+                self.pub = ROOT.TLatex( 0.2, .895, "#scale[0.76]{#font[52]{%s}}"%status )
         else:
-            self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}" )
-        self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status )
-        self.lum = ROOT.TLatex( .59, .95, "%.2f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
+            if sim:
+                self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}" )
+            else:
+                self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}" )
+            self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status )
+        self.lum = ROOT.TLatex( .62, .95, "%.1f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
         if info: self.info = ROOT.TLatex( .15, .95, info )
 
         if drawAll:
@@ -1006,11 +1012,12 @@ class Label:
 class Label2D(Label):
     def __init__(self, drawAll=True, sim=False, status="", info=""):
         saveStuff.append(self)
-        cmsText = "#font[61]{CMS}"
+        cmsText = ""
+        if status != "Private Work": cmsText += "#font[61]{CMS}"
         if sim: cmsText += " #scale[0.76]{#font[52]{Simulation}}"
         if status: cmsText += "#scale[0.76]{#font[52]{%s}}"%status
         self.cms = ROOT.TLatex(.15, .95, cmsText)
         if info: self.info = ROOT.TLatex(0.2, .895, info)
-        self.lum = ROOT.TLatex( .45, .95, "%.2f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
+        self.lum = ROOT.TLatex( .47, .95, "%.1f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
         if drawAll: self.draw()
 
