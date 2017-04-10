@@ -1783,7 +1783,7 @@ def printLatexResultTable(filename, pdfOut=True):
         print out
 
 def drawCovarinaceMatrix(filename):
-    h2 = aux.getFromFile(filename, "shapes_fit_b/overall_total_covar")
+    h2 = aux.getFromFile(filename, "shapes_prefit/overall_total_covar")
     h2.SetTitle("")
     h2.GetZaxis().SetTitle("Covariance between bins   ")
     h2.GetXaxis().SetBinLabel(1, "350-450")
@@ -1812,7 +1812,7 @@ def drawCovarinaceMatrix(filename):
     aux.Label2D(status="")
     aux.save("covariance")
 
-    totalBkg = aux.getFromFile(filename, "shapes_fit_b/total_background")
+    totalBkg = aux.getFromFile(filename, "shapes_prefit/total_background")
     bkgUnc = [totalBkg.GetBinError(bin) for bin in aux.loopH(totalBkg)]
     for xbin, ybin in aux.loopH(h2):
         xe = bkgUnc[xbin]
