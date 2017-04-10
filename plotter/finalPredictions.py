@@ -309,10 +309,12 @@ def plotOverlayedPredictions(filename):
     hdir.GetXaxis().SetRangeUser(0,100)
     aux.drawOpt(hdir, "data")
     m = multiplot.Multiplot()
-    m.add(hdir, "Pseudo(Data)")
+    isData = "data" in filename or "_final_" in filename
+    if isData: m.add(hdir, "Data")
+    else: m.add(hdir, "Direct simulation")
     histsForRatio = []
     colors = {"0.88": rwth.myBlue, "0.89": rwth.magenta, "0.9": rwth.lila, "0.91":rwth.mayGreen, "0.92": rwth.red, "0.93": rwth.orange}
-    selScales = ["0.88", "0.89", "0.9", "0.91"]
+    selScales = ["0.89", "0.9", "0.91", "0.92"]
     if "highEMHT" in filename: selScales = ["0.89", "0.9", "0.91", "0.92", "0.93"]
     for key in sorted([k for k in f.GetListOfKeys()]):
         name = key.GetName()
@@ -328,8 +330,9 @@ def plotOverlayedPredictions(filename):
             h.SetMarkerColor(ROOT.kBlue)
             m.add(h, "Jet selection")
         elif name in selScales:
-            h.SetLineColor(colors[name])
-            m.add(h, "Jet selection, shifted by "+name)
+            ROOT.gStyle.SetPalette(ROOT.kRainBow)
+            h.SetLineColor(aux.getPaletteColor(1.*(len(selScales)-selScales.index(name))/len(selScales)))
+            m.add(h, "Jet selection, scaled by "+name)
             histsForRatio.append(h.Clone(aux.randomName()))
         #elif name == "1.1":
         #    m.add(h, "Jet selection, shifted #it{E}_{T}^{miss}")
@@ -341,7 +344,7 @@ def plotOverlayedPredictions(filename):
     for h in histsForRatio[1:]:
         h.Divide(hdir)
         h.Draw("same")
-    l = aux.Label(sim="data" not in filename)
+    l = aux.Label(sim=not isData)
     aux.save(filename.replace(".root","_overlay").replace("/","_"))
 
 def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", saveName=""):
@@ -366,6 +369,8 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     else:
         print "Calculating new", saveNameRoot
         scales = [.75+.01*i for i in range(35)]
+        if "chi2plot" in saveName:
+            scales = [.903+0.0005*i for i in range(20)]
         preHists = {}
         for iscale, scale in enumerate(scales):
             preHist = aux.createHistoFromDatasetTree(preSet, "{}*{}".format(variable,scale), weight, nBins, "tr_jControl/simpleTree")
@@ -414,7 +419,7 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
     gr2 = ROOT.TGraph()
     for iNew,iOld in enumerate(range(max(0,minIndex-sidePoints),min(gr.GetN(),minIndex+sidePoints+1))):
         gr2.SetPoint(iNew, points[iOld][1], points[iOld][2])
-    if not "ee_highEMHT" in saveName:
+    if not "ee_highEMHT" in saveName and not "chi2plot" in saveName:
         gr = gr2
 
     gr.SetTitle(";Scale;#chi^{2}")
@@ -436,8 +441,13 @@ def gjetPrediction(dirHist, preSet, subSet, variable, nBins, weight="weight", sa
 
     errFunc.Draw("FC same")
     text = ROOT.TLatex()
-    text.DrawLatexNDC(.3, .7, "Scale={:.2f}#pm{:.2f}#pm{:.2f}".format(fitScale,fitErr,abs(1-fitScale)))
+    text.SetTextSize(text.GetTextSize()*0.8)
+    text.DrawLatexNDC(.2, .7, "Best scale = {:.3f} #pm {:.3f} (stat.) #pm {:.3f} (syst.)".format(fitScale,fitErr,abs(1-fitScale)))
     text.DrawLatexNDC(.3, .6, "#chi^{{2}}/NDF={:.1f}/{}".format(chi2AtMin, maxBin-1))
+    leg = ROOT.TLegend(.56,.82,.94,.92)
+    leg.SetFillStyle(0)
+    leg.AddEntry(errFunc, "Statistical uncertainty", "f")
+    leg.Draw()
     aux.Label()
     aux.save(saveName+"_fit", "savedFitPredictions/",log=False)
 
@@ -669,14 +679,15 @@ def onlyPositiveContents(h):
 def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, preDirElectron):
     style.divideByBinWidth = True
 
-    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
-    if name == "electronClosure_highEMHT" or name == "electronClosure_highEMHT_w": nBins = [0,50, 150, 250, 450, 700]
+    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 800]
     if name == "electronClosure_lowEMHT_tt": nBins = range(0,180,10)+[180, 200, 250, 300, 350, 450, 600, 700]
+    if name == "electronClosure_highEMHT": nBins = [0, 50, 100, 150, 200, 250, 300, 350, 450, 600, 800]
     if "_fineBinned" in name: nBins = range(0,200,10)+[200, 250, 300, 350, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 990, 1000]
     if "_rebinned1" in name: nBins = range(0,100,10)+[100, 150, 200, 250, 300, 350, 450, 600, 700]
 
     # direct stuff
-    if "electronClosure_highEMHT" == name or "qcdClosure_highEMHT_highHtMC" == name: style.additionalPoissonUncertainty = True
+    #if "electronClosure_highEMHT" == name or "qcdClosure_highEMHT_highHtMC" == name: style.additionalPoissonUncertainty = True
+    if "qcdClosure_highEMHT_highHtMC" == name: style.additionalPoissonUncertainty = True
     dirHist = aux.stdHist(dirSet, dirDir+"/met", nBins)
     style.additionalPoissonUncertainty = False
     aux.drawOpt(dirHist, "data")
@@ -738,11 +749,13 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
 
         signal1 = aux.stdHist(t5wg_1600_100, dirDir+"/met", nBins)
         signal2 = aux.stdHist(t6gg_1750_1650, dirDir+"/met", nBins)
+        #signal2 = aux.stdHist(tchiwg_700, dirDir+"/met", nBins)
         for h in signal1, signal2:
             aux.drawOpt(h, "signal")
             h.Add(totStat)
         signal1.SetLineColor(ROOT.kMagenta+2)
         signal2.SetLineColor(ROOT.kMagenta)
+        signal2.SetLineStyle(2)
 
         signal1_pre = aux.createHistoFromDatasetTree(t5wg_1600_100, "met*{}".format(info["shift"]), weight, nBins, "tr_jControl/simpleTree")
         signal1_pre.Scale(info["scale"])
@@ -759,25 +772,27 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
 
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
-    if "Closure" not in name:
+    if dirSet == data:
         m.add(dirHist, "Data")
+    else:
+        m.add(dirHist, "Direct simulation")
+    if "Closure" not in name:
 #        m.add(signal1_pre, "contamination")
         m.add(signal1, "T5Wg 1600 100")
         m.add(signal2, "T6gg 1750 1650")
+        #m.add(signal2, "TChiWG 700")
         m.addStack(eHist, "e#rightarrow#gamma")
         m.addStack(zgHist, "#gammaZ")
         m.addStack(tgHist, "#gammat#bar{t}")
         m.addStack(wgHist, "#gammaW")
         m.addStack(gjetHist, "Non-genuine #it{p}_{T}^{miss}")
     if "electronClosure" in name:
-        m.add(dirHist, "Direct simulation")
         m.addStack(eHist, "e#rightarrow#gamma prediction")
     if "qcdClosure" in name:
-        m.add(dirHist, "Direct simulation")
         m.addStack(gjetHist, "Non-genuine #it{p}_{T}^{miss} prediction")
 
     m.add(totUnc, "Total uncertainty")
-    m.maximum = 2*m.getMaximum()
+    m.maximum = 2.6*m.getMaximum()
     m.minimum = m.getMinimum()
     if "ee_lowEMHT" in name: m.minimum = 1e-2
     if "ee_highEMHT" in name: m.minimum = 1e-3
@@ -809,19 +824,18 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
 
     if "Closure" in name:
         r = ratio.Ratio("Ratio", dirHist, totStat, totSyst)
-        r.draw(0., 2, None, True)
-    elif "final_highEMHT" in name:
-        r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
-        r.draw(0., 3.6, m.getStack(), True)
-    elif "final_lowEMHT" in name:
-        r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
-        r.draw(0., 1.6, m.getStack(), True)
+        rMax = 2
+        if name=="electronClosure_lowEMHT": rMax = 2.7
+        r.draw(0., rMax, None, True)
     else:
-        r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
-        r.draw(0., 1.5, m.getStack(), True)
+        r = ratio.Ratio("#lower[.24]{#splitline{Data/Predict.}{Bkg. fractions}}", dirHist, totStat, totSyst)
+        rMax = 1.5
+        if name == "ee_highEMHT": rMax = 1.8
+        if name == "final_lowEMHT": rMax = 1.6
+        if name == "final_highEMHT": rMax = 3.6
+        r.draw(0., rMax, m.getStack(), True)
 
-    aux.Label(sim= not dirSet==data, status="")
-    #aux.Label(sim= not dirSet==data, status="", info=dirSet.label)
+    aux.Label(sim= not dirSet==data, status="" if "allMC" not in name else "Private Work")
     aux.save(name, normal=False, changeMinMax=False)
 
     if name == "final_lowEMHT": dc = limitTools.MyDatacard()
@@ -1087,26 +1101,29 @@ if __name__ == "__main__":
     #finalDistribution1dHist("tr_central/met", data, dataHt)
     #finalDistribution1dHist("tr_EB_forward/met", data, dataHt)
 
+    ewk_highestHT = wjets1200+wjets2500+ttjets600+ttjets800+ttjets1200+ttjets2500
     gqcd_highestHT = gjets600dr+qcd2000
     gqcd_highestHT.label = "(#gamma)+jet"
-    #finalDistributionSignalHist("qcdClosure_lowEMHT_fineBinned", gqcd, "signal_lowEMHT", gqcd, None, None)
+    allMc = gqcd+ttjets_ht+ttg+wjets+wg+zg+znunu
+    #finalDistributionSignalHist("allMC_lowEMHT", allMc, "signal_lowEMHT", allMc, allMc, "signal_lowEMHT_eControl")
+    #finalDistributionSignalHist("allMC_highEMHT", allMc, "signal_highEMHT", allMc, allMc, "signal_highEMHT_eControl")
+    #finalDistributionSignalHist("allMC_ee_lowEMHT", allMc, "signal_lowEMHT_ee", allMc, allMc, "signal_lowEMHT_ee_eControl")
+    #finalDistributionSignalHist("allMC_ee_highEMHT", allMc, "signal_highEMHT_ee", allMc, allMc, "signal_highEMHT_ee_eControl")
     #finalDistributionSignalHist("qcdClosure_highEMHT_fineBinned", gqcd, "signal_highEMHT", gqcd, None, None)
     #finalDistributionSignalHist("qcdClosure_lowEMHT", gqcd, "signal_lowEMHT", gqcd, None, None)
     #finalDistributionSignalHist("qcdClosure_highEMHT", gqcd, "signal_highEMHT", gqcd, None, None)
     #finalDistributionSignalHist("qcdClosure_highEMHT_highHtMC", gqcd_highestHT, "signal_highEMHT", gqcd, None, None)
+    #finalDistributionSignalHist("qcdClosure_highEMHT_highHtMC_Both", gqcd_highestHT, "signal_highEMHT", gqcd_highestHT, None, None)
     #finalDistributionSignalHist("electronClosure_lowEMHT_tt", ttjets_ht, "signal_lowEMHT_genE", None, ttjets_ht, "signal_lowEMHT_eControl")
     #finalDistributionSignalHist("electronClosure_highEMHT_tt", ttjets_ht, "signal_highEMHT_genE", None, ttjets_ht, "signal_highEMHT_eControl")
     #finalDistributionSignalHist("electronClosure_lowEMHT_w", wjets, "signal_lowEMHT_genE", None, wjets, "signal_lowEMHT_eControl")
     #finalDistributionSignalHist("electronClosure_highEMHT_w", wjets, "signal_highEMHT_genE", None, wjets, "signal_highEMHT_eControl")
     #finalDistributionSignalHist("electronClosure_lowEMHT", ttjets_ht+wjets, "signal_lowEMHT_genE", None, ttjets_ht+wjets, "signal_lowEMHT_eControl")
-    #finalDistributionSignalHist("electronClosure_highEMHT", ttjets_ht+wjets, "signal_highEMHT_genE", None, ttjets_ht+wjets, "signal_highEMHT_eControl")
+    finalDistributionSignalHist("electronClosure_highEMHT", ewk_highestHT, "signal_highEMHT_genE", None, ewk_highestHT, "signal_highEMHT_eControl")
     #finalDistributionSignalHist("ee_lowEMHT", data, "signal_lowEMHT_ee", dataHt, data, "signal_lowEMHT_ee_eControl")
     #finalDistributionSignalHist("ee_highEMHT", data, "signal_highEMHT_ee", dataHt, data, "signal_highEMHT_ee_eControl")
     #finalDistributionSignalHist("ee_highEMHT_rebinned1", data, "signal_highEMHT_ee", dataHt, data, "signal_highEMHT_ee_eControl")
-    finalDistributionSignalHist("final_lowEMHT", data, "signal_lowEMHT", dataHt, data, "signal_lowEMHT_eControl")
+    #finalDistributionSignalHist("final_lowEMHT", data, "signal_lowEMHT", dataHt, data, "signal_lowEMHT_eControl")
     #finalDistributionSignalHist("final_highEMHT", data, "signal_highEMHT", dataHt, data, "signal_highEMHT_eControl")
-    #finalDistributionSignalHist("final_lowEMHT_reMini", data_re, "signal_lowEMHT", dataHt_re, data, "signal_lowEMHT_eControl")
-    #finalDistributionSignalHist("final_highEMHT_reMini", data_re, "signal_highEMHT", dataHt_re, data, "signal_highEMHT_eControl")
-    #finalDistributionSignalHist("final_lowEMHT2_reMini", data_re, "signal_lowEMHT2", dataHt_re, data, "signal_lowEMHT2_eControl")
-    #finalDistributionSignalHist("final_highEMHT2_reMini", data_re, "signal_highEMHT2", dataHt_re, data, "signal_highEMHT2_eControl")
+    #finalDistributionSignalHist("final_lowEMHT_chi2plot", data, "signal_lowEMHT", dataHt, data, "signal_lowEMHT_eControl")
 
