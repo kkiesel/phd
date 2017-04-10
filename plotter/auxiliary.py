@@ -188,6 +188,10 @@ def getDirNames(filename):
 def inerate(axis):
     return range(axis.GetNbins()+2)
 
+def qa(l):
+    # quadratic addition
+    return math.sqrt(sum([i**2 for i in l]))
+
 def getBinning( axis ):
     binning = []
     for i in range(axis.GetNbins()+1):
