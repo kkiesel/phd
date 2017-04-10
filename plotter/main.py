@@ -1873,23 +1873,37 @@ def compareNTupleMain():
     #compareNTuples(f1, f2, "Sum$(jets.p.Pt())")
 
 def drawSignalCutFlow(dSet):
-    newLabels = ["Initial", "p_{T}", "EMH_{T}", "|#Delta#phi|"] + ["EMH_{{T}}{},p_{{T}}^{{miss}}{}".format(x+1,y+1) for x in range(2) for y in range(3)]
+    newLabels = ["Initial", "p_{T}", "EMH_{T}", "|#Delta#phi|"]
+    #newLabels += ["EMH_{{T}}{},p_{{T}}^{{miss}}{}".format(x+1,y+1) for x in range(2) for y in range(3)]
+    newLabels += [
+        "EMH_{T}<2000, 350<p_{T}^{miss}<450",
+        "EMH_{T}<2000, 450<p_{T}^{miss}<600",
+        "EMH_{T}<2000, 600<p_{T}^{miss}",
+        "EMH_{T}#geq2000, 350<p_{T}^{miss}<450",
+        "EMH_{T}#geq2000, 450<p_{T}^{miss}<600",
+        "EMH_{T}#geq2000, 600<p_{T}^{miss}",
+   ]
     h1 = dSet.getHist("uncut/signal_cutFlow")
     h2 = dSet.getHist("uncut/signal_cutFlow_incPhi")
     for h in h1, h2:
         for iL, l in enumerate(newLabels):
             h.GetXaxis().SetBinLabel(iL+1, l)
-        h.Scale(1./h.GetBinContent(1))
-        h.GetYaxis().SetTitle("Acceptance")
+        #h.Scale(1./h.GetBinContent(1))
+        #h.GetYaxis().SetTitle("Acceptance")
+        h.GetYaxis().SetTitle('Event yield for "{}" model'.format(dSet.label))
+        h.GetXaxis().LabelsOption("v")
     h1.SetLineColor(ROOT.kBlack)
     h2.SetLineColor(ROOT.kRed)
+    ROOT.gStyle.SetPadBottomMargin(0.4)
     c = ROOT.TCanvas()
     m = multiplot.Multiplot()
+    m.minimum = 0.1
+    m.maximum = 600
     m.add(h1)
-    m.add(h2)
+    #m.add(h2)
     m.draw()
-    l = aux.Label(info=dSet.label)
-    aux.save("signal_cutFlow_{}".format(dSet.names[0]), changeMinMax=False)
+    l = aux.Label(status="Preliminary")
+    aux.save("signal_cutFlow_{}".format(dSet.names[0]), changeMinMax=False, endings=[".pdf", ".root"])
 
 def main():
     pass
