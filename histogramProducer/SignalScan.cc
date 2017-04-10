@@ -205,51 +205,44 @@ Bool_t SignalScan::Process(Long64_t entry)
 {
   if (!(entry%int(2e6))) cout << 1.*entry / fReader.GetEntries(false) << endl;
   fReader.SetLocalEntry(entry);
-  auto pn = getSignalPointName(*signal_nBinos, *signal_m1, *signal_m2);
+  auto pn = getSignalPointName(1, *signal_m1, *signal_m2);
+  auto pnGG = getSignalPointName(2, *signal_m1, *signal_m2);
+  //auto pn = getSignalPointName(*signal_nBinos, *signal_m1, *signal_m2);
 
   if (!nEventMap.count(pn)) {
     unsigned int nGen = 0;
     string cutFlowName = "TreeWriter/hCutFlow";
     inputName = fReader.GetTree()->GetCurrentFile()->GetName();
     if (inputName.find("1600_100") != string::npos) { // testing one point for synchronization
-        TH1F* cutFlow = (TH1F*)fReader.GetTree()->GetCurrentFile()->Get(cutFlowName.c_str());
-        if (cutFlow) {
-           nGen = cutFlow->GetBinContent(2);
-        } else {
-            cout << "Could not read cut flow histogram" << endl;
-        }
+      TH1F* cutFlow = (TH1F*)fReader.GetTree()->GetCurrentFile()->Get(cutFlowName.c_str());
+      if (cutFlow) {
+        nGen = cutFlow->GetBinContent(2);
+      } else {
+        cout << "Could not read cut flow histogram" << endl;
+      }
     } else {
-        if (inputName.find("T5") != string::npos) {
-          cutFlowName += "T5Wg";
-        } else if (inputName.find("T6") != string::npos) {
-          cutFlowName += "T6Wg";
-        } else if (inputName.find("TChiWG") != string::npos) {
-          cutFlowName += "TChiWG";
-        } else if (inputName.find("TChiNG") != string::npos) {
-          cutFlowName += "TChiNG";
-        } else {
-          cout << "Could not find correct cutflowname for " << inputName << endl;
-        }
-        cutFlowName += "_"+to_string(*signal_m1);
-        if (*signal_m2) cutFlowName += "_"+to_string(*signal_m2);
-        TH1F* cutFlow = (TH1F*)fReader.GetTree()->GetCurrentFile()->Get(cutFlowName.c_str());
-        if (cutFlow) {
-          nGen = cutFlow->GetBinContent(2);
-        } else {
-          cout << "Could not read cutFlow histogram " << cutFlowName << endl;
-        }
-        if (inputName.find("T6") != string::npos or inputName.find("T5") != string::npos) {
-          switch (*signal_nBinos) {
-            case 0: nGen /= 4; break;
-            case 1: nGen /= 2; break;
-            case 2: nGen /= 4; break;
-            default: cout << "Do not know what to do with " << *signal_nBinos << " binos" << endl;
-          }
-        } else if(inputName.find("TChi") == string::npos) {
-          cout << "do stuff for other scans" << endl;
-        }
+      if (inputName.find("T5") != string::npos) {
+        cutFlowName += "T5Wg";
+      } else if (inputName.find("T6") != string::npos) {
+        cutFlowName += "T6Wg";
+      } else if (inputName.find("TChiWG") != string::npos) {
+        cutFlowName += "TChiWG";
+      } else if (inputName.find("TChiNG") != string::npos) {
+        cutFlowName += "TChiNG";
+      } else {
+        cout << "Could not find correct cutflowname for " << inputName << endl;
+      }
+      cutFlowName += "_"+to_string(*signal_m1);
+      if (*signal_m2) cutFlowName += "_"+to_string(*signal_m2);
+      TH1F* cutFlow = (TH1F*)fReader.GetTree()->GetCurrentFile()->Get(cutFlowName.c_str());
+      if (cutFlow) {
+        nGen = cutFlow->GetBinContent(2);
+      } else {
+        cout << "Could not read cutFlow histogram " << cutFlowName << endl;
+      }
     }
     nEventMap[pn] = nGen;
+    nEventMap[pnGG] = nGen/4;
   }
 
   if (unMatchedSuspiciousJet(*jets, *genJets)) {
@@ -287,7 +280,10 @@ Bool_t SignalScan::Process(Long64_t entry)
   bool passSelection = orthogonal && selPhotons.size() && emht>700;
   fillSignalSelection(pn, "signal_lowEMHT", selW, passSelection && emht<2000, !selPhotons.size() && emht>700 && emht<2000, 0.905, 0.001271);
   fillSignalSelection(pn, "signal_highEMHT", selW, passSelection && emht>=2000, !selPhotons.size() && emht>=2000, 0.85, 0.003678);
-
+  if (*signal_nBinos == 2) {
+    fillSignalSelection(pnGG, "signal_lowEMHT", selW, passSelection && emht<2000, !selPhotons.size() && emht>700 && emht<2000, 0.905, 0.001271);
+    fillSignalSelection(pnGG, "signal_highEMHT", selW, passSelection && emht>=2000, !selPhotons.size() && emht>=2000, 0.85, 0.003678);
+  }
   return kTRUE;
 }
 
