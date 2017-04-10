@@ -17,7 +17,7 @@ def infoFromOut(out):
         if line.startswith("Expected 50.0%: r < "): infos["exp"]    = float(line.split("<")[1])
         if line.startswith("Expected 84.0%: r < "): infos["exp1up"] = float(line.split("<")[1])
         if line.startswith("Expected 97.5%: r < "): infos["exp2up"] = float(line.split("<")[1])
-    if "rMinNLL" not in infos or infos["rMinNLL"] == 2:
+    if "rMinNLL" not in infos or infos["rMinNLL"] > 1.99999:
         infos = { "obs":0, "exp":0, "exp1up":0, "exp1dn":0, "exp2up":0, "exp2dn":0 }
     return infos
 
