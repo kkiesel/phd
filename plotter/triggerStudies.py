@@ -141,7 +141,7 @@ def efficiency(dataset, name, savename="", binning=None, binningName=""):
     saveLumi = aux.intLumi
     if "B-F" in dataset.label:
         aux.intLumi = 20.101e3 # brilcalc lumi -b "STABLE BEAMS" --normtag=/afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt --end 278808 # Up to run F
-    l = aux.Label(sim="Data" not in dataset.label, info=dataset.label)
+    l = aux.Label(sim="Data" not in dataset.label)
     aux.intLumi = saveLumi
     name = "_"+name.split("/")[-1]
     if binningName: binningName = "_"+binningName
@@ -173,22 +173,7 @@ def efficiencies(dataset, savename=""):
 def main():
     drawEfficiencyVsRun(dataHt)
     efficiencies(data, "singlePhoton")
-    #efficiencies(dataHt, "jetHt")
-    dataBG = Dataset("SinglePhoton_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
-        + Dataset("SinglePhoton_Run2016C-23Sep2016-v1", 0, ROOT.kBlack ) \
-        + Dataset("SinglePhoton_Run2016D-23Sep2016-v1", 0, ROOT.kBlack ) \
-        + Dataset("SinglePhoton_Run2016E-23Sep2016-v1", 0, ROOT.kBlack ) \
-        + Dataset("SinglePhoton_Run2016F-23Sep2016-v1", 0, ROOT.kBlack ) \
-        + Dataset("SinglePhoton_Run2016G-23Sep2016-v1", 0, ROOT.kBlack )
-    dataBG.label = "RunB-G"
-    dataHtBG = Dataset("JetHT_Run2016B-23Sep2016-v3", 0, ROOT.kBlack ) \
-        + Dataset("JetHT_Run2016C-23Sep2016-v1", 0, ROOT.kBlack ) \
-        + Dataset("JetHT_Run2016D-23Sep2016-v1", 0, ROOT.kBlack ) \
-        + Dataset("JetHT_Run2016E-23Sep2016-v1", 0, ROOT.kBlack ) \
-        + Dataset("JetHT_Run2016F-23Sep2016-v1", 0, ROOT.kBlack ) \
-        + Dataset("JetHT_Run2016G-23Sep2016-v1", 0, ROOT.kBlack )
-    #efficiencies(dataBG, "singlePhoton_BG")
-    #efficiencies(dataHtBG, "jetHt_BG")
+    efficiencies(dataHt, "jetHt")
 
 if __name__ == "__main__":
     main()
