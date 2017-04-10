@@ -29,3 +29,5 @@ import auxiliary as aux
 from datasets import *
 import limitTools
 
+sys.path.insert(0, 'smsPlotter/python')
+import sms
