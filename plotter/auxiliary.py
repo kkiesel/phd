@@ -624,6 +624,16 @@ def diagonalFlip( original ):
             flipped.SetBinError( ybin, xbin, original.GetBinError(xbin,ybin) )
     return flipped
 
+def drawDiagonal(h2, xmin=None):
+    if not xmin: xmin = h2.GetXaxis().GetXmin()
+    xmax = h2.GetXaxis().GetXmax()
+    ymin = h2.GetYaxis().GetXmin()
+    ymax = h2.GetYaxis().GetXmax()
+    l = ROOT.TLine()
+    l.SetLineColor(ROOT.kGray+2)
+    l.SetLineStyle(2)
+    l.DrawLine(max(xmin,ymin),max(xmin,ymin),min(xmax,ymax),min(xmax,ymax))
+
 def addHists(*histograms):
     out = histograms[0].Clone()
     for h in histograms[1:]:
