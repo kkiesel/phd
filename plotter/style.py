@@ -75,6 +75,15 @@ def setPaletteRWB():
     blue  = array('d', [0.0, 1.0, 1.0])
     ROOT.TColor.CreateGradientColorTable(len(steps), steps, red, green, blue, ROOT.gStyle.GetNumberContours())
 
+def setPaletteBWR():
+    # Sets the current palette to blue -> white -> red
+    from array import array
+    steps = array('d', [0.0, 0.5, 1.0])
+    red   = array('d', [0.0, 1.0, 1.0])
+    green = array('d', [0.0, 1.0, 0.0])
+    blue  = array('d', [1.0, 1.0, 0.0])
+    ROOT.TColor.CreateGradientColorTable(len(steps), steps, red, green, blue, ROOT.gStyle.GetNumberContours())
+
 defaultStyle()
 
 # not style, but similar
