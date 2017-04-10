@@ -146,6 +146,17 @@ if __name__ == "__main__":
     #sampleCompositionFromTree("gqcd_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
     #sampleCompositionFromTree("gqcd_ee_2000", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_ee", "met", "2000<emht", range(0,200,10)+[200, 300, 400, 500, 600])
     #sampleCompositionFromTree("gqcd", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr", "met", "1", range(0,200,10)+[200, 300, 400, 500, 600])
-    #sampleCompositionFromTree("gqcd_jControl", [gjets200, gjets400, gjets600, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl", "met", "1", range(0,200,10)+[200, 300, 400, 500, 600])
+    #sampleCompositionFromTree("gqcd_jControl", [gjets200dr, gjets400dr, gjets600dr, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl", "met", "emht>2000", range(0,200,10)+[200, 250, 300, 350, 450, 600, 700])
+    #sampleCompositionFromTree("gqcd_jControl", [gjets200dr, gjets400dr, gjets600dr, qcd500, qcd700, qcd1000, qcd1500, qcd2000], "tr_jControl", "met", "emht>2000", range(0,200,10)+[200, 250, 300, 350, 450, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500])
+
+    nBins = range(0,200,10)+[200, 250, 300, 350, 450, 600, 700]
+    style.divideByBinWidth = True
+    #drawSameHistogram("sampleComposition_qcdClosure_highEMHT", "signal_highEMHT/met", [qcd500, qcd700, qcd1000, qcd1500, qcd2000,gjets40dr, gjets100dr, gjets200dr, gjets400dr, gjets600dr], [], nBins, "")
+    #drawSameHistogram("sampleComposition_electronClosure_highEMHT", "signal_highEMHT/met", [wjets200, wjets400, wjets600, wjets800, wjets1200, wjets2500, ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], [], nBins, "")
+    #drawSameHistogram("sampleComposition_electronClosure_highEMHT", "signal_highEMHT/met", [wjets1200, wjets2500, ttjets0, ttjets600, ttjets800, ttjets1200, ttjets2500], [], nBins, "2")
+    #drawSameHistogram("sampleComposition_electronClosure_highEMHT", "signal_highEMHT/met", [wjets1200, wjets2500, ttjets600, ttjets800, ttjets1200, ttjets2500], [], nBins, "3")
+    #drawSameHistogram("sampleComposition_electronClosure_highEMHT", "signal_highEMHT/met", [wjets1200, wjets2500, ttjets800, ttjets1200, ttjets2500], [], nBins, "4")
+    #drawSameHistogram("qcd_wztjets", "tr_jControl/met", [qcd, wjets, ttjets_ht, znunu], [], nBins, "")
+    style.divideByBinWidth = False
 
 
