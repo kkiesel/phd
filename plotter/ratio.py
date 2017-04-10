@@ -144,5 +144,5 @@ class Ratio:
             oneLine = ROOT.TLine()
             oneLine.SetLineStyle(2)
             axis = self.ratio.GetXaxis()
-            oneLine.DrawLine( axis.GetXmin(), 1.0, axis.GetXmax(), 1.0 )
+            oneLine.DrawLine( axis.GetBinLowEdge(axis.GetFirst()), 1.0, axis.GetBinLowEdge(1+axis.GetLast()), 1.0 )
 
