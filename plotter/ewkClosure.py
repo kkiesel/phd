@@ -38,10 +38,11 @@ def ewkClosure(dataset, name, samplename, binning, binningName, dirDir="tr_genWZ
 
 def ewkClosures(datasetName, dataset):
     names = aux.getObjectNames( dataset.files[0], "tr_eControl", [ROOT.TH1F] )
-    names = ["met", "g_pt"]
+    #names = ["met", "g_pt"]
     for name in names:
         for binningName, binning in aux.getBinningsFromName( name ).iteritems():
             ewkClosure(dataset, name, datasetName, binning, binningName)
+            ewkClosure(dataset, name, datasetName, binning, binningName, dirDir="tr_genE")
             #ewkClosure(dataset, name, datasetName, binning, binningName, preDir="tr_eControl_etaWeighted")
             #ewkClosure(dataset, name, datasetName, binning, binningName, preDir="tr_eControl_ptWeighted")
             #ewkClosure(dataset, name, datasetName, binning, binningName, preDir="tr_eControl_ptFitWeighted")
