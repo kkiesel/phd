@@ -785,11 +785,11 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         m.addStack(zgHist, "#gammaZ")
         m.addStack(tgHist, "#gammat#bar{t}")
         m.addStack(wgHist, "#gammaW")
-        m.addStack(gjetHist, "Non-genuine #it{p}_{T}^{miss}")
+        m.addStack(gjetHist, "Nongenuine #it{p}_{T}^{miss}")
     if "electronClosure" in name:
         m.addStack(eHist, "e#rightarrow#gamma prediction")
     if "qcdClosure" in name:
-        m.addStack(gjetHist, "Non-genuine #it{p}_{T}^{miss} prediction")
+        m.addStack(gjetHist, "Nongenuine #it{p}_{T}^{miss} prediction")
 
     m.add(totUnc, "Total uncertainty")
     m.maximum = 2.6*m.getMaximum()
