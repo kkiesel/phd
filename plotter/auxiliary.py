@@ -994,15 +994,15 @@ class Label:
         saveStuff.append(self)
         if status == "Private Work":
             if sim:
-                self.cms = ROOT.TLatex( 0.2, .895, "#scale[0.76]{#font[52]{Private Work Simulation}}" )
+                self.cms = ROOT.TLatex( 0.2, .887, "#scale[0.76]{#font[52]{Private Work Simulation}}" )
             else:
-                self.pub = ROOT.TLatex( 0.2, .895, "#scale[0.76]{#font[52]{%s}}"%status )
+                self.pub = ROOT.TLatex( 0.2, .887, "#scale[0.76]{#font[52]{%s}}"%status )
         else:
             if sim:
-                self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}" )
+                self.cms = ROOT.TLatex( 0.2, .887, "#font[61]{CMS} #scale[0.76]{#font[52]{Simulation}}" )
             else:
-                self.cms = ROOT.TLatex( 0.2, .895, "#font[61]{CMS}" )
-            self.pub = ROOT.TLatex( 0.2, .865, "#scale[0.76]{#font[52]{%s}}"%status )
+                self.cms = ROOT.TLatex( 0.2, .887, "#font[61]{CMS}" )
+            self.pub = ROOT.TLatex( 0.2, .857, "#scale[0.76]{#font[52]{%s}}"%status )
         self.lum = ROOT.TLatex( .62, .95, "%.1f fb^{-1} (%s TeV)"%(intLumi/1000., self.cmsEnergy) )
         if info: self.info = ROOT.TLatex( .15, .95, info )
 
