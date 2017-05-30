@@ -795,13 +795,23 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     m.maximum = 2.6*m.getMaximum()
     m.minimum = m.getMinimum()
     if "ee_lowEMHT" in name: m.minimum = 1e-2
-    if "ee_highEMHT" in name: m.minimum = 1e-3
+    if "ee_highEMHT" in name: m.minimum = 5e-4
     if "final_lowEMHT" in name: m.minimum = 4e-2
     if "final_highEMHT" in name: m.minimum = 2e-3
     legInfo = "#it{EMH}_{T} < 2TeV" if "lowEMHT" in name else "2TeV < #it{EMH}_{T}"
     if "ee" in name: legInfo += ", EE"
     legInfo += ", |#Delta#phi|>0.3"
     m.leg.SetHeader(legInfo)
+    if "Closure" in name:
+        m.leg.SetX1(.51)
+        m.leg.SetX2(.93)
+    elif "lowEMHT" in name:
+        m.leg.SetX1(.51)
+        m.leg.SetY1(.56)
+    elif "final_highEMHT" in name:
+        m.leg.SetY1(.58)
+
+
     m.Draw()
 
     # draw other labels
