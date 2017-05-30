@@ -823,13 +823,13 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         text.SetTextSize(0.8*text.GetTextSize())
         l.DrawLine(100, 0, 100, totUnc.GetBinContent(totUnc.FindBin(100)))
         text.SetTextAngle(90)
-        text.DrawLatexNDC(.23,.33, "Normalization")
+        text.DrawLatexNDC(.23,.315, "Normalization")
         text.SetTextAngle(0)
-        text.DrawLatexNDC(.33,.33, "Validation")
+        text.DrawLatexNDC(.31,.315, "Validation")
         if "final" in name:
             l.DrawLine(350, 0, 350, totUnc.GetBinContent(totUnc.FindBin(350)))
-            if "lowEMHT" in name:  text.DrawLatexNDC(.58,.30, "#font[62]{#color[1]{Search regions}}")
-            if "highEMHT" in name: text.DrawLatexNDC(.58,.31, "#font[62]{#color[1]{Search regions}}")
+#            if "lowEMHT" in name:  text.DrawLatexNDC(.58,.30, "#font[62]{#color[1]{Search regions}}")
+#            if "highEMHT" in name: text.DrawLatexNDC(.58,.31, "#font[62]{#color[1]{Search regions}}")
             #text.DrawLatexNDC(.0,.0, "#color[0]{We are one planet}")
 
     if "Closure" in name:
