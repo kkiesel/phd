@@ -10,7 +10,7 @@ class Multiplot:
         self.minimum = None
         self.maximum = None
 
-        self.leg = ROOT.TLegend(.56,.59,.94,.92)
+        self.leg = ROOT.TLegend(.56,.59,.94,.915)
         self.leg.SetFillColor( ROOT.kWhite )
         self.leg.SetFillStyle(0)
 
