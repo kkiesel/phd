@@ -725,7 +725,7 @@ def drawOpt(h, style):
         h.SetLineColor(ROOT.kBlack)
         h.drawOption_ = "hist"
     elif style == "signal":
-        h.SetLineWidth(2)
+        h.SetLineWidth(3)
         h.drawOption_ = "hist"
     elif style == "statUnc":
         h.SetLineWidth(5)
