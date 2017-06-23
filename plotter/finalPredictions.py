@@ -794,7 +794,10 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     m.add(totUnc, "Total uncertainty")
     m.maximum = 2.6*m.getMaximum()
     m.minimum = m.getMinimum()
+    if "qcdClosure_lowEMHT" in name: m.minimum = 8e-3
+    if "qcdClosure_highEMHT" in name: m.minimum = 6e-3
     if "ee_lowEMHT" in name: m.minimum = 1e-2
+    if "ee_highEMHT" in name: m.maximum = 4.0*m.getMaximum()
     if "ee_highEMHT" in name: m.minimum = 5e-4
     if "final_lowEMHT" in name: m.minimum = 4e-2
     if "final_highEMHT" in name: m.minimum = 2e-3
