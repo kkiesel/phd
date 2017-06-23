@@ -752,7 +752,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         #signal2 = aux.stdHist(tchiwg_700, dirDir+"/met", nBins)
         for h in signal1, signal2:
             aux.drawOpt(h, "signal")
-            h.Add(totStat)
+        #    h.Add(totStat)
         signal1.SetLineColor(ROOT.kMagenta+2)
         signal2.SetLineColor(ROOT.kMagenta)
         signal2.SetLineStyle(2)
