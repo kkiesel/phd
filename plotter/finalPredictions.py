@@ -808,11 +808,17 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     if "Closure" in name:
         m.leg.SetX1(.51)
         m.leg.SetX2(.93)
-    elif "lowEMHT" in name:
-        m.leg.SetX1(.51)
+    else:
         m.leg.SetY1(.56)
-    elif "final_highEMHT" in name:
-        m.leg.SetY1(.58)
+        m.leg.SetX1(.56)
+        m.leg.SetX2(.99)
+
+
+    #elif "lowEMHT" in name:
+    #    m.leg.SetX1(.51)
+    #    m.leg.SetY1(.56)
+    #elif "final_highEMHT" in name:
+    #    m.leg.SetY1(.58)
 
 
     m.Draw()
@@ -828,7 +834,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
         text.SetTextAngle(90)
         text.DrawLatexNDC(.23,.315, "Normalization")
         text.SetTextAngle(0)
-        text.DrawLatexNDC(.31,.315, "Validation")
+        text.DrawLatexNDC(.311,.315, "Validation")
         if "final" in name:
             l.DrawLine(350, 0, 350, totUnc.GetBinContent(totUnc.FindBin(350)))
 #            if "lowEMHT" in name:  text.DrawLatexNDC(.58,.30, "#font[62]{#color[1]{Search regions}}")
