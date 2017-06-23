@@ -798,7 +798,7 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
     if "ee_highEMHT" in name: m.minimum = 5e-4
     if "final_lowEMHT" in name: m.minimum = 4e-2
     if "final_highEMHT" in name: m.minimum = 2e-3
-    legInfo = "#it{EMH}_{T} < 2TeV" if "lowEMHT" in name else "2TeV < #it{EMH}_{T}"
+    legInfo = "#it{H}_{T}^{#gamma} < 2TeV" if "lowEMHT" in name else "2TeV < #it{H}_{T}^{#gamma}"
     if "ee" in name: legInfo += ", EE"
     legInfo += ", |#Delta#phi|>0.3"
     m.leg.SetHeader(legInfo)
