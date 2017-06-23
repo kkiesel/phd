@@ -1922,7 +1922,9 @@ def main():
     #plotMcUncertainties(t5wg_1600_100, nBinsSR, "t5wg_1600_100")
 
     #printLatexResultTable("limitCalculations/observation_v6.txt", False)
-    printLatexResultTable("testDatacard.txt", False)
+    #printLatexResultTable("testDatacard.txt", False)
+    printLatexResultTable("limitCalculations/T5Wg_v11/Wg_1600_100.txt", False)
+    printLatexResultTable("limitCalculations/T6gg_v11/gg_1750_1650.txt", False)
 
     #drawSignalCutFlow(t5wg_1600_100)
     #drawSignalCutFlow(t5wg_1600_800)
