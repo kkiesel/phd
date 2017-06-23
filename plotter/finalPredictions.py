@@ -842,12 +842,12 @@ def finalDistributionSignalHist(name, dirSet, dirDir, preSet, preSetElectron, pr
             #text.DrawLatexNDC(.0,.0, "#color[0]{We are one planet}")
 
     if "Closure" in name:
-        r = ratio.Ratio("Ratio", dirHist, totStat, totSyst)
+        r = ratio.Ratio("Ratio  ", dirHist, totStat, totSyst)
         rMax = 2
         if name=="electronClosure_lowEMHT": rMax = 2.7
         r.draw(0., rMax, None, True)
     else:
-        r = ratio.Ratio("#lower[.24]{#splitline{Data/Predict.}{Bkg. fractions}}", dirHist, totStat, totSyst)
+        r = ratio.Ratio("#scale[.9]{#lower[.24]{#splitline{Data/Pred.}{Bkg. frac.}}}", dirHist, totStat, totSyst)
         rMax = 1.5
         if name == "ee_highEMHT": rMax = 1.8
         if name == "final_lowEMHT": rMax = 1.6
